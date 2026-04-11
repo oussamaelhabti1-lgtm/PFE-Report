@@ -2728,7 +2728,7 @@ findtime = 600
 			\hline
 			\rowcolor{tablerowalt}
 			CVE-2017-0144 (MS17-010) EternalBlue & 9.8 & Exploitation du protocole SMBv1 permettant l'exécution de code à distance (RCE) sans authentification. Utilisé par WannaCry et NotPetya. \\
-			CVE-2007-2447 Samba usermap\_script & 6.0 & Injection de commandes via le paramètre username dans Samba 3.0.0-3.0.25rc3. Exploitable sans authentification. \\
+			CVE-2007-2447 Samba usermap\_script & 10.0 & Injection de commandes via le paramètre username dans Samba 3.0.0-3.0.25rc3. Exploitable sans authentification (RCE, CVSS NVD v2: 10.0). \\
 			\rowcolor{tablerowalt}
 			CVE-2017-7494 SambaCry & 7.5 & Chargement de bibliothèques partagées malveillantes sur des partages Samba accessibles en écriture. \\
 			CVE-2008-4314 & 8.5 & Disclosure d'informations sur les partages réseau via des paquets malformés. \\
@@ -8687,15 +8687,15 @@ mysql -u dvwa -p'p@ssw0rd' dvwa -e \
   "SELECT user, password FROM users;"
 
 # Résultat
-+----------+----------------------------------+----------+
-| user     | password                         | avatar   |
-+----------+----------------------------------+----------+
-| admin    | 5f4dcc3b5aa765d61d8327deb882cf99 | ...      |
-| gordonb  | e99a18c428cb38d5f260853678922e03 | ...      |
-| 1337     | 8d3533d75ae2c3966d7e0d4fcc69216b | ...      |
-| pablo    | 0d107d09f5bbe40cade3de5c71e9e9b7 | ...      |
-| smithy   | 5f4dcc3b5aa765d61d8327deb882cf99 | ...      |
-+----------+----------------------------------+----------+
++----------+----------------------------------+
+| user     | password                         |
++----------+----------------------------------+
+| admin    | 5f4dcc3b5aa765d61d8327deb882cf99 |
+| gordonb  | e99a18c428cb38d5f260853678922e03 |
+| 1337     | 8d3533d75ae2c3966d7e0d4fcc69216b |
+| pablo    | 0d107d09f5bbe40cade3de5c71e9e9b7 |
+| smithy   | 5f4dcc3b5aa765d61d8327deb882cf99 |
++----------+----------------------------------+
 
 # Crackage des hashes MD5 (non salés)
 # 5f4dcc3b5aa765d61d8327deb882cf99 = "password"
