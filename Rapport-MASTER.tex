@@ -365,8 +365,6 @@ Enfin, nous remercions toutes les personnes qui, de près ou de loin, ont contri
 
 Ce rapport de Projet de Fin d'Études (PFE) présente une étude complète de la sécurité offensive et défensive dans une infrastructure réseau segmentée, réalisée dans le cadre de la filière IDRS (Infrastructure Digitale Réseau et Sécurité) à l'ESTK.
 
-Dans un contexte où les cyberattaques deviennent de plus en plus sophistiquées, les organisations doivent adopter une approche duale : comprendre les mécanismes d'attaque pour mieux construire les défenses. Ce projet incarne précisément cette philosophie en suivant un cycle complet : \textbf{construire la défense, mesurer la surface d'attaque, exploiter les vulnérabilités, détecter les attaques, et tester les applications web}.
-
 \section{Architecture Pédagogique : L'Approche en 7 Phases}
 
 Ce rapport documente sept phases interconnectées qui reproduisent un engagement de sécurité réaliste :
@@ -424,9 +422,7 @@ Ce chapitre présente la phase fondatrice du projet : la conception et le déplo
 \section{Introduction et Objectifs Pédagogiques}
 	
 	\subsection{Contexte du Projet}
-	Ce document présente la conception, le déploiement et la validation d'une infrastructure réseau sécurisée en laboratoire, simulant un environnement d'entreprise réel. L'objectif principal est de mettre en œuvre une architecture segmentée (WAN, DMZ, LAN) protégée par des couches multiples de sécurité périmétrique et hôte. Cette approche permet l'analyse de menaces, la compréhension des mécanismes de défense en profondeur et la pratique des tests d'intrusion contrôlés.
-	
-	Dans un contexte où les cyberattaques deviennent de plus en plus sophistiquées, la simple protection périmétrique ne suffit plus. Ce travail pratique vise à démontrer l'efficacité d'une stratégie de \textit{Defense in Depth} (Défense en Profondeur), combinant pare-feu nouvelle génération, systèmes de détection d'intrusion (IDS/IPS), et durcissement des hôtes. L'environnement de virtualisation utilisé est VMware Workstation, qui permet de simuler plusieurs machines interconnectées sur un seul hôte physique.
+	Ce document présente la conception, le déploiement et la validation d'une infrastructure réseau sécurisée en laboratoire, simulant un environnement d'entreprise réel. L'objectif principal est de mettre en œuvre une architecture segmentée (WAN, DMZ, LAN) protégée par des couches multiples de sécurité périmétrique et hôte, le tout déployé sous VMware Workstation pour simuler plusieurs machines interconnectées sur un seul hôte physique.
 	
 	\subsection{Objectifs Techniques Détaillés}
 	À l'issue de ce travail pratique, l'étudiant doit être capable de maîtriser les compétences suivantes :
@@ -985,9 +981,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 \section{Introduction et Objectifs Pédagogiques}
 	
 	\subsection{Contexte du Projet}
-	Cette phase s\'inscrit dans la continuité de la Phase 1 et se concentre sur la dimension \textbf{offensive} de la cybersécurité. Après avoir mis en place une architecture réseau segmentée et sécurisée, l'objectif est maintenant d'adopter la perspective de l'attaquant pour évaluer la \textbf{surface d'attaque} exposée et comprendre les mécanismes de \textbf{réduction de cette surface}.
-	
-	La surface d'attaque représente l'ensemble des points d'entrée potentiels qu'un adversaire peut exploiter pour compromettre un système. Dans un contexte de défense en profondeur, le principe fondamental est de \textbf{minimiser cette surface} en n'exposant que les services strictement nécessaires, tout en appliquant des contrôles de sécurité rigoureux.
+	Cette phase s\'inscrit dans la continuité de la Phase 1 et se concentre sur la dimension \textbf{offensive} de la cybersécurité. L'objectif est d'adopter la perspective de l'attaquant pour évaluer la \textbf{surface d'attaque} exposée et quantifier l'efficacité des contrôles de sécurité mis en place lors de la Phase 1.
 	
 	Cette phase utilise des outils de reconnaissance active (Nmap) pour cartographier les services exposés, démontre l'utilisation du NAT (Network Address Translation) avec Port Forwarding pour contrôler l'exposition des services, et analyse les résultats pour quantifier la réduction de la surface d'attaque obtenue.
 	
@@ -2477,9 +2471,7 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 	
 	\subsubsection{Positionnement de la Phase 3}
 	
-	Dans un scénario réaliste de test d'intrusion (penetration test), un attaquant qui compromise un système exposé sur Internet (zone WAN ou DMZ) ne se contente pas de cette première victoire. Son objectif ultime est souvent d'accéder aux ressources internes critiques situées dans des zones protégées (LAN). 
-	
-	Le \textbf{pivoting} consiste précisément à utiliser un système compromis comme point de rebond (\textit{pivot point}) pour atteindre des réseaux normalement inaccessibles depuis l'extérieur.
+	Le \textbf{pivoting} consiste à utiliser un système compromis comme point de rebond (\textit{pivot point}) pour atteindre des réseaux normalement inaccessibles depuis l'extérieur.
 	
 	\textbf{Cette Phase 3 valide de manière pratique les hypothèses de la Phase 2 :}
 	\begin{itemize}
