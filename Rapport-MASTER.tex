@@ -422,36 +422,16 @@ Ce chapitre présente la phase fondatrice du projet : la conception et le déplo
 \section{Introduction et Objectifs Pédagogiques}
 	
 	\subsection{Contexte du Projet}
-	Ce document présente la conception, le déploiement et la validation d'une infrastructure réseau sécurisée en laboratoire, simulant un environnement d'entreprise réel. L'objectif principal est de mettre en œuvre une architecture segmentée (WAN, DMZ, LAN) protégée par des couches multiples de sécurité périmétrique et hôte, le tout déployé sous VMware Workstation pour simuler plusieurs machines interconnectées sur un seul hôte physique.
+	Ce chapitre déploie une infrastructure segmentée (WAN/DMZ/LAN) sous VMware Workstation : pare-feu pfSense, IDS Snort, pfBlockerNG, UFW et Fail2Ban. L'infrastructure constitue le socle commun à toutes les phases suivantes.
 	
 	\subsection{Objectifs Techniques Détaillés}
-	À l'issue de ce travail pratique, l'étudiant doit être capable de maîtriser les compétences suivantes :
+	À l'issue de ce travail pratique, l'étudiant maîtrise :
 	
 	\begin{enumerate}[leftmargin=*]
-		\item \textbf{Architecture Réseau :}
-		\begin{itemize}
-			\item Déployer une infrastructure réseau virtuelle segmentée via VMware.
-			\item Configurer et opérer un pare-feu périmétrique robuste (pfSense).
-			\item Comprendre et appliquer les concepts de routage inter-VLAN et de NAT.
-		\end{itemize}
-		\item \textbf{Sécurité Périmétrique :}
-		\begin{itemize}
-			\item Mettre en œuvre des systèmes de détection d'intrusion (Snort, pfBlockerNG).
-			\item Configurer des règles de pare-feu stateful précises.
-			\item Gérer les listes de blocage basées sur le renseignement sur les menaces.
-		\end{itemize}
-		\item \textbf{Sécurité des Hôtes :}
-		\begin{itemize}
-			\item Appliquer des mesures de durcissement au niveau du système d'exploitation (UFW).
-			\item Configurer des systèmes de prévention d'intrusion hôte (Fail2Ban).
-			\item Isoler les services vulnérables via conteneurisation (Docker).
-		\end{itemize}
-		\item \textbf{Analyse et Validation :}
-		\begin{itemize}
-			\item Analyser des logs firewall et IDS pour détecter des comportements suspects.
-			\item Valider la segmentation et la sécurité de l'infrastructure via des tests de connectivité.
-			\item Documenter les incidents et les configurations de manière professionnelle.
-		\end{itemize}
+		\item \textbf{Architecture Réseau :} Déployer une infrastructure VMware segmentée, configurer pfSense, appliquer routage inter-zone et NAT.
+		\item \textbf{Sécurité Périmétrique :} Déployer Snort et pfBlockerNG, configurer des règles firewall stateful, gérer des listes de blocage IP.
+		\item \textbf{Sécurité des Hôtes :} Durcissement via UFW, prévention brute-force via Fail2Ban, isolation des services via Docker.
+		\item \textbf{Analyse et Validation :} Analyser des logs firewall/IDS, valider la segmentation, documenter incidents et configurations.
 	\end{enumerate}
 	
 	\subsection{Méthodologie Employée}
@@ -981,41 +961,16 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 \section{Introduction et Objectifs Pédagogiques}
 	
 	\subsection{Contexte du Projet}
-	Cette phase s\'inscrit dans la continuité de la Phase 1 et se concentre sur la dimension \textbf{offensive} de la cybersécurité. L'objectif est d'adopter la perspective de l'attaquant pour évaluer la \textbf{surface d'attaque} exposée et quantifier l'efficacité des contrôles de sécurité mis en place lors de la Phase 1.
-	
-	Cette phase utilise des outils de reconnaissance active (Nmap) pour cartographier les services exposés, démontre l'utilisation du NAT (Network Address Translation) avec Port Forwarding pour contrôler l'exposition des services, et analyse les résultats pour quantifier la réduction de la surface d'attaque obtenue.
+	Cette phase adopte la perspective de l'attaquant pour évaluer la \textbf{surface d'attaque} exposée. Nmap cartographie les services accessibles depuis le WAN, le NAT Port Forwarding contrôle l'exposition, et les résultats quantifient l'efficacité des contrôles de la Phase 1.
 	
 	\subsection{Objectifs Pédagogiques}
-	À la fin de ce travail pratique, les étudiants seront capables de :
+	À la fin de ce travail pratique, les étudiants sont capables de :
 	
 	\begin{enumerate}[leftmargin=*]
-		\item \textbf{Comprendre la Surface d'Attaque :}
-		\begin{itemize}
-			\item Définir précisément la notion de surface d'attaque.
-			\item Identifier les composantes de la surface d'attaque (ports, services, protocoles).
-			\item Expliquer le rôle central de la réduction de surface d'attaque en sécurité.
-		\end{itemize}
-		
-		\item \textbf{Maîtriser le NAT Port Forwarding :}
-		\begin{itemize}
-			\item Configurer des règles de Port Forwarding sur pfSense.
-			\item Comprendre le mécanisme de translation d'adresse et de port.
-			\item Expliquer comment le Port Forwarding réduit la surface d'attaque.
-		\end{itemize}
-		
-		\item \textbf{Utiliser Nmap pour la Reconnaissance :}
-		\begin{itemize}
-			\item Effectuer des scans de ports ciblés et complets.
-			\item Interpréter les états de ports (open, closed, filtered).
-			\item Analyser les résultats pour identifier les points d'entrée potentiels.
-		\end{itemize}
-		
-		\item \textbf{Analyser et Quantifier la Surface d'Attaque :}
-		\begin{itemize}
-			\item Calculer le pourcentage de ports exposés.
-			\item Comparer les scénarios avec et sans contrôles de sécurité.
-			\item Proposer des mesures pour réduire davantage la surface d'attaque.
-		\end{itemize}
+		\item \textbf{Surface d'attaque :} Définir, identifier ses composantes (ports, services, protocoles), quantifier sa réduction.
+		\item \textbf{NAT Port Forwarding :} Configurer sur pfSense, comprendre DNAT, expliquer l'impact sur l'exposition.
+		\item \textbf{Nmap :} Scans ciblés et complets, interpréter open/closed/filtered, identifier les vecteurs d'entrée.
+		\item \textbf{Analyse :} Calculer le pourcentage de ports exposés, comparer avec/sans protection, proposer des durcissements.
 	\end{enumerate}
 	
 	\subsection{Architecture du Laboratoire}
@@ -1046,47 +1001,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 		\label{tab:vm-config-tp2}
 	\end{table}
 	
-	\textbf{Note sur CentOS 7 :} Cette machine joue un rôle d'administration temporaire 
-	avec deux interfaces réseau : l'une connectée au WAN (192.168.100.131) pour l'accès 
-	Internet, l'autre au segment DMZ (192.168.10.0/24) pour accéder à l'interface web 
-	de pfSense (192.168.10.1). Elle a été utilisée pour la configuration initiale de 
-	pfSense (Phase 1) et les tests de validation préliminaires (Phase 2). Parrot Security est 
-	la machine attaquante principale pour tous les scans de reconnaissance et tests 
-	offensifs conformément au cahier des charges.
-	
-	
-	% ============================================
-	% AJOUTER ICI (CORRECTION #5)
-	% ============================================
-	
-	\subsubsection{Notes sur l'Architecture}
-	
-	\paragraph{Machine Administrative (CentOS 7)}
-	CentOS 7 joue un rôle d'administration temporaire dans ce laboratoire :
-	\begin{itemize}
-		\item \textbf{Interface 1 (NAT):} 192.168.100.131 --- Accès WAN pour Internet
-		\item \textbf{Interface 2 (DMZ\_SEG):} Accès à pfSense web UI (192.168.10.1)
-		\item \textbf{Usage Phase 1:} Configuration initiale de pfSense via interface web
-		\item \textbf{Usage Phase 2:} Tests de validation initiaux (client Telnet disponible nativement)
-	\end{itemize}
-	
-	Cette configuration \textit{dual-homed} (double interface) permet d'administrer 
-	pfSense sans exposer l'interface de gestion au réseau WAN, respectant ainsi les 
-	bonnes pratiques de sécurité (séparation management/production).
-	
-	\paragraph{Machine Attaquante (Parrot Security)}
-	Parrot Security est la machine attaquante principale utilisée pour tous les 
-	tests offensifs :
-	\begin{itemize}
-		\item \textbf{Interface unique (NAT):} 192.168.100.150 --- Position attaquant externe
-		\item \textbf{Outils installés:} Nmap 7.94SVN, Metasploit, BusyBox utilities
-		\item \textbf{Rôle:} Tous les scans de reconnaissance active et tests de pénétration
-	\end{itemize}
-	
-	% ============================================
-	% FIN DE L'AJOUT
-	% ============================================
-	
+	\textbf{Note sur CentOS 7 :} Machine dual-homed (WAN: 192.168.100.131, DMZ: 192.168.10.x) utilisée pour la configuration initiale de pfSense (Phase 1) et les tests de validation préliminaires (Phase 2). Parrot Security (192.168.100.150) est la machine attaquante principale pour tous les tests offensifs.
 	
 	\subsection{Méthodologie}
 	Ce projet suit une approche en trois phases :
@@ -1501,14 +1416,9 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 	
 	\subsection{Vérification de Configuration}
 	
-	Cette section valide le bon fonctionnement de la configuration NAT Port Forwarding 
-	en testant la connectivité Telnet depuis le réseau WAN.
-	
 	\subsubsection{Test Initial depuis CentOS (Machine Administrative)}
 	
-	Pour valider rapidement la configuration NAT, un premier test a été effectué depuis 
-	la machine CentOS, qui dispose nativement du client Telnet et d'un accès dual au 
-	réseau WAN.
+	Premier test depuis CentOS (client Telnet natif, accès WAN dual) :
 	
 	\begin{lstlisting}[caption=Test Telnet depuis CentOS via NAT]
 		[yasser-bella@CentOS-7 ~]$ telnet 192.168.100.6 23
@@ -1538,9 +1448,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 	
 	\subsubsection{Test depuis Parrot Security (Machine Attaquante)}
 	
-	La machine attaquante Parrot Security ne disposait pas du client Telnet standard 
-	installé par défaut. L'utilitaire \texttt{busybox telnet} a été utilisé comme 
-	alternative légère et fonctionnellement équivalente.
+	Parrot Security n'inclut pas \texttt{telnet} par défaut ; \texttt{busybox telnet} est utilisé en remplacement :
 	
 	\begin{lstlisting}[caption=Test Telnet depuis Parrot Security (busybox)]
 		~ ➜ which telnet
@@ -2411,137 +2319,30 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 	
 	\subsection{Contexte du Projet}
 	
-	Ce travail pratique constitue la troisième et dernière étape d'une série de laboratoires interconnectés démontrant le cycle complet d'un engagement de sécurité offensive. Il se concentre sur les techniques avancées de \textbf{pivoting réseau} et de \textbf{mouvement latéral}, deux concepts fondamentaux dans les opérations offensives modernes.
-	
-	\subsubsection{Progression Pédagogique des Trois Phases}
-	
-	Les trois phases du projet forment une progression logique reproduisant un scénario réaliste de test d'intrusion :
-	
-	\begin{table}[H]
-		\centering
-		\renewcommand{\arraystretch}{1.5}
-		\setlength{\arrayrulewidth}{0.5pt}
-		\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} p{4cm} p{7cm}}
-			\arrayrulecolor{tableborder}
-			\hline
-			\tableheadcolor
-			\textcolor{tableheadfg}{\textbf{TP}} &
-			\textcolor{tableheadfg}{\textbf{Phase}} &
-			\textcolor{tableheadfg}{\textbf{Objectifs Principaux}} \\
-			\hline
-			\rowcolor{tablerowalt}
-			\textbf{Phase 1} & Infrastructure Défensive & Déploiement de pfSense, segmentation réseau (WAN/DMZ/LAN), configuration des règles de pare-feu, mise en place de Snort IDS/IPS et pfBlockerNG \\
-			
-			\textbf{Phase 2} & Configuration \& Reconnaissance & Installation de services exposés (Telnet, HTTP, SMB), configuration du port forwarding NAT, reconnaissance active avec Nmap, analyse de la surface d'attaque \\
-			
-			\rowcolor{tablerowalt}
-			\textbf{Phase 3} & Exploitation \& Post-Exploitation & Compromission du serveur DMZ, établissement de persistence, pivoting vers le LAN, mouvement latéral, exfiltration de données \\
-			\hline
-		\end{tabular}
-		\caption{Progression des phases du projet Phase 1-Phase 2-Phase 3}
-		\label{tab:tp-progression}
-	\end{table}
-	
-	\subsubsection{Rappel des Acquis des Phases Précédentes}
-	
-	\paragraph{Phase 1 : Fondations Défensives}
-	La Phase 1 a établi l'infrastructure de base :
-	\begin{itemize}
-		\item Architecture réseau segmentée en trois zones (WAN, DMZ, LAN).
-		\item Pare-feu pfSense avec politiques de sécurité strictes.
-		\item Systèmes de détection d'intrusion (Snort, pfBlockerNG).
-		\item Principe de défense en profondeur (pare-feu périmétrique + pare-feu hôte).
-	\end{itemize}
-	
-	\paragraph{Phase 2 : Préparation du Terrain d'Attaque}
-	La Phase 2 a configuré les services cibles et réalisé une reconnaissance :
-	\begin{itemize}
-		\item \textbf{Installation du service Telnet} sur le serveur Ubuntu DMZ (Chapitre 2 de la Phase 2).
-		\item \textbf{Configuration des règles NAT} pour exposer les ports 23, 80, 139, 445 (Chapitre 3 de la Phase 2).
-		\item \textbf{Reconnaissance active avec Nmap} identifiant les services exposés (Chapitre 4 de la Phase 2).
-		\item \textbf{Analyse de la surface d'attaque} révélant les vulnérabilités critiques (Chapitre 5 de la Phase 2).
-	\end{itemize}
-	
-	\textbf{Découvertes Clés de la Phase 2 :}
-	\begin{itemize}
-		\item Le service Telnet (port 23) a été identifié comme vecteur d'attaque prioritaire en raison de l'absence de chiffrement.
-		\item Le scan Nmap a révélé l'état des ports exposés (open, filtered, closed).
-		\item L'analyse théorique a conclu que le service Telnet représentait une vulnérabilité critique (CVSS 9.8).
-	\end{itemize}
-	
-	\subsubsection{Positionnement de la Phase 3}
-	
-	Le \textbf{pivoting} consiste à utiliser un système compromis comme point de rebond (\textit{pivot point}) pour atteindre des réseaux normalement inaccessibles depuis l'extérieur.
-	
-	\textbf{Cette Phase 3 valide de manière pratique les hypothèses de la Phase 2 :}
-	\begin{itemize}
-		\item Les vulnérabilités théoriques identifiées sont-elles réellement exploitables ?
-		\item La segmentation réseau de la Phase 1 peut-elle être contournée via pivoting ?
-		\item Quel est l'impact réel d'une compromission de la DMZ sur le LAN ?
-	\end{itemize}
+	Cette phase valide pratiquement les vulnérabilités identifiées lors de la Phase 2 : le service Telnet (port 23, CVSS 9.8) sert de vecteur d'accès initial. Après compromission du serveur DMZ, deux techniques avancées sont démontrées : le \textbf{pivoting réseau} (utiliser un hôte compromis comme point de rebond vers le LAN) et le \textbf{mouvement latéral} (atteindre Windows XP en zone LAN).
 	
 	\subsubsection{Architecture Cible}
 	
-	L'infrastructure testée est celle déployée lors de la Phase 1 et configurée lors de la Phase 2 :
+	L'infrastructure est celle déployée en Phase 1 et configurée en Phase 2 :
 	\begin{itemize}
-		\item \textbf{Zone WAN} (192.168.100.0/24) : Interface externe simulant Internet.
-		\item \textbf{Zone DMZ} (192.168.10.0/24) : Serveur Ubuntu exposant des services (HTTP, Telnet, SMB).
-		\item \textbf{Zone LAN} (192.168.20.0/24) : Réseau interne sécurisé avec un poste Windows XP.
-		\item \textbf{Pare-feu pfSense} : Segmentation stricte entre zones, règles de blocage par défaut.
+		\item \textbf{Zone WAN} (192.168.100.0/24) : Parrot Security OS — machine attaquante
+		\item \textbf{Zone DMZ} (192.168.10.0/24) : Ubuntu Server exposant Telnet (port 23), HTTP (80), SMB (139/445)
+		\item \textbf{Zone LAN} (192.168.20.0/24) : Windows XP SP3 — cible secondaire via pivot
+		\item \textbf{pfSense 2.8.0} : Segmentation stricte entre zones, règles de blocage par défaut
 	\end{itemize}
 	
 	\subsection{Objectifs Pédagogiques}
 	
-	À l'issue de ce travail pratique, l'étudiant doit maîtriser les compétences techniques suivantes :
+	À l'issue de ce travail pratique, l'étudiant maîtrise :
 	
 	\begin{enumerate}[leftmargin=*]
-		\item \textbf{Compromission Initiale :}
-		\begin{itemize}
-			\item Exploiter les vulnérabilités identifiées lors de la Phase 2 (service Telnet).
-			\item Établir un accès initial sur un système cible.
-		\end{itemize}
-		
-		\item \textbf{Post-Exploitation et Persistence :}
-		\begin{itemize}
-			\item Migrer d'un shell basique vers un agent Meterpreter.
-			\item Maintenir un canal de commande et contrôle (C2) stable.
-			\item Énumérer le système compromis (OS, utilisateurs, services).
-		\end{itemize}
-		
-		\item \textbf{Pivoting Réseau :}
-		\begin{itemize}
-			\item Configurer des routes via Metasploit pour atteindre des réseaux internes.
-			\item Comprendre la différence entre routage statique et dynamique.
-			\item Utiliser un hôte compromis comme passerelle (gateway) vers le LAN.
-		\end{itemize}
-		
-		\item \textbf{Reconnaissance Latérale :}
-		\begin{itemize}
-			\item Scanner des réseaux internes \textit{à travers} le pivot.
-			\item Identifier des cibles secondaires (Windows XP dans le LAN).
-			\item Énumérer les services exposés (SMB, RDP).
-		\end{itemize}
-		
-		\item \textbf{Tentatives d'Exploitation Avancée :}
-		\begin{itemize}
-			\item Tester des exploits célèbres (MS08-067, MS17-010).
-			\item Comprendre les mécanismes de protection (patches, DEP).
-			\item Configurer des tunnels (port forwarding) pour exposer des services internes.
-		\end{itemize}
-		
-		\item \textbf{Collecte d'Intelligence :}
-		\begin{itemize}
-			\item Exfiltrer des données sensibles (comptes utilisateurs, configurations).
-			\item Utiliser des modules de post-exploitation Metasploit.
-			\item Analyser les connexions actives pour prouver la persistence.
-		\end{itemize}
-		
-		\item \textbf{Documentation et Méthodologie :}
-		\begin{itemize}
-			\item Documenter chaque phase de l'attaque avec des preuves.
-			\item Formuler des recommandations de remédiation.
-			\item Adopter une démarche éthique et responsable.
-		\end{itemize}
+		\item \textbf{Compromission initiale :} Exploiter Telnet (CVSS 9.8) pour obtenir un accès initial.
+		\item \textbf{Post-exploitation :} Migrer vers Meterpreter, maintenir un canal C2, énumérer le système.
+		\item \textbf{Pivoting réseau :} Configurer des routes Metasploit pour atteindre le LAN via l'hôte compromis.
+		\item \textbf{Reconnaissance latérale :} Scanner le LAN à travers le pivot, identifier Windows XP (SMB/RDP).
+		\item \textbf{Exploitation avancée :} Tester MS08-067, MS17-010 ; comprendre les mécanismes DEP/patches.
+		\item \textbf{Collecte d'intelligence :} Exfiltrer des données (comptes, configs) via modules post-exploitation.
+		\item \textbf{Documentation :} Rédiger des preuves techniques et formuler des recommandations de remédiation.
 	\end{enumerate}
 	
 	\subsection{Cadre Éthique et Légal}
@@ -2556,47 +2357,7 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 	
 	\subsection{Méthodologie d'Attaque}
 	
-	Notre démarche suit le modèle de la \textit{Cyber Kill Chain} de Lockheed Martin, adapté au contexte du pivoting :
-	
-	\begin{enumerate}
-		\item \textbf{Reconnaissance :} Exploitation des résultats Nmap de la Phase 2 (services exposés identifiés).
-		\item \textbf{Weaponization :} Préparation du payload Meterpreter.
-		\item \textbf{Delivery :} Téléchargement du payload via HTTP.
-		\item \textbf{Exploitation :} Exécution du payload, établissement du C2.
-		\item \textbf{Installation :} Persistence via sessions multiples.
-		\item \textbf{Command \& Control :} Gestion des sessions Meterpreter.
-		\item \textbf{Actions on Objectives :} Pivoting, reconnaissance du LAN, collecte de données.
-	\end{enumerate}
-	
-	\subsubsection{Corrélation avec les Phases Précédentes}
-	
-	\begin{table}[H]
-		\centering
-		\small
-		\renewcommand{\arraystretch}{1.4}
-		\setlength{\arrayrulewidth}{0.5pt}
-		\begin{tabular}{p{3.5cm} p{5cm} p{4.5cm}}
-			\arrayrulecolor{tableborder}
-			\hline
-			\tableheadcolor
-			\textcolor{tableheadfg}{\textbf{Phase Kill Chain}} &
-			\textcolor{tableheadfg}{\textbf{Action Phase 2}} &
-			\textcolor{tableheadfg}{\textbf{Action Phase 3}} \\
-			\hline
-			\rowcolor{tablerowalt}
-			Reconnaissance & Nmap scan (Chapitre 4) & Exploitation des résultats \\
-			Weaponization & Analyse théorique des vulnérabilités & Génération payload Meterpreter \\
-			\rowcolor{tablerowalt}
-			Delivery & Configuration NAT (Chapitre 3) & Téléchargement via wget \\
-			Exploitation & Identification Telnet vulnérable & Connexion et compromission \\
-			\rowcolor{tablerowalt}
-			Installation & N/A & Persistence C2 \\
-			Actions on Objectives & Analyse surface d'attaque & Pivoting + Exfiltration \\
-			\hline
-		\end{tabular}
-		\caption{Corrélation Phase 2-Phase 3 selon la Cyber Kill Chain}
-		\label{tab:kill-chain-correlation}
-	\end{table}
+	La démarche suit le modèle \textit{Cyber Kill Chain} : Reconnaissance (résultats Nmap Phase 2) → Weaponization (payload Meterpreter) → Delivery (wget HTTP) → Exploitation (Telnet) → Installation (persistence C2) → Command \& Control (sessions Meterpreter) → Actions on Objectives (pivoting LAN, exfiltration).
 	
 	% ------------------------------------------------------------------------------
 	% CHAPITRE 2 : ARCHITECTURE
@@ -2605,7 +2366,7 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 	
 	\subsection{Vue d'Ensemble de l'Infrastructure}
 	
-	L'infrastructure testée est identique à celle déployée lors de la Phase 1. Cette continuité permet de valider l'efficacité (ou les failles) des mécanismes de défense mis en place précédemment.
+	Infrastructure identique à la Phase 1 (voir Section~\ref{chap:infrastructure}). Rappel des composants :
 	
 	\begin{table}[ht]
 		\centering
@@ -4248,9 +4009,7 @@ Ce chapitre présente le déploiement de Snort IDS sur pfSense pour la détectio
 	
 	\subsection{Contexte et Motivation}
 	
-	Cette Phase 4 conclut la progression Phase 1--Phase 3 en basculant du \textbf{mode offensif} (reconnaissance, exploitation, pivoting) vers la \textbf{défense active}. L'objectif est de démontrer qu'un pare-feu périmétrique seul, bien qu'indispensable, ne fournit pas une visibilité suffisante sur les attaques lorsque celles-ci empruntent des flux \textit{autorisés}.  
-	
-	Dans les phases précédentes, une compromission du serveur DMZ a permis d'initier des actions de mouvement latéral vers le LAN (scan SMB/RDP, tentatives d'exploitation). Le pare-feu pfSense voyait principalement des connexions autorisées entre zones. Snort, au contraire, inspecte le contenu (\textit{payload}) et déclenche des alertes sur des signatures connues.
+	Cette Phase 4 bascule du mode offensif (Phases 1--3) vers la \textbf{défense active}. Le pare-feu pfSense filtre les connexions (L3/L4) mais ne caractérise pas le contenu des flux autorisés. Snort, en inspectant le \textit{payload} (DPI), génère des alertes sur les signatures connues — notamment les scans Nmap et le mouvement latéral SMB/RDP observés lors de la Phase 3.
 	
 	\subsection{Objectifs Pédagogiques}
 	
@@ -4593,17 +4352,7 @@ Ce chapitre étend l'analyse sécuritaire à la couche applicative web via DVWA 
 	
 	\subsection{Contexte de l'Évaluation}
 	
-	Ce rapport documente une évaluation de sécurité complète de l'application Damn Vulnerable Web Application (DVWA) v1.10, 
-	déployée dans une infrastructure de laboratoire segmentée. L'objectif principal est de démontrer les vulnérabilités 
-	présentes dans la liste OWASP Top 10 2021 et de valider l'efficacité des techniques de détection et d'exploitation.
-	
-	L'évaluation a été réalisée dans un environnement contrôlé, incluant :
-	\begin{itemize}
-		\item Une architecture réseau segmentée (WAN/DMZ/LAN) protégée par un pare-feu pfSense
-		\item Un serveur Web vulnérable (DVWA) déployé dans la DMZ via conteneurisation Docker
-		\item Une machine attaquante (Parrot Security OS) simulant une menace externe
-		\item Des systèmes de détection d'intrusion (Snort, pfBlockerNG)
-	\end{itemize}
+	Ce chapitre documente une évaluation de DVWA v1.10 déployée dans la DMZ via Docker. L'environnement : pfSense (WAN/DMZ/LAN), machine attaquante Parrot Security OS, IDS Snort et pfBlockerNG actifs.
 	
 	\subsection{Objectifs de Sécurité}
 	
@@ -5767,9 +5516,7 @@ Ce chapitre documente la Phase 6 : déploiement d'un honeypot SSH de type Cowrie
 
 \subsection{Contexte et Motivation}
 
-Les honeypots sont des systèmes intentionnellement vulnérables déployés pour collecter des données sur les attaquants. Contrairement aux systèmes de production que l'on cherche à protéger, un honeypot attire délibérément les attaquants afin d'observer leurs techniques, outils et comportements dans un environnement contrôlé.
-
-Dans le contexte de ce projet, le déploiement de Cowrie constitue la Phase 6 et s'inscrit dans la continuité logique des phases précédentes : après avoir simulé des attaques SSH en Phase 3, nous instrumentons maintenant un honeypot pour capturer automatiquement ce type d'activité malveillante.
+Un honeypot est un système intentionnellement vulnérable déployé pour observer les techniques, outils et comportements des attaquants dans un environnement contrôlé. Cowrie (Phase 6) capture les sessions SSH automatiquement, enrichissant les données collectées lors des simulations d'attaque de la Phase 3.
 
 \textbf{Objectifs principaux :}
 \begin{itemize}
@@ -5889,9 +5636,7 @@ Les techniques observées via Cowrie peuvent être mappées directement sur le f
 
 \section{Conclusion}
 
-Ce chapitre a présenté le déploiement et l'utilisation de Cowrie comme outil de collecte de renseignements sur les attaquants. Les honeypots constituent un complément précieux aux systèmes IDS/IPS traditionnels : là où Snort détecte les attaques contre les systèmes réels, Cowrie les attire délibérément dans un environnement contrôlé, permettant une analyse approfondie des techniques et outils utilisés.
-
-Les données collectées par Cowrie alimenteront directement le SIEM Wazuh (Phase 7), permettant une corrélation cross-phase et la détection de chaînes d'attaque multi-étapes.
+Cowrie complète Snort : là où Snort détecte les attaques sur les systèmes réels, le honeypot les attire dans un environnement contrôlé. Les sessions JSON collectées alimentent directement Wazuh (Phase 7) pour la corrélation cross-phase.
 
 % ==============================================================================
 % CHAPITRE 7 : WAZUH SIEM
@@ -5907,7 +5652,7 @@ Ce chapitre documente la Phase 7 : intégration d'une plateforme SIEM (Wazuh) po
 
 \subsection{Contexte : Du Monitoring à la Corrélation}
 
-Une SIEM (\textit{Security Information and Event Management}) fédère les données de sécurité provenant de multiples sources pour permettre une analyse centralisée, une détection d'anomalies et une réponse aux incidents coordonnée. Dans notre contexte, Wazuh agrège les événements des six phases précédentes pour offrir une vision unifiée de la sécurité de l'infrastructure.
+Wazuh agrège les événements des six phases précédentes (pfSense syslog, alertes Snort, sessions Cowrie JSON, journaux Ubuntu) pour une détection centralisée et une réponse automatisée. Là où chaque outil voit une partie de l'attaque, le SIEM corrèle la chaîne complète.
 
 \textbf{Objectifs principaux :}
 \begin{itemize}
@@ -5998,9 +5743,7 @@ logger "Wazuh Active Response: Blocked $ATTACKER_IP on pfSense"
 
 \section{Conclusion}
 
-Ce chapitre a présenté l'intégration de Wazuh comme plateforme SIEM centrale de notre infrastructure de sécurité. En agrégeant les données des sept phases du projet, Wazuh offre une visibilité complète sur la chaîne d'attaque, de la reconnaissance initiale (Phase 2) jusqu'à la post-exploitation (Phase 3), en passant par la détection IDS (Phase 4), les attaques web (Phase 5) et les sessions honeypot (Phase 6).
-
-Les perspectives d'évolution incluent l'intégration d'une plateforme SOAR (\textit{Security Orchestration, Automation and Response}) pour automatiser davantage la réponse aux incidents, ainsi que l'adoption d'une architecture Zero Trust pour renforcer la posture de sécurité globale.
+Wazuh agrège les logs des sept phases (pfSense, Snort, Cowrie, agents Ubuntu) pour offrir une visibilité complète sur la chaîne d'attaque. Les perspectives d'évolution : intégration SOAR et architecture Zero Trust.
 
 % ==============================================================================
 % ANNEXE A : DOCUMENTATION TECHNIQUE
