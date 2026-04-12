@@ -332,17 +332,6 @@ Ce rapport de Projet de Fin d'Études (PFE) présente une étude complète de la
 
 Dans un contexte où les cyberattaques deviennent de plus en plus sophistiquées, les organisations doivent adopter une approche duale : comprendre les mécanismes d'attaque pour mieux construire les défenses. Ce projet incarne précisément cette philosophie en suivant un cycle complet : \textbf{construire la défense, mesurer la surface d'attaque, exploiter les vulnérabilités, détecter les attaques, et tester les applications web}.
 
-\section{Questions de Recherche}
-
-Ce projet répond aux questions fondamentales suivantes :
-\begin{enumerate}[leftmargin=*]
-	\item \textbf{Efficacité de la segmentation :} Une architecture WAN/DMZ/LAN correctement configurée peut-elle limiter la propagation d'une attaque ?
-	\item \textbf{Réductibilité de la surface d'attaque :} Dans quelle mesure le NAT/Port Forwarding réduit-il l'exposition aux menaces ?
-	\item \textbf{Exploitabilité des vulnérabilités :} Les services identifiés comme vulnérables lors de la reconnaissance sont-ils réellement exploitables en pratique ?
-	\item \textbf{Valeur ajoutée de l'IDS :} Qu'apporte Snort que le pare-feu seul ne peut détecter ?
-	\item \textbf{Périmètre web :} Les applications web constituant la surface exposée, quelles sont les vulnérabilités OWASP les plus critiques ?
-\end{enumerate}
-
 \section{Architecture Pédagogique : L'Approche en 5 Phases}
 
 Ce rapport documente cinq phases interconnectées qui reproduisent un engagement de sécurité réaliste :
@@ -389,7 +378,7 @@ Toutes les phases partagent la même infrastructure virtualisée sous VMware Wor
 Ce rapport est structuré en six chapitres : le Chapitre~\ref{chap:infrastructure} présente l'infrastructure défensive, le Chapitre~\ref{chap:reconnaissance} couvre la reconnaissance active, le Chapitre~\ref{chap:exploitation} détaille l'exploitation et le pivoting, le Chapitre~\ref{chap:snort} analyse la détection IDS, le Chapitre~\ref{chap:dvwa} présente les tests d'applications web, et le Chapitre~\ref{chap:synthesis} propose une analyse intégrée et des recommandations.
 
 % ==============================================================================
-% CHAPITRE 1 : INFRASTRUCTURE DÉFENSIVE (TP-1)
+% CHAPITRE 1 : INFRASTRUCTURE DÉFENSIVE (Phase 1)
 % ==============================================================================
 \chapter{Infrastructure Défensive}
 \label{chap:infrastructure}
@@ -496,7 +485,7 @@ Ce chapitre présente la phase fondatrice du projet : la conception et le déplo
 		Système moderne permettant l'installation et la conteneurisation 
 		(via Docker) de services volontairement vulnérables (DVWA, Telnet, Samba). 
 		Plus flexible que Metasploitable pour les configurations avancées 
-		des TPs ultérieurs.
+		des phases ultérieures.
 		
 		\item \textbf{Windows XP Pro SP3 au lieu de Windows Server + Windows Client:} 
 		Limitation des ressources matérielles disponibles (RAM, CPU). 
@@ -612,16 +601,16 @@ Ce chapitre présente la phase fondatrice du projet : la conception et le déplo
 	\section{Configuration et Sécurité Périmétrique (pfSense)}
 	
 	% ============================================
-	% NOTE SUR LE PÉRIMÈTRE DU TP1
+	% NOTE SUR LE PÉRIMÈTRE DU Phase 1
 	% ============================================
 	
 	\begin{tcolorbox}[colback=secondary!10!white, colframe=secondary, 
-		title=\textbf{Note sur le Périmètre du TP1}]
+		title=\textbf{Note sur le Périmètre de la Phase 1}]
 		\textbf{Contexte:} Ce chapitre documente des configurations avancées 
 		(Port Forwarding NAT, exposition de services) réalisées en anticipation 
-		du TP2 \textit{"Reconnaissance Active et Analyse de Surface d'Attaque"}.
+		de la Phase 2 \textit{"Reconnaissance Active et Analyse de Surface d'Attaque"}.
 		
-		\textbf{Périmètre TP1 strict:} Le cahier des charges du TP1 se limite à:
+		\textbf{Périmètre Phase 1 strict:} Le cahier des charges de la Phase 1 se limite à:
 		\begin{itemize}[nosep]
 			\item Configuration de base des interfaces pfSense (WAN/DMZ/LAN)
 			\item Activation du serveur DHCP
@@ -631,10 +620,10 @@ Ce chapitre présente la phase fondatrice du projet : la conception et le déplo
 		
 		\textbf{Justification de l'inclusion:} Les règles NAT et de pare-feu 
 		documentées ici ont été configurées pour préparer l'infrastructure 
-		aux TPs suivants. Elles permettent d'exposer les services de la DMZ 
-		(HTTP, SMB) nécessaires aux phases de reconnaissance (TP2) et 
-		d'exploitation (TP3). Cette approche anticipe les besoins techniques 
-		et évite la reconfiguration complète entre les TPs.
+		aux phases suivantes. Elles permettent d'exposer les services de la DMZ 
+		(HTTP, SMB) nécessaires aux phases de reconnaissance (Phase 2) et 
+		d'exploitation (Phase 3). Cette approche anticipe les besoins techniques 
+		et évite la reconfiguration complète entre les phases.
 		
 		\textbf{Analyse des logs (Chapitre 6):} Les journaux pfSense présentés 
 		référencent ces règles NAT (notamment la règle 12004), démontrant 
@@ -962,11 +951,11 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 \section{Introduction et Objectifs Pédagogiques}
 	
 	\subsection{Contexte du Projet}
-	Ce travail pratique s'inscrit dans la continuité du TP1 et se concentre sur la dimension \textbf{offensive} de la cybersécurité. Après avoir mis en place une architecture réseau segmentée et sécurisée, l'objectif est maintenant d'adopter la perspective de l'attaquant pour évaluer la \textbf{surface d'attaque} exposée et comprendre les mécanismes de \textbf{réduction de cette surface}.
+	Cette phase s\'inscrit dans la continuité de la Phase 1 et se concentre sur la dimension \textbf{offensive} de la cybersécurité. Après avoir mis en place une architecture réseau segmentée et sécurisée, l'objectif est maintenant d'adopter la perspective de l'attaquant pour évaluer la \textbf{surface d'attaque} exposée et comprendre les mécanismes de \textbf{réduction de cette surface}.
 	
 	La surface d'attaque représente l'ensemble des points d'entrée potentiels qu'un adversaire peut exploiter pour compromettre un système. Dans un contexte de défense en profondeur, le principe fondamental est de \textbf{minimiser cette surface} en n'exposant que les services strictement nécessaires, tout en appliquant des contrôles de sécurité rigoureux.
 	
-	Ce TP utilise des outils de reconnaissance active (Nmap) pour cartographier les services exposés, démontre l'utilisation du NAT (Network Address Translation) avec Port Forwarding pour contrôler l'exposition des services, et analyse les résultats pour quantifier la réduction de la surface d'attaque obtenue.
+	Cette phase utilise des outils de reconnaissance active (Nmap) pour cartographier les services exposés, démontre l'utilisation du NAT (Network Address Translation) avec Port Forwarding pour contrôler l'exposition des services, et analyse les résultats pour quantifier la réduction de la surface d'attaque obtenue.
 	
 	\subsection{Objectifs Pédagogiques}
 	À la fin de ce travail pratique, les étudiants seront capables de :
@@ -1002,7 +991,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 	\end{enumerate}
 	
 	\subsection{Architecture du Laboratoire}
-	L'infrastructure utilisée est identique à celle du TP1, avec les composants suivants :
+	L'infrastructure utilisée est identique à celle de la Phase 1, avec les composants suivants :
 	
 	\begin{table}[ht]
 		\centering
@@ -1025,7 +1014,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 			CentOS 7 & Admin Temporaire & WAN/DMZ & 192.168.100.131 \\
 			\hline
 		\end{tabular}
-		\caption{Configuration des Machines Virtuelles (TP2)}
+		\caption{Configuration des Machines Virtuelles (Phase 2)}
 		\label{tab:vm-config-tp2}
 	\end{table}
 	
@@ -1033,7 +1022,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 	avec deux interfaces réseau : l'une connectée au WAN (192.168.100.131) pour l'accès 
 	Internet, l'autre au segment DMZ (192.168.10.0/24) pour accéder à l'interface web 
 	de pfSense (192.168.10.1). Elle a été utilisée pour la configuration initiale de 
-	pfSense (TP1) et les tests de validation préliminaires (TP2). Parrot Security est 
+	pfSense (Phase 1) et les tests de validation préliminaires (Phase 2). Parrot Security est 
 	la machine attaquante principale pour tous les scans de reconnaissance et tests 
 	offensifs conformément au cahier des charges.
 	
@@ -1049,8 +1038,8 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 	\begin{itemize}
 		\item \textbf{Interface 1 (NAT):} 192.168.100.131 --- Accès WAN pour Internet
 		\item \textbf{Interface 2 (DMZ\_SEG):} Accès à pfSense web UI (192.168.10.1)
-		\item \textbf{Usage TP1:} Configuration initiale de pfSense via interface web
-		\item \textbf{Usage TP2:} Tests de validation initiaux (client Telnet disponible nativement)
+		\item \textbf{Usage Phase 1:} Configuration initiale de pfSense via interface web
+		\item \textbf{Usage Phase 2:} Tests de validation initiaux (client Telnet disponible nativement)
 	\end{itemize}
 	
 	Cette configuration \textit{dual-homed} (double interface) permet d'administrer 
@@ -1072,7 +1061,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 	
 	
 	\subsection{Méthodologie}
-	Le TP suit une approche en trois phases :
+	Ce projet suit une approche en trois phases :
 	
 	\begin{description}
 		\item[Phase 1 --- Configuration Défensive :] Installation et configuration du service Telnet sur le serveur Ubuntu DMZ, incluant la sécurisation au niveau hôte (pare-feu UFW).
@@ -1412,7 +1401,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 			\includegraphics[width=0.9\textwidth]{example-image}
 			\caption*{\textbf{Attention :} Fichier screenshots/nat-rules-2.png introuvable.}
 		}
-		\caption{Configuration des règles NAT Port Forward sur pfSense (TP2)}
+		\caption{Configuration des règles NAT Port Forward sur pfSense (Phase 2)}
 		\label{fig:nat-rules-tp2}
 	\end{figure}
 	
@@ -1439,7 +1428,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 			\includegraphics[width=0.9\textwidth]{example-image}
 			\caption*{\textbf{Attention :} Fichier screenshots/firewall-rules-2.png introuvable.}
 		}
-		\caption{Règles de Pare-feu WAN associées au NAT (TP2)}
+		\caption{Règles de Pare-feu WAN associées au NAT (Phase 2)}
 		\label{fig:firewall-rules-tp2}
 	\end{figure}
 	
@@ -1548,7 +1537,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 	
 	✅ \textbf{Validation depuis la machine attaquante réussie.} Le comportement est 
 	identique au test depuis CentOS, confirmant que la configuration NAT est accessible 
-	depuis n'importe quelle machine du réseau WAN, conformément aux objectifs du TP.
+	depuis n'importe quelle machine du réseau WAN, conformément aux objectifs de la phase.
 	
 	\textbf{Note Technique :} BusyBox est une suite d'outils Unix compacte intégrant 
 	des versions allégées de commandes standard (telnet, wget, nc, etc.). Le client 
@@ -1677,7 +1666,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 			\item Cible pour brute-force : Dictionnaires de mots de passe courants.
 			\item Accès shell direct si compromis.
 		\end{itemize}
-		\item \textbf{Impact Sécurité :} Exposition délibérée pour ce TP, mais en production, Telnet doit être \textbf{désactivé et remplacé par SSH}.
+		\item \textbf{Impact Sécurité :} Exposition délibérée pour cette phase, mais en production, Telnet doit être \textbf{désactivé et remplacé par SSH}.
 	\end{itemize}
 	
 	\subsection{Test 3 : Scan du Port 22 (SSH)}
@@ -1764,7 +1753,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 	
 	\textbf{Observation Clé :} Les ports 139 et 445 affichent \texttt{closed} au lieu de \texttt{filtered}. Cela indique que :
 	\begin{itemize}
-		\item Des règles NAT existent (du TP1, services Samba).
+		\item Des règles NAT existent (de la Phase 1, services Samba).
 		\item Le pare-feu pfSense autorise le trafic (paquets atteignent la DMZ).
 		\item Les services Samba ne sont pas actifs ou redémarrés sur Ubuntu.
 		\item État \texttt{closed} moins sécurisé que \texttt{filtered} car il révèle des informations sur les règles firewall.
@@ -1866,7 +1855,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 	\end{itemize}
 	
 	\subsubsection{Scénario B : Architecture Actuelle avec pfSense NAT}
-	Avec pfSense et Port Forwarding sélectif (configuration TP2) :
+	Avec pfSense et Port Forwarding sélectif (configuration Phase 2) :
 	
 	\begin{lstlisting}[caption=Scan Nmap réel avec pfSense]
 		nmap 192.168.100.6
@@ -2232,7 +2221,7 @@ findtime = 600
 	\label{subsec:samba-cvss}
 
 	\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{AVERTISSEMENT : Ports closed mais règles NAT présentes}]
-		Lors du scan Nmap, les ports 139 et 445 ont été détectés en état \textbf{closed} (service inactif). Cependant, des règles NAT existent dans pfSense (configurées au TP1). Si le service Samba venait à être démarré, ces ports seraient exposés au WAN --- d'où l'importance d'une analyse préventive.
+		Lors du scan Nmap, les ports 139 et 445 ont été détectés en état \textbf{closed} (service inactif). Cependant, des règles NAT existent dans pfSense (configurées à la Phase 1). Si le service Samba venait à être démarré, ces ports seraient exposés au WAN --- d'où l'importance d'une analyse préventive.
 	\end{tcolorbox}
 
 	\subsubsection{Contexte Historique}
@@ -2267,7 +2256,7 @@ findtime = 600
 
 	\subsubsection{Risque dans Notre Contexte}
 	\begin{itemize}
-		\item \textbf{EternalBlue (MS17-010) :} Bien que ciblant SMBv1 sur Windows, des variantes Linux existent. Si Samba était actif et accessible, une tentative d'exploitation serait probable (comme observé en TP3 avec Windows XP).
+		\item \textbf{EternalBlue (MS17-010) :} Bien que ciblant SMBv1 sur Windows, des variantes Linux existent. Si Samba était actif et accessible, une tentative d'exploitation serait probable (comme observé en Phase 3 avec Windows XP).
 		\item \textbf{usermap\_script :} La version de Samba utilisée dans notre Docker image doit être vérifiée. Si vulnérable, un attaquant pourrait obtenir un shell root sans authentification.
 		\item \textbf{Ports ``closed'' vs ``filtered'' :} L'état ``closed'' révèle l'existence de règles NAT, informant l'attaquant qu'un service SMB peut exister (même si inactif).
 	\end{itemize}
@@ -2396,9 +2385,9 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 	
 	Ce travail pratique constitue la troisième et dernière étape d'une série de laboratoires interconnectés démontrant le cycle complet d'un engagement de sécurité offensive. Il se concentre sur les techniques avancées de \textbf{pivoting réseau} et de \textbf{mouvement latéral}, deux concepts fondamentaux dans les opérations offensives modernes.
 	
-	\subsubsection{Progression Pédagogique des Trois TP}
+	\subsubsection{Progression Pédagogique des Trois Phases}
 	
-	Les trois travaux pratiques forment une progression logique reproduisant un scénario réaliste de test d'intrusion :
+	Les trois phases du projet forment une progression logique reproduisant un scénario réaliste de test d'intrusion :
 	
 	\begin{table}[H]
 		\centering
@@ -2413,22 +2402,22 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 			\textcolor{tableheadfg}{\textbf{Objectifs Principaux}} \\
 			\hline
 			\rowcolor{tablerowalt}
-			\textbf{TP1} & Infrastructure Défensive & Déploiement de pfSense, segmentation réseau (WAN/DMZ/LAN), configuration des règles de pare-feu, mise en place de Snort IDS/IPS et pfBlockerNG \\
+			\textbf{Phase 1} & Infrastructure Défensive & Déploiement de pfSense, segmentation réseau (WAN/DMZ/LAN), configuration des règles de pare-feu, mise en place de Snort IDS/IPS et pfBlockerNG \\
 			
-			\textbf{TP2} & Configuration \& Reconnaissance & Installation de services exposés (Telnet, HTTP, SMB), configuration du port forwarding NAT, reconnaissance active avec Nmap, analyse de la surface d'attaque \\
+			\textbf{Phase 2} & Configuration \& Reconnaissance & Installation de services exposés (Telnet, HTTP, SMB), configuration du port forwarding NAT, reconnaissance active avec Nmap, analyse de la surface d'attaque \\
 			
 			\rowcolor{tablerowalt}
-			\textbf{TP3} & Exploitation \& Post-Exploitation & Compromission du serveur DMZ, établissement de persistence, pivoting vers le LAN, mouvement latéral, exfiltration de données \\
+			\textbf{Phase 3} & Exploitation \& Post-Exploitation & Compromission du serveur DMZ, établissement de persistence, pivoting vers le LAN, mouvement latéral, exfiltration de données \\
 			\hline
 		\end{tabular}
-		\caption{Progression des Travaux Pratiques TP1-TP2-TP3}
+		\caption{Progression des phases du projet Phase 1-Phase 2-Phase 3}
 		\label{tab:tp-progression}
 	\end{table}
 	
-	\subsubsection{Rappel des Acquis des TP Précédents}
+	\subsubsection{Rappel des Acquis des Phases Précédentes}
 	
-	\paragraph{TP1 : Fondations Défensives}
-	Le TP1 a établi l'infrastructure de base :
+	\paragraph{Phase 1 : Fondations Défensives}
+	La Phase 1 a établi l'infrastructure de base :
 	\begin{itemize}
 		\item Architecture réseau segmentée en trois zones (WAN, DMZ, LAN).
 		\item Pare-feu pfSense avec politiques de sécurité strictes.
@@ -2436,38 +2425,38 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 		\item Principe de défense en profondeur (pare-feu périmétrique + pare-feu hôte).
 	\end{itemize}
 	
-	\paragraph{TP2 : Préparation du Terrain d'Attaque}
-	Le TP2 a configuré les services cibles et réalisé une reconnaissance :
+	\paragraph{Phase 2 : Préparation du Terrain d'Attaque}
+	La Phase 2 a configuré les services cibles et réalisé une reconnaissance :
 	\begin{itemize}
-		\item \textbf{Installation du service Telnet} sur le serveur Ubuntu DMZ (Chapitre 2 du TP2).
-		\item \textbf{Configuration des règles NAT} pour exposer les ports 23, 80, 139, 445 (Chapitre 3 du TP2).
-		\item \textbf{Reconnaissance active avec Nmap} identifiant les services exposés (Chapitre 4 du TP2).
-		\item \textbf{Analyse de la surface d'attaque} révélant les vulnérabilités critiques (Chapitre 5 du TP2).
+		\item \textbf{Installation du service Telnet} sur le serveur Ubuntu DMZ (Chapitre 2 de la Phase 2).
+		\item \textbf{Configuration des règles NAT} pour exposer les ports 23, 80, 139, 445 (Chapitre 3 de la Phase 2).
+		\item \textbf{Reconnaissance active avec Nmap} identifiant les services exposés (Chapitre 4 de la Phase 2).
+		\item \textbf{Analyse de la surface d'attaque} révélant les vulnérabilités critiques (Chapitre 5 de la Phase 2).
 	\end{itemize}
 	
-	\textbf{Découvertes Clés du TP2 :}
+	\textbf{Découvertes Clés de la Phase 2 :}
 	\begin{itemize}
 		\item Le service Telnet (port 23) a été identifié comme vecteur d'attaque prioritaire en raison de l'absence de chiffrement.
 		\item Le scan Nmap a révélé l'état des ports exposés (open, filtered, closed).
 		\item L'analyse théorique a conclu que le service Telnet représentait une vulnérabilité critique (CVSS 9.8).
 	\end{itemize}
 	
-	\subsubsection{Positionnement du TP3}
+	\subsubsection{Positionnement de la Phase 3}
 	
 	Dans un scénario réaliste de test d'intrusion (penetration test), un attaquant qui compromise un système exposé sur Internet (zone WAN ou DMZ) ne se contente pas de cette première victoire. Son objectif ultime est souvent d'accéder aux ressources internes critiques situées dans des zones protégées (LAN). 
 	
 	Le \textbf{pivoting} consiste précisément à utiliser un système compromis comme point de rebond (\textit{pivot point}) pour atteindre des réseaux normalement inaccessibles depuis l'extérieur.
 	
-	\textbf{Ce TP3 valide de manière pratique les hypothèses du TP2 :}
+	\textbf{Cette Phase 3 valide de manière pratique les hypothèses de la Phase 2 :}
 	\begin{itemize}
 		\item Les vulnérabilités théoriques identifiées sont-elles réellement exploitables ?
-		\item La segmentation réseau du TP1 peut-elle être contournée via pivoting ?
+		\item La segmentation réseau de la Phase 1 peut-elle être contournée via pivoting ?
 		\item Quel est l'impact réel d'une compromission de la DMZ sur le LAN ?
 	\end{itemize}
 	
 	\subsubsection{Architecture Cible}
 	
-	L'infrastructure testée est celle déployée lors du TP1 et configurée lors du TP2 :
+	L'infrastructure testée est celle déployée lors de la Phase 1 et configurée lors de la Phase 2 :
 	\begin{itemize}
 		\item \textbf{Zone WAN} (192.168.100.0/24) : Interface externe simulant Internet.
 		\item \textbf{Zone DMZ} (192.168.10.0/24) : Serveur Ubuntu exposant des services (HTTP, Telnet, SMB).
@@ -2482,7 +2471,7 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 	\begin{enumerate}[leftmargin=*]
 		\item \textbf{Compromission Initiale :}
 		\begin{itemize}
-			\item Exploiter les vulnérabilités identifiées lors du TP2 (service Telnet).
+			\item Exploiter les vulnérabilités identifiées lors de la Phase 2 (service Telnet).
 			\item Établir un accès initial sur un système cible.
 		\end{itemize}
 		
@@ -2544,7 +2533,7 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 	Notre démarche suit le modèle de la \textit{Cyber Kill Chain} de Lockheed Martin, adapté au contexte du pivoting :
 	
 	\begin{enumerate}
-		\item \textbf{Reconnaissance :} Exploitation des résultats Nmap du TP2 (services exposés identifiés).
+		\item \textbf{Reconnaissance :} Exploitation des résultats Nmap de la Phase 2 (services exposés identifiés).
 		\item \textbf{Weaponization :} Préparation du payload Meterpreter.
 		\item \textbf{Delivery :} Téléchargement du payload via HTTP.
 		\item \textbf{Exploitation :} Exécution du payload, établissement du C2.
@@ -2565,8 +2554,8 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 			\hline
 			\tableheadcolor
 			\textcolor{tableheadfg}{\textbf{Phase Kill Chain}} &
-			\textcolor{tableheadfg}{\textbf{Action TP2}} &
-			\textcolor{tableheadfg}{\textbf{Action TP3}} \\
+			\textcolor{tableheadfg}{\textbf{Action Phase 2}} &
+			\textcolor{tableheadfg}{\textbf{Action Phase 3}} \\
 			\hline
 			\rowcolor{tablerowalt}
 			Reconnaissance & Nmap scan (Chapitre 4) & Exploitation des résultats \\
@@ -2579,7 +2568,7 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 			Actions on Objectives & Analyse surface d'attaque & Pivoting + Exfiltration \\
 			\hline
 		\end{tabular}
-		\caption{Corrélation TP2-TP3 selon la Cyber Kill Chain}
+		\caption{Corrélation Phase 2-Phase 3 selon la Cyber Kill Chain}
 		\label{tab:kill-chain-correlation}
 	\end{table}
 	
@@ -2590,7 +2579,7 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 	
 	\subsection{Vue d'Ensemble de l'Infrastructure}
 	
-	L'infrastructure testée est identique à celle déployée lors du TP1. Cette continuité permet de valider l'efficacité (ou les failles) des mécanismes de défense mis en place précédemment.
+	L'infrastructure testée est identique à celle déployée lors de la Phase 1. Cette continuité permet de valider l'efficacité (ou les failles) des mécanismes de défense mis en place précédemment.
 	
 	\begin{table}[ht]
 		\centering
@@ -2649,7 +2638,7 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 	
 	\subsection{Configuration des Règles de Pare-feu}
 	
-	Les règles pfSense configurées lors du TP1 restent actives, notamment :
+	Les règles pfSense configurées lors de la Phase 1 restent actives, notamment :
 	
 	\begin{itemize}
 		\item \textbf{Port Forwarding NAT :} Redirection des ports 80, 139, 445 vers 192.168.10.100.
@@ -2726,20 +2715,20 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 % ==============================================================================
 \subsection{Note sur l'Adaptation du Laboratoire}
 \begin{tcolorbox}[colback=secondary!5!white, colframe=secondary, 
-	title=\textbf{ADAPTATION TECHNIQUE DU TP3},
+	title=\textbf{ADAPTATION TECHNIQUE DE LA PHASE 3},
 	breakable]
 	
 	\textbf{Divergence avec le Sujet Original:}
 	
-	Le sujet du TP3 demande d'exploiter une machine \textbf{Metasploitable} 
+	Le sujet de la Phase 3 demande d'exploiter une machine \textbf{Metasploitable} 
 	via l'exploit Samba \texttt{usermap\_script} (CVE-2007-2447, port 139).
 	
 	\textbf{Architecture Réelle de notre Laboratoire:}
 	
-	Notre infrastructure, construite progressivement lors des TP1 et TP2, 
+	Notre infrastructure, construite progressivement lors des Phase 1 et Phase 2, 
 	utilise un serveur \textbf{Ubuntu 25.04 DMZ} avec les services suivants:
 	\begin{itemize}
-		\item Telnet (port 23) - configuré lors du TP2, Chapitre 2
+		\item Telnet (port 23) - configuré lors de la Phase 2, Chapitre 2
 		\item HTTP/DVWA (port 80) - serveur web vulnérable
 		\item Samba (ports 139/445) - partage de fichiers
 		\item Docker (172.17.0.0/16) - conteneurs applicatifs
@@ -2750,7 +2739,7 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 	\textbf{Adaptation Réalisée:}
 	
 	Plutôt que de recréer l'infrastructure complète, nous avons adapté le 
-	TP3 en utilisant le service \textbf{Telnet} comme vecteur d'attaque 
+	La Phase 3 utilise le service \textbf{Telnet} comme vecteur d'attaque 
 	initial au lieu de Samba. Cette adaptation:
 	
 	\begin{enumerate}
@@ -2763,11 +2752,11 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 			\item Reconnaissance et tentatives d'exploitation ✓
 		\end{itemize}
 		
-		\item \textbf{Maintient la cohérence des TP:}
+		\item \textbf{Maintient la cohérence des phases :}
 		\begin{itemize}
-			\item Continuité TP1 (infrastructure) → TP2 (reconnaissance) → TP3 (exploitation)
-			\item Service Telnet déjà analysé comme vulnérabilité critique dans TP2
-			\item NAT port forwarding configuré en TP2 (ports 23, 80, 139, 445)
+			\item Continuité Phase 1 (infrastructure) → Phase 2 (reconnaissance) → Phase 3 (exploitation)
+			\item Service Telnet déjà analysé comme vulnérabilité critique dans la Phase 2
+			\item NAT port forwarding configuré en Phase 2 (ports 23, 80, 139, 445)
 		\end{itemize}
 		
 		\item \textbf{Offre un réalisme équivalent:}
@@ -2796,10 +2785,10 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 		\captionof{table}{Comparaison Technique des Vecteurs d'Attaque}
 	\end{center}
 	
-	\textbf{Conséquence sur les Étapes du TP:}
+	\textbf{Conséquence sur les Étapes de la phase :}
 	
 	\begin{itemize}
-		\item \textbf{Étape 1 (NAT):} Port 139 → Port 23 (déjà configuré en TP2)
+		\item \textbf{Étape 1 (NAT):} Port 139 → Port 23 (déjà configuré en Phase 2)
 		\item \textbf{Étape 2 (Exploit):} usermap\_script → Connexion Telnet
 		\item \textbf{Étapes 3-5:} Identiques (Meterpreter, pivoting, reconnaissance)
 	\end{itemize}
@@ -2811,14 +2800,14 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 		\item Compréhension des concepts (pas simple exécution de script)
 		\item Capacité d'adaptation technique
 		\item Pensée critique (choix de vecteur réaliste)
-		\item Intégration des connaissances TP1-TP2-TP3
+		\item Intégration des connaissances Phase 1-Phase 2-Phase 3
 	\end{itemize}
 	
 \end{tcolorbox}
-\subsection{Rappel : Vulnérabilités Identifiées (TP2)}
+\subsection{Rappel : Vulnérabilités Identifiées (Phase 2)}
 
-Le TP2 a identifié plusieurs services exposés sur le serveur DMZ. Le tableau 
-ci-dessous synthétise les découvertes pertinentes pour ce TP3.
+La Phase 2 a identifié plusieurs services exposés sur le serveur DMZ. Le tableau 
+ci-dessous synthétise les découvertes pertinentes pour cette Phase 3.
 
 \begin{table}[H]
 	\centering
@@ -2831,34 +2820,34 @@ ci-dessous synthétise les découvertes pertinentes pour ce TP3.
 		\textcolor{tableheadfg}{\textbf{Port}} &
 		\textcolor{tableheadfg}{\textbf{Service}} &
 		\textcolor{tableheadfg}{\textbf{Vulnérabilité}} &
-		\textcolor{tableheadfg}{\textbf{Exploitation TP3}} \\
+		\textcolor{tableheadfg}{\textbf{Exploitation Phase 3}} \\
 		\hline
 		\rowcolor{tablerowalt}
 		23/TCP & Telnet & Credentials faibles & ✅ Vecteur d'accès initial \\
-		80/TCP & HTTP/DVWA & Vulnérabilités web & ⏭️ Hors scope TP3 \\
+		80/TCP & HTTP/DVWA & Vulnérabilités web & ⏭️ Hors scope Phase 3 \\
 		\rowcolor{tablerowalt}
 		139/TCP & Samba & Partage de fichiers & ⏭️ Reconnaissance uniquement \\
 		445/TCP & Samba & Partage de fichiers & ⏭️ Reconnaissance uniquement \\
 		\hline
 	\end{tabular}
-	\caption{Synthèse des Vulnérabilités TP2 (Référence : TP2 Chapitre 4)}
+	\caption{Synthèse des Vulnérabilités Phase 2 (Référence : Phase 2 Chapitre 4)}
 	\label{tab:tp2-vulnerabilities}
 \end{table}
 
 \textbf{Décision Stratégique:} Le service Telnet (port 23) avec credentials 
 faibles (\texttt{telnetuser:test123}) constitue le vecteur d'attaque optimal 
-pour ce TP3. Les autres services identifiés seront utilisés pour la 
+pour cette Phase 3. Les autres services identifiés seront utilisés pour la 
 reconnaissance post-compromission mais ne seront pas exploités directement.
 
-\textbf{Configuration Préalable:} Le NAT port forwarding (configuré en TP2, 
+\textbf{Configuration Préalable:} Le NAT port forwarding (configuré en Phase 2, 
 Chapitre 2) redirige \texttt{192.168.100.6:23} (WAN) vers 
 \texttt{192.168.10.100:23} (DMZ), permettant l'accès externe au service Telnet.
 
-Pour les détails complets de la reconnaissance, se référer au TP2 Chapitre 4.
+Pour les détails complets de la reconnaissance, se référer à la Phase 2 Chapitre 4.
 
-\subsection{Reconnaissance Initiale (Validation TP3)}
+\subsection{Reconnaissance Initiale (Validation Phase 3)}
 
-Bien que les services aient déjà été identifiés lors du TP2, nous procédons à une validation rapide pour confirmer que la configuration n'a pas changé.
+Bien que les services aient déjà été identifiés lors de la Phase 2, nous procédons à une validation rapide pour confirmer que la configuration n'a pas changé.
 
 \begin{lstlisting}[caption=Scan Nmap de Validation]
 	$ nmap -sV -Pn 192.168.100.6
@@ -2873,18 +2862,18 @@ Bien que les services aient déjà été identifiés lors du TP2, nous procédon
 
 \subsection{Validation de la Cible}
 	
-Les résultats de reconnaissance du TP2 sont confirmés : le service Telnet 
+Les résultats de reconnaissance de la Phase 2 sont confirmés : le service Telnet 
 est accessible sur \texttt{192.168.100.6:23} (NAT vers 192.168.10.100:23). 
-Les credentials identifiés lors du TP2 (\texttt{telnetuser:test123}) restent 
+Les credentials identifiés lors de la Phase 2 (\texttt{telnetuser:test123}) restent 
 valides. Cette validation confirme la cohérence de la chaîne d'attaque 
-TP1→TP2→TP3 et permet de procéder directement à l'exploitation sans phase 
+Phase 1→Phase 2→Phase 3 et permet de procéder directement à l'exploitation sans phase 
 de reconnaissance supplémentaire.
 
 \subsection{Exploitation du Service Telnet}
 
 \subsubsection{Connexion Initiale}
 
-Nous procédons à l'exploitation du service Telnet en utilisant les credentials identifiés lors de la phase de configuration du TP2.
+Nous procédons à l'exploitation du service Telnet en utilisant les credentials identifiés lors de la phase de configuration de la Phase 2.
 
 \begin{lstlisting}[caption=Accès Telnet Initial]
 	$ busybox telnet 192.168.100.6 23
@@ -2901,7 +2890,7 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 
 ✅ \textbf{Résultat :} Compromission réussie ! Nous obtenons un shell interactif avec le compte \texttt{telnetuser}.
 
-\textbf{Validation de l'Hypothèse TP2 :} La vulnérabilité Telnet identifiée théoriquement lors du TP2 est confirmée comme étant exploitable en pratique. Les mécanismes de défense mis en place (pare-feu pfSense, segmentation réseau) n'ont pas empêché cette compromission.
+\textbf{Validation de l\'Hypothèse Phase 2 :} La vulnérabilité Telnet identifiée théoriquement lors de la Phase 2 est confirmée comme étant exploitable en pratique. Les mécanismes de défense mis en place (pare-feu pfSense, segmentation réseau) n'ont pas empêché cette compromission.
 
 \subsubsection{Énumération Initiale du Système}
 
@@ -2936,7 +2925,7 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 
 \textbf{Découverte Critique :} L'utilisateur \texttt{telnetuser} dispose de privilèges sudo complets ! Cela signifie que nous pouvons exécuter n'importe quelle commande en tant que root.
 
-\textbf{Note de Sécurité :} Cette configuration (sudo ALL sans restriction) constitue une vulnérabilité supplémentaire non identifiée lors du TP2. Elle permet une élévation de privilèges immédiate de \textit{user} vers \textit{root}, aggravant considérablement l'impact de la compromission initiale.
+\textbf{Note de Sécurité :} Cette configuration (sudo ALL sans restriction) constitue une vulnérabilité supplémentaire non identifiée lors de la Phase 2. Elle permet une élévation de privilèges immédiate de \textit{user} vers \textit{root}, aggravant considérablement l'impact de la compromission initiale.
 
 \subsection{Implications de la Compromission}
 
@@ -2951,7 +2940,7 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 	\item ✅ Accès aux conteneurs Docker hébergés sur cette machine.
 \end{itemize}
 
-\subsubsection{Validation de la Chaîne TP1 → TP2 → TP3}
+\subsubsection{Validation de la Chaîne Phase 1 → Phase 2 → Phase 3}
 
 \begin{table}[H]
 	\centering
@@ -2967,19 +2956,19 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 		\textcolor{tableheadfg}{\textbf{Résultat}} \\
 		\hline
 		\rowcolor{tablerowalt}
-		TP1 & Déploiement infrastructure défensive & Segmentation réseau établie \\
+		Phase 1 & Déploiement infrastructure défensive & Segmentation réseau établie \\
 		
-		TP2 & Configuration Telnet + Reconnaissance & Vulnérabilité identifiée (CVSS 9.8) \\
+		Phase 2 & Configuration Telnet + Reconnaissance & Vulnérabilité identifiée (CVSS 9.8) \\
 		
 		\rowcolor{tablerowalt}
-		TP3 & Exploitation de la vulnérabilité & \textcolor{accent}{\textbf{Compromission confirmée}} \\
+		Phase 3 & Exploitation de la vulnérabilité & \textcolor{accent}{\textbf{Compromission confirmée}} \\
 		\hline
 	\end{tabular}
 	\caption{Validation de la Progression Pédagogique}
 	\label{tab:progression-validation}
 \end{table}
 
-\textbf{Conclusion de la Phase 1 :} L'analyse théorique du TP2 s'est révélée exacte. Le service Telnet, identifié comme vulnérabilité critique, a permis une compromission complète du serveur DMZ avec élévation de privilèges. Cette compromission valide l'importance de l'analyse de la surface d'attaque réalisée lors du TP2.
+\textbf{Conclusion de la Phase 1 :} L'analyse théorique de la Phase 2 s'est révélée exacte. Le service Telnet, identifié comme vulnérabilité critique, a permis une compromission complète du serveur DMZ avec élévation de privilèges. Cette compromission valide l'importance de l'analyse de la surface d'attaque réalisée lors de la Phase 2.
 
 \textbf{Prochaine étape :} Migrer vers un agent Meterpreter pour disposer de fonctionnalités avancées de post-exploitation et préparer le pivoting vers le réseau LAN.
 	
@@ -3236,7 +3225,7 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 	
 	\textbf{Note:} Dans notre environnement de laboratoire, la règle pfSense 
 	autorisant le trafic DMZ → LAN avait été préalablement configurée lors 
-	de la préparation du TP (détails dans la section suivante). Le test ping 
+	de la préparation de la phase (détails dans la section suivante). Le test ping 
 	présenté confirme cette connectivité existante. Dans un scénario de test 
 	d'intrusion réel, cette règle constituerait une erreur de configuration 
 	critique permettant le pivoting après compromission de la DMZ.
@@ -3277,7 +3266,7 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 			\item \textbf{Protocol:} Any (tous protocoles)
 			\item \textbf{Source:} DMZ net (192.168.10.0/24)
 			\item \textbf{Destination:} INTERNAL\_LAN net (192.168.20.0/24)
-			\item \textbf{Description:} "TP3 Pivoting Lab - DMZ to LAN Access (INSECURE)"
+			\item \textbf{Description:} "Phase 3 Pivoting Lab - DMZ to LAN Access (INSECURE)"
 		\end{itemize}
 		
 		\item \textbf{Sauvegarde et application:}
@@ -3291,7 +3280,7 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 	
 	\textbf{Conséquences de cette règle:}
 	\begin{itemize}
-		\item ✅ Permet le pivoting technique (objectif pédagogique du TP)
+		\item ✅ Permet le pivoting technique (objectif pédagogique de la phase)
 		\item ❌ Brise la segmentation réseau
 		\item ❌ Autorise une machine compromise (DMZ) à attaquer le LAN
 		\item ❌ Transforme la DMZ en tremplin vers les ressources critiques
@@ -4233,13 +4222,13 @@ Ce chapitre présente le déploiement de Snort IDS sur pfSense pour la détectio
 	
 	\subsection{Contexte et Motivation}
 	
-	Ce TP4 conclut la progression TP1--TP3 en basculant du \textbf{mode offensif} (reconnaissance, exploitation, pivoting) vers la \textbf{défense active}. L'objectif est de démontrer qu'un pare-feu périmétrique seul, bien qu'indispensable, ne fournit pas une visibilité suffisante sur les attaques lorsque celles-ci empruntent des flux \textit{autorisés}.  
+	Cette Phase 4 conclut la progression Phase 1--Phase 3 en basculant du \textbf{mode offensif} (reconnaissance, exploitation, pivoting) vers la \textbf{défense active}. L'objectif est de démontrer qu'un pare-feu périmétrique seul, bien qu'indispensable, ne fournit pas une visibilité suffisante sur les attaques lorsque celles-ci empruntent des flux \textit{autorisés}.  
 	
-	Dans les TP précédents, une compromission du serveur DMZ a permis d'initier des actions de mouvement latéral vers le LAN (scan SMB/RDP, tentatives d'exploitation). Le pare-feu pfSense voyait principalement des connexions autorisées entre zones. Snort, au contraire, inspecte le contenu (\textit{payload}) et déclenche des alertes sur des signatures connues.
+	Dans les phases précédentes, une compromission du serveur DMZ a permis d'initier des actions de mouvement latéral vers le LAN (scan SMB/RDP, tentatives d'exploitation). Le pare-feu pfSense voyait principalement des connexions autorisées entre zones. Snort, au contraire, inspecte le contenu (\textit{payload}) et déclenche des alertes sur des signatures connues.
 	
 	\subsection{Objectifs Pédagogiques}
 	
-	À l'issue de ce TP4, l'étudiant doit être capable de :
+	À l\'issue de cette Phase 4, l'étudiant doit être capable de :
 	
 	\begin{enumerate}[leftmargin=*]
 		\item Distinguer \textbf{pare-feu}, \textbf{IDS} et \textbf{IPS}, et expliquer leurs rôles complémentaires.
@@ -4364,7 +4353,7 @@ Ce chapitre présente le déploiement de Snort IDS sur pfSense pour la détectio
 			Windows XP Client & Cible secondaire & LAN & Windows XP SP3 \\
 			\hline
 		\end{tabular}
-		\caption{Inventaire des Machines Virtuelles (TP4)}
+		\caption{Inventaire des Machines Virtuelles (Phase 4)}
 		\label{tab:vm-inventory-tp4}
 	\end{table}
 	
@@ -4393,7 +4382,7 @@ Ce chapitre présente le déploiement de Snort IDS sur pfSense pour la détectio
 			LAN (192.168.20.0/24) & Windows XP & 192.168.20.50 \\
 			\hline
 		\end{tabular}
-		\caption{Plan d'Adressage IP utilisé dans le TP4}
+		\caption{Plan d'Adressage IP utilisé dans la Phase 4}
 		\label{tab:ip-plan-tp4}
 	\end{table}
 	
@@ -4409,7 +4398,7 @@ Ce chapitre présente le déploiement de Snort IDS sur pfSense pour la détectio
 		
 		\textbf{Justification :}
 		\begin{itemize}
-			\item Permettre la reproduction des attaques du TP3 (exploitation, pivoting) sans interruption.
+			\item Permettre la reproduction des attaques de la Phase 3 (exploitation, pivoting) sans interruption.
 			\item Collecter des alertes exploitables pour analyse.
 			\item Éviter des coupures de service dues à des faux positifs.
 		\end{itemize}
@@ -4463,7 +4452,7 @@ Ce chapitre présente le déploiement de Snort IDS sur pfSense pour la détectio
 	
 	\subsection{Principe de la démonstration ``Avant / Après''}
 	
-	L'objectif est de reproduire des événements similaires à ceux du TP3 et de vérifier que :
+	L'objectif est de reproduire des événements similaires à ceux de la Phase 3 et de vérifier que :
 	\begin{itemize}
 		\item un pare-feu seul ne fournit pas de contexte sur le contenu d'une attaque,
 		\item Snort déclenche des alertes grâce à ses signatures,
@@ -4490,7 +4479,7 @@ Ce chapitre présente le déploiement de Snort IDS sur pfSense pour la détectio
 		Message   : ET POLICY Executable and linking format (ELF) file download
 	\end{lstlisting}
 	
-	\textbf{Interprétation :} Snort a identifié, via signature, un motif correspondant à un \textbf{exécutable ELF}. Cette détection est cohérente avec le TP3 où un payload \texttt{meterpreter.elf} a été généré et transféré dans le cadre de la post-exploitation.
+	\textbf{Interprétation :} Snort a identifié, via signature, un motif correspondant à un \textbf{exécutable ELF}. Cette détection est cohérente avec la Phase 3 où un payload \texttt{meterpreter.elf} a été généré et transféré dans le cadre de la post-exploitation.
 	
 	\begin{figure}[H]
 		\centering
@@ -5626,7 +5615,7 @@ cat ~/.bash_history | grep -i "mysql\|pass\|scp\|ssh"
 
 \subsubsection{Contexte}
 
-L'accès au processus \texttt{www-data} offre un point de départ pour explorer d'autres machines du réseau interne. Combiné avec le pivot Meterpreter établi en TP3, il permet de croiser les informations collectées.
+L'accès au processus \texttt{www-data} offre un point de départ pour explorer d'autres machines du réseau interne. Combiné avec le pivot Meterpreter établi en Phase 3, il permet de croiser les informations collectées.
 
 \subsubsection{Énumération Réseau depuis www-data}
 
