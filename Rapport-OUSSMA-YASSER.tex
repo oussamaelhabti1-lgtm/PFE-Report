@@ -1630,7 +1630,7 @@ entre pare-feu et IDS dans une architecture de défense en profondeur.
 Ce chapitre documente l'évaluation de sécurité complète de l'application
 \textbf{Damn Vulnerable Web Application (DVWA) v1.10}, déployée dans notre infrastructure segmentée
 (zone DMZ). L'objectif est d'identifier et d'exploiter les vulnérabilités présentes dans la liste
-\textbf{OWASP Top 10 : 2025} afin de comprendre concrètement les risques applicatifs modernes.
+\textbf{OWASP Top 10 2021}\footnote{\url{https://owasp.org/Top10/}} afin de comprendre concrètement les risques applicatifs modernes.
 
 \begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectifs de ce Chapitre}]
 \begin{itemize}
@@ -1687,6 +1687,13 @@ CONTAINER ID   IMAGE                  STATUS       PORTS
 \section{Identification et Exploitation des Vulnérabilités}
 
 Un total de \textbf{8 attaques réussies} ont été documentées, couvrant \textbf{7 catégories OWASP Top 10}.
+
+\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Note sur la correspondance DVWA / OWASP Top 10 2021}]
+Les modules suivants issus de DVWA sont examinés et mis en correspondance avec les catégories
+pertinentes de l'OWASP Top 10 2021, sans prétendre à une correspondance stricte un-à-un.
+Certains modules (ex.\ \textit{File Upload}, \textit{Error Disclosure}) sont des fonctionnalités DVWA
+qui illustrent des risques transverses couverts par plusieurs catégories OWASP.
+\end{tcolorbox}
 
 \begin{table}[H]
     \centering
@@ -1754,7 +1761,7 @@ permettant d'affiner les payloads d'exploitation.
 
 \textbf{Remédiation :} utiliser des \textit{prepared statements} avec paramètres liés :
 \begin{lstlisting}[language=php, caption={Requête sécurisée avec Prepared Statement}]
-// VULNERALBE (ne jamais faire ceci)
+// VULNERABLE (ne jamais faire ceci)
 $query = "SELECT * FROM users WHERE id = " . $_GET['id'];
 
 // SECURISE
@@ -1930,7 +1937,7 @@ secondes, sans aucun contournement technique.
         A10 & Error Disclosure & MOYENNE & Type SGBD révélé \\
         \hline
     \end{tabularx}
-    \caption{Synthèse OWASP Top 10 : 2025 --- résultats d'évaluation sur DVWA}
+    \caption{Synthèse OWASP Top 10 2021 --- résultats d'évaluation sur DVWA}
     \label{tab:dvwa-owasp-summary}
 \end{table}
 
@@ -2093,7 +2100,7 @@ Cowrie is running (PID 2847)
 
 Cowrie permet de personnaliser le système fictif présenté à l'attaquant pour le rendre plus
 convaincant :
-\begin{lstlisting}[language=bash, caption={Personnalisation de la banière SSH et du système Cowrie}]
+\begin{lstlisting}[language=bash, caption={Personnalisation de la bannière SSH et du système Cowrie}]
 # Modifier le hostname du système emule
 echo "ubuntu-srv" > /home/cowrie/cowrie/honeyfs/etc/hostname
 
