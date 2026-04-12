@@ -155,6 +155,15 @@
 \newcommand{\hidepagenumbers}{\showpagenumbersfalse\pagestyle{empty}}
 \newcommand{\showpagenumbers}{\showpagenumberstrue\pagestyle{fancy}}
 
+% Commande pour un chapitre sans numérotation (ex. Introduction Générale)
+\newcommand{\unnumberedchapter}[1]{%
+	\titleformat{\chapter}[block]%
+	{\normalfont\Huge\bfseries\color{primary}}{}{0em}{}%
+	\chapter{#1}%
+	\titleformat{\chapter}[display]%
+	{\normalfont\huge\bfseries\color{primary}}{\chaptertitlename\ \thechapter}{20pt}{\Huge}%
+}
+
 % ==============================================================================
 % FORMATAGE DES TITRES
 % ==============================================================================
@@ -302,9 +311,35 @@
 \end{titlepage}
 
 % ------------------------------------------------------------------------------
-% PAGES LIMINAIRES
+% REMERCIEMENTS
 % ------------------------------------------------------------------------------
 \hidepagenumbers
+\chapter*{Remerciements}
+\addcontentsline{toc}{chapter}{Remerciements}
+
+\vspace{1cm}
+
+Nous tenons à exprimer notre profonde gratitude à toutes les personnes qui ont contribué à la réalisation de ce projet de fin d'études.
+
+Nos sincères remerciements vont en premier lieu à notre encadrante, \textbf{Mme Salma El Bakkal}, dont le soutien, la disponibilité et les précieux conseils tout au long de ce travail ont été déterminants pour la réussite de ce projet. Sa rigueur scientifique et ses orientations pertinentes nous ont guidés dans nos choix techniques et méthodologiques.
+
+Nous remercions également l'ensemble du corps enseignant de la filière IDRS à l'ESTK pour la qualité de la formation dispensée et pour nous avoir transmis la passion de la cybersécurité et des réseaux.
+
+Nos remerciements vont aussi à nos familles pour leur soutien indéfectible et leurs encouragements tout au long de notre parcours académique.
+
+Enfin, nous remercions toutes les personnes qui, de près ou de loin, ont contribué à l'aboutissement de ce travail.
+
+\vfill
+\begin{flushright}
+\textit{Yasser Bella et Oussama El Habti}\\
+\textit{ESTK — IDRS — 2024/2025}
+\end{flushright}
+
+\newpage
+
+% ------------------------------------------------------------------------------
+% PAGES LIMINAIRES
+% ------------------------------------------------------------------------------
 \tableofcontents
 \newpage
 \listoffigures
@@ -317,13 +352,11 @@
 \setcounter{page}{1}
 
 % ==============================================================================
-% CHAPITRE 0 : INTRODUCTION GÉNÉRALE
+% INTRODUCTION GÉNÉRALE
 % ==============================================================================
 
 \setcounter{chapter}{-1}
-
-\setcounter{chapter}{-1}
-\chapter{Introduction Générale}
+\unnumberedchapter{Introduction Générale}
 \label{chap:introduction}
 
 \section{Contexte du Projet}
@@ -332,15 +365,15 @@ Ce rapport de Projet de Fin d'Études (PFE) présente une étude complète de la
 
 Dans un contexte où les cyberattaques deviennent de plus en plus sophistiquées, les organisations doivent adopter une approche duale : comprendre les mécanismes d'attaque pour mieux construire les défenses. Ce projet incarne précisément cette philosophie en suivant un cycle complet : \textbf{construire la défense, mesurer la surface d'attaque, exploiter les vulnérabilités, détecter les attaques, et tester les applications web}.
 
-\section{Architecture Pédagogique : L'Approche en 5 Phases}
+\section{Architecture Pédagogique : L'Approche en 7 Phases}
 
-Ce rapport documente cinq phases interconnectées qui reproduisent un engagement de sécurité réaliste :
+Ce rapport documente sept phases interconnectées qui reproduisent un engagement de sécurité réaliste :
 
 \begin{table}[H]
 	\centering
 	\renewcommand{\arraystretch}{1.5}
 	\setlength{\arrayrulewidth}{0.5pt}
-	\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} p{3.5cm} p{7.5cm}}
+	\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} p{4cm} p{7cm}}
 		\arrayrulecolor{tableborder}
 		\hline
 		\tableheadcolor
@@ -353,12 +386,15 @@ Ce rapport documente cinq phases interconnectées qui reproduisent un engagement
 		\textbf{2} & Reconnaissance Active & Exposer un service Telnet, configurer NAT, cartographier la surface d'attaque avec Nmap \\
 		\rowcolor{tablerowalt}
 		\textbf{3} & Exploitation \& Post-exploitation & Compromettre la DMZ via Telnet, établir un pivot Meterpreter, effectuer un mouvement latéral \\
-		\textbf{4} & Détection Active (IDS) & Déployer Snort sur pfSense, détecter les attaques WAN et le mouvement latéral LAN \\
+		\textbf{4} & Détection Active Snort IDS & Déployer Snort sur pfSense, détecter les attaques WAN et le mouvement latéral LAN \\
 		\rowcolor{tablerowalt}
-		\textbf{5} & Tests Web (DVWA) & Exploiter les vulnérabilités OWASP Top 10 sur une application web intentionnellement vulnérable \\
+		\textbf{5} & Web Application Exploitation DVWA & Exploiter les vulnérabilités OWASP Top 10 sur une application web intentionnellement vulnérable \\
+		\textbf{6} & Cowrie SSH Honeypot & Déployer un honeypot SSH low/high interaction, collecter des sessions d'attaque, mapper les techniques selon MITRE ATT\&CK \\
+		\rowcolor{tablerowalt}
+		\textbf{7} & Wazuh SIEM & Agréger les logs (pfSense, Snort, Cowrie), configurer des règles de corrélation, gérer les alertes et activer la réponse automatisée IP-blocking \\
 		\hline
 	\end{tabular}
-	\caption{Architecture Pédagogique des 5 Phases du PFE}
+	\caption{Architecture Pédagogique des 7 Phases du PFE}
 	\label{tab:phases}
 \end{table}
 
@@ -372,10 +408,6 @@ Toutes les phases partagent la même infrastructure virtualisée sous VMware Wor
 	\item \textbf{Parrot Security OS} : Machine attaquante en zone WAN (IP: 192.168.100.150)
 	\item \textbf{Windows XP SP3} : Cible secondaire en zone LAN (IP: 192.168.20.50)
 \end{itemize}
-
-\section{Organisation du Document}
-
-Ce rapport est structuré en six chapitres : le Chapitre~\ref{chap:infrastructure} présente l'infrastructure défensive, le Chapitre~\ref{chap:reconnaissance} couvre la reconnaissance active, le Chapitre~\ref{chap:exploitation} détaille l'exploitation et le pivoting, le Chapitre~\ref{chap:snort} analyse la détection IDS, le Chapitre~\ref{chap:dvwa} présente les tests d'applications web, et le Chapitre~\ref{chap:synthesis} propose une analyse intégrée et des recommandations.
 
 % ==============================================================================
 % CHAPITRE 1 : INFRASTRUCTURE DÉFENSIVE (Phase 1)
@@ -1189,7 +1221,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 		LISTEN 0    10    0.0.0.0:23    0.0.0.0:*    users:(("inetutils-inetd",pid=1062,fd=4))
 	\end{lstlisting}
 	
-	✅ Le service écoute sur \textbf{toutes les interfaces} (0.0.0.0:23), avec une file d'attente de 10 connexions.
+	\textcolor{green}{\checkmark} Le service écoute sur \textbf{toutes les interfaces} (0.0.0.0:23), avec une file d'attente de 10 connexions.
 	
 	\subsection{Création d'un Utilisateur de Test}
 	Un compte utilisateur dédié a été créé pour les tests de connexion Telnet :
@@ -1238,7 +1270,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 		Connection closed by foreign host.
 	\end{lstlisting}
 	
-	✅ \textbf{Authentification réussie}, shell interactif fonctionnel, déconnexion propre.
+	\textcolor{green}{\checkmark} \textbf{Authentification réussie}, shell interactif fonctionnel, déconnexion propre.
 	
 	\subsection{Configuration du Pare-feu Hôte (UFW)}
 	
@@ -1279,7 +1311,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 		23/tcp                     ALLOW       Anywhere    # <--- AJOUTÉ
 	\end{lstlisting}
 	
-	✅ Port 23 désormais autorisé pour IPv4 et IPv6.
+	\textcolor{green}{\checkmark} Port 23 désormais autorisé pour IPv4 et IPv6.
 	
 	\subsubsection{Principe de Défense en Profondeur}
 	Cette étape illustre un concept clé : \textbf{la défense en profondeur (Defense in Depth)}. Même après configuration de pfSense, le pare-feu hôte constitue une \textbf{barrière supplémentaire}.
@@ -1312,7 +1344,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 		telnetuser
 	\end{lstlisting}
 	
-	✅ \textbf{Service Telnet opérationnel et sécurisé au niveau hôte.}
+	\textcolor{green}{\checkmark} \textbf{Service Telnet opérationnel et sécurisé au niveau hôte.}
 	
 	% ------------------------------------------------------------------------------
 	% CHAPITRE 3 : NAT PORT FORWARDING
@@ -1499,7 +1531,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 		Connection closed by foreign host.
 	\end{lstlisting}
 	
-	✅ \textbf{Connexion établie avec succès via NAT}, l'utilisateur est authentifié 
+	\textcolor{green}{\checkmark} \textbf{Connexion établie avec succès via NAT}, l'utilisateur est authentifié 
 	et obtient un shell interactif. Cette validation confirme que :
 	\begin{itemize}
 		\item La règle NAT redirige correctement WAN:23 → DMZ:192.168.10.100:23
@@ -1535,7 +1567,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 		Connection closed by foreign host
 	\end{lstlisting}
 	
-	✅ \textbf{Validation depuis la machine attaquante réussie.} Le comportement est 
+	\textcolor{green}{\checkmark} \textbf{Validation depuis la machine attaquante réussie.} Le comportement est 
 	identique au test depuis CentOS, confirmant que la configuration NAT est accessible 
 	depuis n'importe quelle machine du réseau WAN, conformément aux objectifs de la phase.
 	
@@ -1613,7 +1645,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 		Connection to 192.168.100.6 23 port [tcp/telnet] succeeded!
 	\end{lstlisting}
 	
-	✅ Connectivité TCP confirmée (ICMP bloqué par pfSense, comportement normal).
+	\textcolor{green}{\checkmark} Connectivité TCP confirmée (ICMP bloqué par pfSense, comportement normal).
 	
 	\subsection{Test 1 : Scan du Port 80 (HTTP)}
 	\subsubsection{Commande et Résultats}
@@ -1884,7 +1916,7 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 	\text{Réduction (maximum)} = \frac{5\% - 0.2\%}{5\%} \times 100 = 96\%
 	\]
 	
-	✅ \textbf{Réduction de 93-96\% de la surface d'attaque grâce à pfSense.}
+	\textcolor{green}{\checkmark} \textbf{Réduction de 93-96\% de la surface d'attaque grâce à pfSense.}
 	
 	\subsection{Analyse Port par Port}
 	
@@ -1996,11 +2028,11 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 	
 	\subsubsection{Mesures Déjà Implémentées}
 	\begin{itemize}
-		\item ✅ \textbf{Segmentation Réseau :} DMZ isolée du LAN via pfSense.
-		\item ✅ \textbf{NAT Port Forwarding :} Exposition sélective de 4 ports sur 1000.
-		\item ✅ \textbf{Pare-feu Périmétrique :} pfSense bloque par défaut (default deny).
-		\item ✅ \textbf{Pare-feu Hôte :} UFW sur Ubuntu DMZ (défense en profondeur).
-		\item ✅ \textbf{Service Isolation :} Conteneurisation Docker pour services vulnérables (DVWA, Samba).
+		\item \textcolor{green}{\checkmark} \textbf{Segmentation Réseau :} DMZ isolée du LAN via pfSense.
+		\item \textcolor{green}{\checkmark} \textbf{NAT Port Forwarding :} Exposition sélective de 4 ports sur 1000.
+		\item \textcolor{green}{\checkmark} \textbf{Pare-feu Périmétrique :} pfSense bloque par défaut (default deny).
+		\item \textcolor{green}{\checkmark} \textbf{Pare-feu Hôte :} UFW sur Ubuntu DMZ (défense en profondeur).
+		\item \textcolor{green}{\checkmark} \textbf{Service Isolation :} Conteneurisation Docker pour services vulnérables (DVWA, Samba).
 	\end{itemize}
 	
 	\subsubsection{Recommandations Supplémentaires}
@@ -2745,11 +2777,11 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 	\begin{enumerate}
 		\item \textbf{Respecte les objectifs pédagogiques:}
 		\begin{itemize}
-			\item Compromission initiale d'un service vulnérable ✓
-			\item Post-exploitation avec Meterpreter ✓
-			\item Configuration de pivoting réseau ✓
-			\item Mouvement latéral vers le LAN ✓
-			\item Reconnaissance et tentatives d'exploitation ✓
+			\item Compromission initiale d'un service vulnérable \checkmark
+			\item Post-exploitation avec Meterpreter \checkmark
+			\item Configuration de pivoting réseau \checkmark
+			\item Mouvement latéral vers le LAN \checkmark
+			\item Reconnaissance et tentatives d'exploitation \checkmark
 		\end{itemize}
 		
 		\item \textbf{Maintient la cohérence des phases :}
@@ -2823,7 +2855,7 @@ ci-dessous synthétise les découvertes pertinentes pour cette Phase 3.
 		\textcolor{tableheadfg}{\textbf{Exploitation Phase 3}} \\
 		\hline
 		\rowcolor{tablerowalt}
-		23/TCP & Telnet & Credentials faibles & ✅ Vecteur d'accès initial \\
+		23/TCP & Telnet & Credentials faibles & \textcolor{green}{\checkmark} Vecteur d'accès initial \\
 		80/TCP & HTTP/DVWA & Vulnérabilités web & ⏭️ Hors scope Phase 3 \\
 		\rowcolor{tablerowalt}
 		139/TCP & Samba & Partage de fichiers & ⏭️ Reconnaissance uniquement \\
@@ -2888,7 +2920,7 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 	telnetuser@DMZ-WebServer:~$
 \end{lstlisting}
 
-✅ \textbf{Résultat :} Compromission réussie ! Nous obtenons un shell interactif avec le compte \texttt{telnetuser}.
+\textcolor{green}{\checkmark} \textbf{Résultat :} Compromission réussie ! Nous obtenons un shell interactif avec le compte \texttt{telnetuser}.
 
 \textbf{Validation de l\'Hypothèse Phase 2 :} La vulnérabilité Telnet identifiée théoriquement lors de la Phase 2 est confirmée comme étant exploitable en pratique. Les mécanismes de défense mis en place (pare-feu pfSense, segmentation réseau) n'ont pas empêché cette compromission.
 
@@ -2933,11 +2965,11 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 
 À ce stade, nous avons :
 \begin{itemize}
-	\item ✅ Un accès shell complet au serveur DMZ.
-	\item ✅ Des privilèges d'élévation (sudo ALL) permettant un accès root.
-	\item ✅ La capacité d'installer des logiciels et de modifier la configuration réseau.
-	\item ✅ Une position stratégique pour pivoter vers le réseau LAN.
-	\item ✅ Accès aux conteneurs Docker hébergés sur cette machine.
+	\item \textcolor{green}{\checkmark} Un accès shell complet au serveur DMZ.
+	\item \textcolor{green}{\checkmark} Des privilèges d'élévation (sudo ALL) permettant un accès root.
+	\item \textcolor{green}{\checkmark} La capacité d'installer des logiciels et de modifier la configuration réseau.
+	\item \textcolor{green}{\checkmark} Une position stratégique pour pivoter vers le réseau LAN.
+	\item \textcolor{green}{\checkmark} Accès aux conteneurs Docker hébergés sur cette machine.
 \end{itemize}
 
 \subsubsection{Validation de la Chaîne Phase 1 → Phase 2 → Phase 3}
@@ -3097,7 +3129,7 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 		(Meterpreter 1)(/tmp) >
 	\end{lstlisting}
 	
-	✅ \textbf{Succès !} Nous disposons désormais d'une session Meterpreter stable et chiffrée.
+	\textcolor{green}{\checkmark} \textbf{Succès !} Nous disposons désormais d'une session Meterpreter stable et chiffrée.
 	
 	\subsection{Énumération Post-Exploitation}
 	
@@ -3221,7 +3253,7 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 		3 packets transmitted, 3 received, 0% packet loss
 	\end{lstlisting}
 	
-	✅ Le serveur DMZ peut atteindre le LAN ! La configuration de pivot est donc possible.
+	\textcolor{green}{\checkmark} Le serveur DMZ peut atteindre le LAN ! La configuration de pivot est donc possible.
 	
 	\textbf{Note:} Dans notre environnement de laboratoire, la règle pfSense 
 	autorisant le trafic DMZ → LAN avait été préalablement configurée lors 
@@ -3280,7 +3312,7 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 	
 	\textbf{Conséquences de cette règle:}
 	\begin{itemize}
-		\item ✅ Permet le pivoting technique (objectif pédagogique de la phase)
+		\item \textcolor{green}{\checkmark} Permet le pivoting technique (objectif pédagogique de la phase)
 		\item ❌ Brise la segmentation réseau
 		\item ❌ Autorise une machine compromise (DMZ) à attaquer le LAN
 		\item ❌ Transforme la DMZ en tremplin vers les ressources critiques
@@ -3332,7 +3364,7 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 		[*] There are currently no IPv6 routes defined.
 	\end{lstlisting}
 	
-	✅ La route est active ! Tout le trafic Metasploit vers 192.168.20.0/24 sera routé via la session 2 (Ubuntu DMZ).
+	\textcolor{green}{\checkmark} La route est active ! Tout le trafic Metasploit vers 192.168.20.0/24 sera routé via la session 2 (Ubuntu DMZ).
 	
 	\subsection{Validation du Pivot}
 	
@@ -3355,7 +3387,7 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 		[*] Auxiliary module execution completed
 	\end{lstlisting}
 	
-	✅ \textbf{Succès !} Le port 445 (SMB) est détecté comme ouvert sur Windows XP, \textbf{à travers le pivot}.
+	\textcolor{green}{\checkmark} \textbf{Succès !} Le port 445 (SMB) est détecté comme ouvert sur Windows XP, \textbf{à travers le pivot}.
 	
 	\subsubsection{Identification de l'OS Cible}
 	
@@ -3463,10 +3495,10 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 	
 	À ce stade, nous avons :
 	\begin{itemize}
-		\item ✅ Établi un pivot réseau fonctionnel.
-		\item ✅ Validé la connectivité vers le réseau LAN isolé.
-		\item ✅ Identifié une cible secondaire (Windows XP SP3).
-		\item ✅ Détecté des services exploitables (SMB sur port 445).
+		\item \textcolor{green}{\checkmark} Établi un pivot réseau fonctionnel.
+		\item \textcolor{green}{\checkmark} Validé la connectivité vers le réseau LAN isolé.
+		\item \textcolor{green}{\checkmark} Identifié une cible secondaire (Windows XP SP3).
+		\item \textcolor{green}{\checkmark} Détecté des services exploitables (SMB sur port 445).
 	\end{itemize}
 	
 	\textbf{Prochaine étape :} Tenter l'exploitation de Windows XP via des vulnérabilités SMB historiques.
@@ -3620,7 +3652,7 @@ Le port forwarding via Meterpreter permet d'exposer un service réseau interne (
 	Connection to localhost (127.0.0.1) 3389 port [tcp/ms-wbt-server] succeeded!
 \end{lstlisting}
 
-✅ \textbf{Succès !} Le service RDP de Windows XP (192.168.20.50:3389) est maintenant accessible localement sur l'attaquant via \texttt{localhost:3389}.
+\textcolor{green}{\checkmark} \textbf{Succès !} Le service RDP de Windows XP (192.168.20.50:3389) est maintenant accessible localement sur l'attaquant via \texttt{localhost:3389}.
 
 \textbf{Implications :}
 \begin{itemize}
@@ -4699,7 +4731,7 @@ Ce chapitre étend l'analyse sécuritaire à la couche applicative web via DVWA 
 		\centering
 		\small
 		\renewcommand{\arraystretch}{1.6}
-		\begin{tabular}{p{3cm} p{4cm} p{5cm}}
+		\begin{tabular}{p{4.5cm} p{3.5cm} p{4.5cm}}
 			\hline
 			\rowcolor{tableheadbg}
 			\textcolor{tableheadfg}{\textbf{Image}} &
@@ -4709,7 +4741,7 @@ Ce chapitre étend l'analyse sécuritaire à la couche applicative web via DVWA 
 			\rowcolor{tablerowalt}
 			\texttt{ghcr.io/digininja/dvwa} & Open source, à jour & MySQL externe requis \\
 			
-			\texttt{vulnerables/web-dvwa} & MySQL inclus, simple & ✓ SÉLECTIONNÉ \\
+			\texttt{vulnerables/web-dvwa} & MySQL inclus, simple & \checkmark SÉLECTIONNÉ \\
 			
 			\rowcolor{tablerowalt}
 			\texttt{dvwa/official} & Contrôle précis & Authentification requise \\
@@ -4785,24 +4817,24 @@ Ce chapitre étend l'analyse sécuritaire à la couche applicative web via DVWA 
 			\textcolor{tableheadfg}{\textbf{Status}} \\
 			\hline
 			\rowcolor{tablerowalt}
-			\textbf{A01} & Broken Access Control & File Inclusion (LFI) & ✓ \\
+			\textbf{A01} & Broken Access Control & File Inclusion (LFI) & \checkmark \\
 			
-			\textbf{A02} & Security Misconfiguration & Default Credentials & ✓ \\
-			
-			\rowcolor{tablerowalt}
-			\textbf{A04} & Cryptographic Failures & Weak Session IDs & ✓ \\
-			
-			\textbf{A05} & Injection & SQL Injection & ✓ \\
+			\textbf{A02} & Security Misconfiguration & Default Credentials & \checkmark \\
 			
 			\rowcolor{tablerowalt}
-			& & Command Injection & ✓ \\
+			\textbf{A04} & Cryptographic Failures & Weak Session IDs & \checkmark \\
 			
-			\textbf{A07} & Authentication Failures & Brute Force Login & ✓ \\
+			\textbf{A05} & Injection & SQL Injection & \checkmark \\
 			
 			\rowcolor{tablerowalt}
-			\textbf{A08} & File Upload & Web Shell Upload & ✓ \\
+			& & Command Injection & \checkmark \\
 			
-			\textbf{A10} & Error Message Disclosure & SQL Error Disclosure & ✓ \\
+			\textbf{A07} & Authentication Failures & Brute Force Login & \checkmark \\
+			
+			\rowcolor{tablerowalt}
+			\textbf{A08} & File Upload & Web Shell Upload & \checkmark \\
+			
+			\textbf{A10} & Error Message Disclosure & SQL Error Disclosure & \checkmark \\
 			\hline
 		\end{tabular}
 		\caption{Récapitulatif des Attaques Documentées}
@@ -5409,7 +5441,7 @@ Ce chapitre étend l'analyse sécuritaire à la couche applicative web via DVWA 
 	
 	\begin{longtable}{p{2.2cm} p{4.2cm} >{\centering\arraybackslash}p{2.2cm} p{4.2cm}}
 		\hline
-		% Dans le tableau synthèse (ligne ~1130), remplace les ✓ et ✗:
+		% Dans le tableau synthèse (ligne ~1130), remplace les \checkmark et ✗:
 		\rowcolor{tablerowalt}
 		\textbf{A01} & Broken Access Control & HAUTE & LFI [OK] \\
 		
@@ -5713,19 +5745,268 @@ cat /root/.ssh/id_rsa    # Clé SSH root si présente
 		\textcolor{tableheadfg}{\textbf{Impact}} \\
 		\hline
 		\rowcolor{tablerowalt}
-		Web Shell Upload & ✅ Succès & Exécution de commandes OS arbitraires \\
-		Credential Extraction & ✅ Succès & Credentials MySQL DVWA récupérés \\
+		Web Shell Upload & \textcolor{green}{\checkmark} Succès & Exécution de commandes OS arbitraires \\
+		Credential Extraction & \textcolor{green}{\checkmark} Succès & Credentials MySQL DVWA récupérés \\
 		\rowcolor{tablerowalt}
-		Password Cracking & ✅ Succès & 5/5 hashes MD5 crackés \\
-		Lateral Movement & ✅ Succès & Accès au réseau DMZ et scan LAN \\
+		Password Cracking & \textcolor{green}{\checkmark} Succès & 5/5 hashes MD5 crackés \\
+		Lateral Movement & \textcolor{green}{\checkmark} Succès & Accès au réseau DMZ et scan LAN \\
 		\rowcolor{tablerowalt}
 		Privilege Escalation & Conditionnelle & Dépend de la configuration du serveur \\
-		Persistence & ✅ Succès & Web shell maintenu jusqu'à suppression manuelle \\
+		Persistence & \textcolor{green}{\checkmark} Succès & Web shell maintenu jusqu'à suppression manuelle \\
 		\hline
 	\end{tabular}
 	\caption{Résultats de la Phase Post-Exploitation DVWA}
 	\label{tab:dvwa-postexploit-results}
 \end{table}
+
+% ==============================================================================
+% CHAPITRE 6 : COWRIE SSH HONEYPOT
+% ==============================================================================
+\chapter{Cowrie SSH Honeypot --- Détection d'Attaques par Honeypot}
+\label{chap:cowrie}
+
+\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectifs du Chapitre}]
+Ce chapitre documente la Phase 6 : déploiement d'un honeypot SSH de type Cowrie pour collecter et analyser les tentatives d'intrusion, mapper les techniques d'attaque selon MITRE ATT\&CK, et valider les attaques observées en Phase 3.
+\end{tcolorbox}
+
+\section{Introduction et Objectifs}
+
+\subsection{Contexte et Motivation}
+
+Les honeypots sont des systèmes intentionnellement vulnérables déployés pour collecter des données sur les attaquants. Contrairement aux systèmes de production que l'on cherche à protéger, un honeypot attire délibérément les attaquants afin d'observer leurs techniques, outils et comportements dans un environnement contrôlé.
+
+Dans le contexte de ce projet, le déploiement de Cowrie constitue la Phase 6 et s'inscrit dans la continuité logique des phases précédentes : après avoir simulé des attaques SSH en Phase 3, nous instrumentons maintenant un honeypot pour capturer automatiquement ce type d'activité malveillante.
+
+\textbf{Objectifs principaux :}
+\begin{itemize}
+    \item Déployer un honeypot SSH Cowrie (interaction faible/élevée) dans la DMZ
+    \item Collecter les sessions d'attaque complètes au format JSON
+    \item Analyser les comportements des attaquants (identifiants testés, commandes exécutées)
+    \item Mapper les techniques observées selon le framework MITRE ATT\&CK
+    \item Valider et enrichir les observations réalisées lors de la Phase 3
+\end{itemize}
+
+\section{Architecture et Déploiement Cowrie}
+
+\subsection{Présentation de Cowrie}
+
+Cowrie est un honeypot SSH/Telnet de medium interaction développé en Python. Il simule un serveur SSH vulnérable, accepte les connexions des attaquants, enregistre toutes leurs activités et génère des logs détaillés au format JSON. Cowrie peut opérer en deux modes :
+
+\begin{itemize}
+    \item \textbf{Mode shell (low interaction)} : Simule un système de fichiers et un shell basique, sans risque d'exposition réelle
+    \item \textbf{Mode proxy (high interaction)} : Redirige les connexions vers un vrai système (backend) via SSH, capturant l'activité réelle tout en isolant le système de production
+\end{itemize}
+
+\subsection{Configuration du NAT et Port Forwarding}
+
+Le déploiement nécessite une règle NAT sur pfSense pour rediriger le trafic SSH (port 22) de la zone WAN vers le honeypot Cowrie dans la DMZ. Le service SSH légitime du serveur Ubuntu est déplacé sur un port alternatif.
+
+\begin{lstlisting}[language=bash, caption={Configuration SSH — Déplacement du port légitime}]
+# Déplacer le service SSH légitime sur le port 2222 pour libérer le port 22 à Cowrie
+sudo sed -i 's/^#\?Port .*/Port 2222/' /etc/ssh/sshd_config
+
+sudo systemctl restart sshd
+
+# Vérification — SSH légitime écoute désormais sur le port 2222
+sudo ss -tlnp | grep sshd
+\end{lstlisting}
+
+\subsection{Installation et Démarrage de Cowrie}
+
+\begin{lstlisting}[language=bash, caption={Installation de Cowrie dans la DMZ}]
+# Installer les dépendances
+sudo apt update && sudo apt install -y python3-venv python3-dev libssl-dev libffi-dev
+
+# Créer un utilisateur dédié (sécurité)
+sudo adduser --disabled-password cowrie
+
+# Cloner Cowrie
+sudo -u cowrie git clone https://github.com/cowrie/cowrie /home/cowrie/cowrie
+
+# Créer l'environnement virtuel et installer les dépendances
+cd /home/cowrie/cowrie
+python3 -m venv cowrie-env
+source cowrie-env/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+
+# Configurer Cowrie (paramètres essentiels dans etc/cowrie.cfg)
+cp etc/cowrie.cfg.dist etc/cowrie.cfg
+
+# Paramètres clés à modifier :
+# [honeypot]
+#   hostname = svr04          <- Nom du système simulé affiché à l'attaquant
+#   listen_port = 22          <- Port d'écoute Cowrie (22 si NAT ou 2222 si local)
+#   interaction_type = low    <- 'low' (shell simulé) ou 'high' (proxy vers backend)
+# [output_jsonlog]
+#   enabled = true
+#   logfile = ${honeypot:log_path}/cowrie.json  <- Logs JSON pour Wazuh/Filebeat
+
+# Démarrer Cowrie
+bin/cowrie start
+bin/cowrie status
+\end{lstlisting}
+
+\section{Analyse des Sessions d'Attaque}
+
+\subsection{Structure des Logs JSON}
+
+Cowrie génère des logs au format JSON dans \texttt{var/log/cowrie/cowrie.json}. Chaque événement est enregistré avec un horodatage, l'adresse IP source, le type d'événement et les détails de l'action.
+
+\begin{lstlisting}[language=bash, caption={Exemple de log JSON Cowrie — Tentative de connexion SSH}]
+{
+  "eventid": "cowrie.login.failed",
+  "timestamp": "2025-04-12T19:11:29.412Z",
+  "src_ip": "192.168.100.150",
+  "username": "root",
+  "password": "admin",
+  "sensor": "cowrie-dmz",
+  "session": "abc123def456"
+}
+\end{lstlisting}
+
+\subsection{Mapping MITRE ATT\&CK}
+
+Les techniques observées via Cowrie peuvent être mappées directement sur le framework MITRE ATT\&CK :
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{p{3cm} p{4cm} p{5cm}}
+        \hline
+        \rowcolor{tableheadbg}
+        \textcolor{tableheadfg}{\textbf{Technique MITRE}} &
+        \textcolor{tableheadfg}{\textbf{ID}} &
+        \textcolor{tableheadfg}{\textbf{Observation Cowrie}} \\
+        \hline
+        \rowcolor{tablerowalt}
+        Brute Force & T1110 & Tentatives de mots de passe multiples \\
+        Valid Accounts & T1078 & Credentials admin/root testés \\
+        \rowcolor{tablerowalt}
+        Command and Scripting & T1059 & Commandes shell enregistrées \\
+        Discovery & T1082 & Collecte d'informations système \\
+        \rowcolor{tablerowalt}
+        Exfiltration & T1041 & Téléchargements via wget/curl \\
+        \hline
+    \end{tabular}
+    \caption{Mapping MITRE ATT\&CK des Attaques Observées via Cowrie}
+    \label{tab:cowrie-mitre}
+\end{table}
+
+\section{Conclusion}
+
+Ce chapitre a présenté le déploiement et l'utilisation de Cowrie comme outil de collecte de renseignements sur les attaquants. Les honeypots constituent un complément précieux aux systèmes IDS/IPS traditionnels : là où Snort détecte les attaques contre les systèmes réels, Cowrie les attire délibérément dans un environnement contrôlé, permettant une analyse approfondie des techniques et outils utilisés.
+
+Les données collectées par Cowrie alimenteront directement le SIEM Wazuh (Phase 7), permettant une corrélation cross-phase et la détection de chaînes d'attaque multi-étapes.
+
+% ==============================================================================
+% CHAPITRE 7 : WAZUH SIEM
+% ==============================================================================
+\chapter{Wazuh SIEM --- Analyse Intégrée et Réponse aux Incidents}
+\label{chap:wazuh}
+
+\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectifs du Chapitre}]
+Ce chapitre documente la Phase 7 : intégration d'une plateforme SIEM (Wazuh) pour agréger les logs de pfSense, Snort, Cowrie, et agents Ubuntu. Nous y démontrons la corrélation d'événements, la détection d'attaques multi-étapes, et la réponse automatisée par blocage IP.
+\end{tcolorbox}
+
+\section{Introduction et Objectifs}
+
+\subsection{Contexte : Du Monitoring à la Corrélation}
+
+Une SIEM (\textit{Security Information and Event Management}) fédère les données de sécurité provenant de multiples sources pour permettre une analyse centralisée, une détection d'anomalies et une réponse aux incidents coordonnée. Dans notre contexte, Wazuh agrège les événements des six phases précédentes pour offrir une vision unifiée de la sécurité de l'infrastructure.
+
+\textbf{Objectifs principaux :}
+\begin{itemize}
+    \item Déployer Wazuh Manager et ses agents sur l'infrastructure existante
+    \item Ingérer les logs de pfSense (syslog), Snort (fast.log), Cowrie (JSON) et Ubuntu (journald)
+    \item Configurer des règles de corrélation pour détecter les chaînes d'attaque multi-étapes
+    \item Mettre en place une réponse active : blocage IP automatique via pfSense
+    \item Démontrer la valeur ajoutée d'une approche SIEM dans un contexte de sécurité offensive/défensive
+\end{itemize}
+
+\section{Architecture Wazuh}
+
+\subsection{Composants Principaux}
+
+L'architecture Wazuh repose sur plusieurs composants interdépendants :
+
+\begin{itemize}
+    \item \textbf{Wazuh Manager} : Serveur central qui reçoit, analyse et corrèle les événements de sécurité
+    \item \textbf{Wazuh Agents} : Installés sur les machines surveillées (Ubuntu DMZ, Windows XP), remontent les logs locaux
+    \item \textbf{Filebeat} : Collecteur de logs léger pour les sources sans agent natif (pfSense, Cowrie)
+    \item \textbf{OpenSearch/Elasticsearch} : Moteur d'indexation et de stockage des alertes
+    \item \textbf{OpenSearch Dashboards} : Interface graphique pour la visualisation et l'investigation
+\end{itemize}
+
+\section{Configuration des Agents et Ingestion de Logs}
+
+\subsection{Agent Ubuntu --- Logs Système}
+
+\begin{lstlisting}[language=bash, caption={Installation de l'agent Wazuh sur Ubuntu DMZ}]
+# Télécharger et installer l'agent Wazuh
+curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | apt-key add -
+echo "deb https://packages.wazuh.com/4.x/apt/ stable main" | tee /etc/apt/sources.list.d/wazuh.list
+apt update && apt install -y wazuh-agent
+
+# Configurer l'adresse du Manager
+sed -i 's/MANAGER_IP/192.168.20.200/' /var/ossec/etc/ossec.conf
+
+# Démarrer l'agent
+systemctl enable wazuh-agent
+systemctl start wazuh-agent
+\end{lstlisting}
+
+\subsection{Intégration pfSense --- Logs Syslog}
+
+pfSense est configuré pour envoyer ses logs syslog vers le Wazuh Manager. Sur pfSense, dans \textbf{Status → System Logs → Settings}, configurer le serveur syslog distant avec l'IP du Wazuh Manager et le port 514 (UDP).
+
+\subsection{Intégration Snort --- Fast Logs}
+
+Les alertes Snort générées dans \texttt{/var/log/snort/alert} sont collectées via Filebeat et envoyées au Wazuh Manager pour corrélation avec les autres sources.
+
+\subsection{Intégration Cowrie --- JSON Sessions}
+
+Les sessions Cowrie au format JSON sont ingérées via Filebeat avec un module de parsing dédié qui extrait les champs IP source, credentials testés, commandes exécutées et mappings MITRE.
+
+\section{Règles de Corrélation et Détection}
+
+Les règles de corrélation Wazuh permettent de détecter des séquences d'événements caractéristiques d'une attaque multi-étapes. Par exemple :
+
+\begin{enumerate}
+    \item Détection d'un scan Nmap (Snort alerte sur les sondes TCP SYN)
+    \item Tentatives de brute-force SSH (Cowrie enregistre les credentials)
+    \item Connexion réussie et exécution de commandes (agent Ubuntu journald)
+    \item Pivot vers le LAN (pfSense logs de routage inter-zones)
+\end{enumerate}
+
+Une règle de corrélation XML Wazuh peut enchaîner ces événements sur une fenêtre temporelle pour générer une alerte de niveau critique.
+
+\section{Réponse Active}
+
+Wazuh supporte la réponse active via des scripts déclenchés automatiquement en réponse à des alertes de haute sévérité. Dans notre contexte, un script de blocage IP interagit avec l'API pfSense pour ajouter l'adresse IP attaquante à une liste de blocage dynamique, interrompant immédiatement toute communication depuis cette source.
+
+\begin{lstlisting}[language=bash, caption={Script de réponse active — Blocage IP via pfSense API}]
+#!/bin/bash
+# Script de réponse active Wazuh - Blocage IP pfSense
+# Déclenché automatiquement pour les alertes niveau >= 10
+
+ATTACKER_IP="$1"
+PFSENSE_API="https://192.168.20.1/api/v1/firewall/rule"
+TOKEN="$(cat /etc/wazuh/pfsense-token)"
+
+curl -s -X POST "$PFSENSE_API" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"type\":\"block\",\"src\":\"$ATTACKER_IP\",\"descr\":\"Wazuh Auto-Block\"}"
+
+logger "Wazuh Active Response: Blocked $ATTACKER_IP on pfSense"
+\end{lstlisting}
+
+\section{Conclusion}
+
+Ce chapitre a présenté l'intégration de Wazuh comme plateforme SIEM centrale de notre infrastructure de sécurité. En agrégeant les données des sept phases du projet, Wazuh offre une visibilité complète sur la chaîne d'attaque, de la reconnaissance initiale (Phase 2) jusqu'à la post-exploitation (Phase 3), en passant par la détection IDS (Phase 4), les attaques web (Phase 5) et les sessions honeypot (Phase 6).
+
+Les perspectives d'évolution incluent l'intégration d'une plateforme SOAR (\textit{Security Orchestration, Automation and Response}) pour automatiser davantage la réponse aux incidents, ainsi que l'adoption d'une architecture Zero Trust pour renforcer la posture de sécurité globale.
 
 % ==============================================================================
 % ANNEXE A : DOCUMENTATION TECHNIQUE
@@ -5850,7 +6131,7 @@ sudo ufw status verbose
 \end{lstlisting}
 
 \subsection{Fail2Ban — Configuration de Base}
-\begin{lstlisting}[language=ini, caption={/etc/fail2ban/jail.local — Configuration SSH}]
+\begin{lstlisting}[language=bash, caption={/etc/fail2ban/jail.local — Configuration SSH}]
 [DEFAULT]
 bantime  = 3600
 findtime = 600
@@ -5900,17 +6181,17 @@ docker logs dvwa
 \hline
 pfSense & WAN (em0) & 192.168.1.254 & Pare-feu périmétrique \\
 \hline
-\rowcolor{tablerow}
+\rowcolor{tablerowalt}
 pfSense & DMZ (em1) & 192.168.100.1 & Passerelle DMZ \\
 \hline
 pfSense & LAN (em2) & 192.168.10.1 & Passerelle LAN \\
 \hline
-\rowcolor{tablerow}
+\rowcolor{tablerowalt}
 Ubuntu DMZ & eth0 & 192.168.100.6 & Serveur cible (Telnet, DVWA) \\
 \hline
 Kali/Parrot & eth0 & 192.168.1.X & Poste attaquant \\
 \hline
-\rowcolor{tablerow}
+\rowcolor{tablerowalt}
 Windows XP & eth0 & 192.168.10.X & Cible latérale (LAN) \\
 \hline
 \end{tabularx}
