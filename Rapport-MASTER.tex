@@ -1027,26 +1027,6 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 	% ------------------------------------------------------------------------------
 	\section{Configuration NAT et Port Forwarding (pfSense)}
 	
-	\subsection{Rappel Théorique : NAT et Port Forwarding}
-	
-	\subsubsection{Network Address Translation (NAT)}
-	Le NAT est une technique de remappage d'adresses IP permettant à plusieurs hôtes d'un réseau privé de partager une adresse IP publique pour accéder à Internet. Il fonctionne en modifiant les en-têtes des paquets IP au niveau du routeur/pare-feu.
-	
-	\textbf{Types de NAT :}
-	\begin{itemize}
-		\item \textbf{SNAT (Source NAT) :} Modifie l'adresse source (LAN → WAN).
-		\item \textbf{DNAT (Destination NAT) :} Modifie l'adresse de destination (WAN → LAN/DMZ).
-	\end{itemize}
-	
-	\subsubsection{Port Forwarding}
-	Le Port Forwarding est une application du DNAT qui redirige le trafic entrant d'un port spécifique vers une machine et un port internes. C'est le mécanisme clé pour :
-	
-	\begin{enumerate}
-		\item \textbf{Masquer la topologie interne :} L'attaquant voit l'IP publique du pare-feu, pas les IP privées des serveurs.
-		\item \textbf{Réduire la surface d'attaque :} Seuls les ports explicitement forwardés sont accessibles.
-		\item \textbf{Centraliser le contrôle :} Toutes les connexions passent par pfSense, facilitant l'audit et le filtrage.
-	\end{enumerate}
-	
 	\subsection{Configuration de la Règle NAT pour Telnet}
 	
 	\subsubsection{Accès à l'Interface de Configuration}
@@ -1249,72 +1229,6 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 	% CHAPITRE 4 : TESTS OFFENSIFS AVEC NMAP
 	% ------------------------------------------------------------------------------
 	\section{Tests Offensifs avec Nmap (Reconnaissance Active)}
-	
-	\subsection{Introduction à Nmap}
-	Nmap (Network Mapper) est l'outil de référence en reconnaissance réseau et audit de sécurité. Il permet de :
-	
-	\begin{itemize}
-		\item Découvrir les hôtes actifs sur un réseau.
-		\item Identifier les ports ouverts, fermés et filtrés.
-		\item Détecter les services et leurs versions.
-		\item Identifier les systèmes d'exploitation.
-		\item Exécuter des scripts de détection de vulnérabilités (NSE).
-	\end{itemize}
-	
-	\subsubsection{États de Port dans Nmap}
-	\begin{table}[H]
-		\centering
-		\renewcommand{\arraystretch}{1.6}
-		\setlength{\arrayrulewidth}{0.5pt}
-		\begin{tabular}{>{\bfseries}p{3cm} p{11cm}}
-			\arrayrulecolor{tableborder}
-			\hline
-			\tableheadcolor
-			\textcolor{tableheadfg}{\textbf{État}} &
-			\textcolor{tableheadfg}{\textbf{Signification}} \\
-			\hline
-			\rowcolor{tablerowalt}
-			open & Un service écoute activement sur ce port. Le système répond avec SYN-ACK. \textbf{Point d'entrée potentiel pour un attaquant.} \\
-			
-			closed & Aucun service n'écoute, mais le port est accessible. Le système répond avec RST (Reset). Indique que le pare-feu autorise le trafic mais qu'aucun service n'est actif. \\
-			
-			\rowcolor{tablerowalt}
-			filtered & Un pare-feu ou un filtre bloque le trafic. Nmap ne reçoit aucune réponse (timeout). \textbf{Indique une protection active.} \\
-			
-			unfiltered & Le port est accessible mais Nmap ne peut déterminer s'il est ouvert ou fermé (rare, utilisé avec scans ACK). \\
-			
-			\rowcolor{tablerowalt}
-			open|filtered & Nmap ne peut pas déterminer si le port est ouvert ou filtré (UDP scans souvent). \\
-			
-			closed|filtered & Nmap ne peut pas déterminer si le port est fermé ou filtré (très rare). \\
-			\hline
-		\end{tabular}
-		\caption{États de Port Nmap et Interprétations}
-	\end{table}
-	
-	\subsection{Environnement de Test}
-	Les scans ont été effectués depuis la machine \textbf{Parrot Security OS} (192.168.100.150) vers l'adresse WAN de pfSense (192.168.100.6).
-	
-	\begin{lstlisting}[caption=Configuration réseau de Parrot Security]
-		~ ➜ ip addr show ens33
-		2: ens33: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500
-		inet 192.168.100.150/24 brd 192.168.100.255 scope global ens33
-		
-		~ ➜ ip route
-		default via 192.168.100.2 dev ens33
-		192.168.100.0/24 dev ens33 proto kernel scope link src 192.168.100.150
-	\end{lstlisting}
-	
-	\textbf{Connectivité TCP vérifiée :}
-	\begin{lstlisting}[caption=Vérification préliminaire avec netcat]
-		~ ➜ nc -zv 192.168.100.6 80
-		Connection to 192.168.100.6 80 port [tcp/http] succeeded!
-		
-		~ ➜ nc -zv 192.168.100.6 23
-		Connection to 192.168.100.6 23 port [tcp/telnet] succeeded!
-	\end{lstlisting}
-	
-	\textcolor{green}{\checkmark} Connectivité TCP confirmée (ICMP bloqué par pfSense, comportement normal).
 	
 	\subsection{Test 1 : Scan du Port 80 (HTTP)}
 	\subsubsection{Commande et Résultats}
@@ -5125,7 +5039,6 @@ Cette annexe regroupe les commandes de référence, extraits de configuration, s
 \section{Commandes de Diagnostic}
 \label{sec:app-commandes}
 
-\subsection{pfSense — Vérification Réseau}
 \begin{lstlisting}[language=bash, caption={Commandes de diagnostic pfSense (shell)}]
 # Vérifier les interfaces
 ifconfig -a
@@ -5146,7 +5059,6 @@ pfctl -F states
 clog /var/log/filter.log | tail -20
 \end{lstlisting}
 
-\subsection{Nmap — Référence Rapide}
 \begin{lstlisting}[language=bash, caption={Commandes Nmap utilisées en reconnaissance}]
 # Scan SYN furtif d'un port spécifique
 nmap -sS -p 23 <cible>
@@ -5164,7 +5076,6 @@ nmap -A -p 23,80,445 <cible>
 nmap -O <cible>
 \end{lstlisting}
 
-\subsection{Metasploit — Commandes Essentielles}
 \begin{lstlisting}[language=bash, caption={Commandes Metasploit pour exploitation et post-exploitation}]
 # Lancer msfconsole
 msfconsole -q
@@ -5192,7 +5103,6 @@ sysinfo
 getuid
 \end{lstlisting}
 
-\subsection{Snort — Vérification et Tuning}
 \begin{lstlisting}[language=bash, caption={Commandes Snort sur pfSense}]
 # Tester la syntaxe de la configuration Snort
 snort -T -c /usr/local/etc/snort/snort.conf
@@ -5321,23 +5231,6 @@ Windows XP & eth0 & 192.168.10.X & Cible latérale (LAN) \\
     \item[SQLi] \textit{SQL Injection} — Injection de code SQL malveillant dans une requête.
     \item[XSS] \textit{Cross-Site Scripting} — Injection de scripts malveillants dans une page web.
 \end{description}
-
-% ─────────────────────────────────────────────────────────────────────────────
-\section{Ressources Complémentaires}
-\label{sec:app-ressources}
-
-\begin{itemize}
-    \item \textbf{pfSense Documentation} : \url{https://docs.netgate.com/pfsense/en/latest/}
-    \item \textbf{Snort Official Rules} : \url{https://www.snort.org/downloads}
-    \item \textbf{Metasploit Framework} : \url{https://docs.metasploit.com/}
-    \item \textbf{OWASP Top 10 (2021)} : \url{https://owasp.org/Top10/}
-    \item \textbf{MITRE ATT\&CK} : \url{https://attack.mitre.org/}
-    \item \textbf{DVWA GitHub} : \url{https://github.com/digininja/DVWA}
-    \item \textbf{Nmap Reference Guide} : \url{https://nmap.org/book/man.html}
-    \item \textbf{CVSS v3.1 Specification} : \url{https://www.first.org/cvss/specification-document}
-    \item \textbf{UFW Documentation} : \url{https://help.ubuntu.com/community/UFW}
-    \item \textbf{Fail2Ban Documentation} : \url{https://www.fail2ban.org/wiki/index.php/Main_Page}
-\end{itemize}
 
 
 \chapter*{Références et Ressources}
