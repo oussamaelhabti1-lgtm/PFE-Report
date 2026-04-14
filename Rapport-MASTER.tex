@@ -382,13 +382,13 @@ Ce rapport documente sept phases interconnectées qui reproduisent un engagement
 		\textcolor{tableheadfg}{\textbf{Objectifs}} \\
 		\hline
 		\rowcolor{tablerowalt}
-		\textbf{1} & Infrastructure Défensive & Déployer pfSense, segmenter le réseau (WAN/DMZ/LAN), configurer pare-feu, Snort, pfBlockerNG \\
+		\textbf{1} & Infrastructure Défensive & Déployer pfSense, segmenter le réseau (WAN/DMZ/LAN), configurer pare-feu, pfBlockerNG, UFW et Fail2Ban \\
 		\textbf{2} & Reconnaissance Active & Exposer un service Telnet, configurer NAT, cartographier la surface d'attaque avec Nmap \\
 		\rowcolor{tablerowalt}
 		\textbf{3} & Exploitation \& Post-exploitation & Compromettre la DMZ via Telnet, établir un pivot Meterpreter, effectuer un mouvement latéral \\
-		\textbf{4} & Détection Active Snort IDS & Déployer Snort sur pfSense, détecter les attaques WAN et le mouvement latéral LAN \\
+		\textbf{4} & Web Application Exploitation DVWA & Exploiter les vulnérabilités OWASP Top 10 et analyser l'impact applicatif \\
 		\rowcolor{tablerowalt}
-		\textbf{5} & Web Application Exploitation DVWA & Exploiter les vulnérabilités OWASP Top 10 sur une application web intentionnellement vulnérable \\
+		\textbf{5} & Détection Active Snort IDS & Valider la détection des attaques Telnet, DVWA et mouvement latéral via signatures IDS \\
 		\textbf{6} & Cowrie SSH Honeypot & Déployer un honeypot SSH low/high interaction, collecter des sessions d'attaque, mapper les techniques selon MITRE ATT\&CK \\
 		\rowcolor{tablerowalt}
 		\textbf{7} & Wazuh SIEM & Agréger les logs (pfSense, Snort, Cowrie), configurer des règles de corrélation, gérer les alertes et activer la réponse automatisée IP-blocking \\
@@ -416,14 +416,14 @@ Toutes les phases partagent la même infrastructure virtualisée sous VMware Wor
 \label{chap:infrastructure}
 
 \begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectifs du Chapitre}]
-Ce chapitre présente la phase fondatrice du projet : la conception et le déploiement d'une infrastructure réseau segmentée multi-couches. Nous y construisons les défenses périmètriques (pfSense), l'hôte de défense (UFW, Fail2Ban), la détection d'intrusion (Snort), et la threat intelligence (pfBlockerNG). Cette infrastructure constitue le socle sur lequel toutes les phases suivantes reposent.
+Ce chapitre établit le socle défensif du laboratoire : segmentation WAN/DMZ/LAN avec pfSense, filtrage par pfBlockerNG, et durcissement hôte via UFW et Fail2Ban.
 \end{tcolorbox}
 
 \section{Introduction et Objectifs}
 
-Ce chapitre déploie une infrastructure segmentée (WAN/DMZ/LAN) sous VMware Workstation : pare-feu pfSense, IDS Snort, pfBlockerNG, UFW et Fail2Ban. L'infrastructure constitue le socle commun à toutes les phases suivantes (voir Section~\ref{chap:introduction} pour les détails).
+Cette section détaille la mise en œuvre opérationnelle de cette base défensive : configuration réseau, filtrage périmétrique et durcissement de l'hôte DMZ.
 
-À l'issue de ce chapitre, l'étudiant maîtrise : déploiement VMware segmenté, configuration pfSense (routage inter-zone, NAT), sécurité périmétrique (Snort, pfBlockerNG, règles pare-feu), sécurité des hôtes (UFW, Fail2Ban, Docker), et analyse des logs firewall/IDS.
+À l'issue de ce chapitre, l'étudiant maîtrise le déploiement VMware segmenté, la configuration pfSense (routage inter-zone, NAT, règles pare-feu), le filtrage pfBlockerNG, la sécurité hôte (UFW, Fail2Ban, Docker) et l'analyse des logs firewall.
 	
 	% ------------------------------------------------------------------------------
 	% CHAPITRE 3 : CONFIGURATION PFSENSE
@@ -569,7 +569,7 @@ Ce chapitre déploie une infrastructure segmentée (WAN/DMZ/LAN) sous VMware Wor
 	% ------------------------------------------------------------------------------
 	% CHAPITRE 4 : SÉCURITÉ AVANCÉE
 	% ------------------------------------------------------------------------------
-	\section{Sécurité Avancée : pfBlockerNG et Snort}
+	\section{Sécurité Avancée : pfBlockerNG}
 	
 	\subsection{pfBlockerNG : Intelligence sur les Menaces}
 	pfBlockerNG a été installé via le gestionnaire de packages pour fournir une couche de sécurité basée sur le renseignement.
@@ -593,25 +593,6 @@ Ce chapitre déploie une infrastructure segmentée (WAN/DMZ/LAN) sous VMware Wor
 	\begin{lstlisting}[caption=Configuration Suppression List]
 		IPv4 Suppression :
 		192.168.100.150/32  # Lab Attacker (Parrot) - Allow
-	\end{lstlisting}
-	
-	\subsection{Snort : Détection d'Intrusion (IDS)}
-	Snort a été déployé sur l'interface WAN pour surveiller le trafic entrant en temps réel.
-	
-	\subsubsection{Règles Activées}
-	\begin{itemize}
-		\item Emerging Threats (ET) Open Rules.
-		\item Snort VRT Rules (Community).
-		\item Categories : Scan Detection, Exploit Kits, Malware C\&C.
-	\end{itemize}
-	
-	\subsubsection{Exemple d'Alerte}
-	Lors des scans Nmap, Snort a généré des alertes pertinentes.
-	\begin{lstlisting}[caption=Exemple d'alerte Snort]
-		[Priority: 3] ET SCAN Suspicious inbound to mySQL port 3306
-		Source      : 192.168.100.150:58890
-		Destination : 192.168.100.6:3306
-		Action      : Alert Only (Mode IDS)
 	\end{lstlisting}
 	
 	% ------------------------------------------------------------------------------
@@ -765,17 +746,17 @@ Ce chapitre déploie une infrastructure segmentée (WAN/DMZ/LAN) sous VMware Wor
 		\item Segmentation réseau stricte (WAN, DMZ, LAN) via VMware.
 		\item Pare-feu périmétrique configuré avec des règles NAT et Filter précises.
 		\item Intelligence sur les menaces via pfBlockerNG.
-		\item Détection d'intrusion via Snort.
-		\item Sécurité hôte renforcée (UFW, Fail2Ban, Docker).
+		\item Sécurité hôte renforcée via UFW, Fail2Ban et conteneurisation.
+		\item Validation opérationnelle par analyse des journaux firewall.
 	\end{itemize}
 	
-	Les tests de connectivité ont confirmé que les services exposés (HTTP, SMB) sont accessibles depuis le WAN tout en étant protégés par les multiples couches de sécurité. L'analyse des logs a permis d'identifier et de corriger des erreurs de configuration critiques (typo NAT, règles firewall mismatch).
+	Les tests de connectivité confirment que les services exposés (HTTP, SMB) restent accessibles depuis le WAN avec des règles maîtrisées. Les logs ont permis de corriger des erreurs critiques (typo NAT, mismatch firewall) avant la phase de reconnaissance du Chapitre~\ref{chap:reconnaissance}.
 	
 \chapter{Reconnaissance Active et Analyse de la Surface d'Attaque}
 \label{chap:reconnaissance}
 
 \begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectifs du Chapitre}]
-Ce chapitre documente la phase de reconnaissance active : installation du service Telnet dans la DMZ, configuration du NAT Port Forwarding sur pfSense, et cartographie exhaustive de la surface d'attaque via Nmap. Cette phase prépare le terrain pour la phase d'exploitation et démontre l'impact de la défense en profondeur sur la visibilité de l'attaquant.
+Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding sur pfSense, puis cartographier la surface d'attaque avec Nmap. Les résultats définissent les vecteurs qui seront exploités au Chapitre~\ref{chap:exploitation}.
 \end{tcolorbox}
 
 \section{Introduction et Objectifs Pédagogiques}
@@ -1964,7 +1945,7 @@ findtime = 600
 \label{chap:exploitation}
 
 \begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectifs du Chapitre}]
-Ce chapitre documente la phase d'exploitation complète : compromission initiale via Telnet, migration vers Meterpreter, élévation de privilèges, pivoting vers le réseau LAN, mouvement latéral vers Windows XP, et collecte d'intelligence post-exploitation. La chaîne d'attaque est documentée selon le modèle Cyber Kill Chain et le framework MITRE ATT\&CK.
+Objectif : exécuter la chaîne d'attaque complète issue du Chapitre~\ref{chap:reconnaissance} (accès initial Telnet, session Meterpreter, pivot DMZ~$\rightarrow$~LAN, mouvement latéral et collecte post-exploitation). Les indicateurs produits seront utilisés au Chapitre~\ref{chap:snort} pour la validation de détection.
 \end{tcolorbox}
 
 \section{Introduction et Contexte Opérationnel}
@@ -3503,215 +3484,11 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 	% FIN DE L'ANALYSE — CHAPITRE 3
 	% ==============================================================================
 	
-\chapter{Détection Active avec Snort IDS}
-\label{chap:snort}
-
-\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectifs du Chapitre}]
-Ce chapitre présente le déploiement de Snort IDS sur pfSense pour la détection des attaques documentées au Chapitre~\ref{chap:exploitation}. Nous y comparons les capacités du pare-feu traditionnel vs.\ l\'inspection en profondeur (DPI) de Snort, analysons les alertes générées sur WAN et LAN, et discutons la gestion des faux positifs. Ce chapitre valide que les attaques de la Phase 3 auraient pu être détectées.
-\end{tcolorbox}
-
-\section{Introduction et Objectifs}
-	
-	\subsection{Contexte et Motivation}
-	
-	Cette Phase 4 bascule du mode offensif (Phases 1--3) vers la \textbf{défense active}. Le pare-feu pfSense filtre les connexions (L3/L4) mais ne caractérise pas le contenu des flux autorisés. Snort, en inspectant le \textit{payload} (DPI), génère des alertes sur les signatures connues — notamment les scans Nmap et le mouvement latéral SMB/RDP observés lors de la Phase 3.
-	
-	\subsection{Objectifs Pédagogiques}
-	
-	À l\'issue de cette Phase 4, l'étudiant doit être capable de :
-	
-	\begin{enumerate}[leftmargin=*]
-		\item Distinguer \textbf{pare-feu}, \textbf{IDS} et \textbf{IPS}, et expliquer leurs rôles complémentaires.
-		\item Installer et configurer \textbf{Snort} sur pfSense.
-		\item Comprendre la \textbf{détection par signatures} et ses limites (attaques zero-day).
-		\item Analyser des \textbf{alertes Snort} (horodatage, IP source/destination, ports, SID, description).
-		\item Expliquer le concept de \textbf{faux positifs} et l'importance du \textbf{tuning}.
-		\item Montrer la valeur d'un IDS pour la détection du \textbf{mouvement latéral} (lateral movement) dans un réseau segmenté.
-	\end{enumerate}
-	
-	\subsection{Cadre Éthique et Légal}
-	
-	\begin{tcolorbox}[colback=accent!5!white, colframe=accent, title=\textbf{AVERTISSEMENT LÉGAL}]
-		\textbf{Tous les tests ont été réalisés dans un environnement de laboratoire isolé et contrôlé.}
-		
-		Les techniques décrites ci-dessous ne doivent être utilisées que dans un cadre légal (pentest autorisé, lab de formation). Toute exploitation sans autorisation explicite est illégale.
-	\end{tcolorbox}
-	
-	% ==============================================================================
-	% CHAPITRE 3 : ENVIRONNEMENT DE LAB
-	% ==============================================================================
-	\section{Déploiement de Snort sur pfSense (IDS Mode)}
-	
-	\subsection{Choix du Mode IDS (Détection seule)}
-	
-	\begin{tcolorbox}[colback=secondary!5!white, colframe=secondary, title=\textbf{Choix de conception : IDS Mode}]
-		Dans ce laboratoire, Snort a été configuré en \textbf{mode IDS} (Blocking Mode \textbf{désactivé}).  
-		
-		\textbf{Justification :}
-		\begin{itemize}
-			\item Permettre la reproduction des attaques de la Phase 3 (exploitation, pivoting) sans interruption.
-			\item Collecter des alertes exploitables pour analyse.
-			\item Éviter des coupures de service dues à des faux positifs.
-		\end{itemize}
-	\end{tcolorbox}
-	
-	\subsection{Installation du paquet Snort}
-	
-	\textbf{Procédure :}
-	\begin{enumerate}[leftmargin=*]
-		\item Accès à l'interface pfSense : \url{https://192.168.10.1}
-		\item Menu : \textbf{System > Package Manager > Available Packages}
-		\item Recherche : \texttt{snort}
-		\item Installation du paquet \textbf{Snort} puis confirmation.
-	\end{enumerate}
-	
-	\subsection{Activation des sources de règles (Signatures)}
-	
-	Les sources suivantes ont été activées dans \textbf{Services > Snort > Global Settings} :
-	\begin{itemize}
-		\item \textbf{Snort GPLv2 Community Rules} (Talos certified subset).
-		\item \textbf{Emerging Threats Open (ET Open)}.
-	\end{itemize}
-	
-	\begin{figure}[H]
-		\centering
-		\includegraphics[width=0.98\textwidth]{screenshots/snort-global-settings.png}
-		\caption{Snort : activation des sources de règles (GPLv2 + ET Open)}
-		\label{fig:snort-global-settings}
-	\end{figure}
-	
-	\subsection{Activation sur Interfaces (WAN + DMZ + LAN)}
-	
-	Snort a été activé sur trois interfaces afin de couvrir :
-	\begin{itemize}
-		\item \textbf{WAN :} détection d'attaques externes (reconnaissance, exploitation sur ports exposés).
-		\item \textbf{DMZ :} surveillance de l'hôte pivot (serveur compromis).
-		\item \textbf{LAN :} détection du mouvement latéral vers Windows XP (SMB/RDP).
-	\end{itemize}
-	
-	\begin{figure}[H]
-		\centering
-		\includegraphics[width=0.98\textwidth]{screenshots/snort-interfaces.png}
-		\caption{Snort Interfaces : WAN, DMZ et LAN en exécution (IDS mode, blocking disabled)}
-		\label{fig:snort-interfaces}
-	\end{figure}
-	
-	% ==============================================================================
-	% CHAPITRE 5 : VALIDATION ET ANALYSE DES ALERTES
-	% ==============================================================================
-	\section{Validation : Détection WAN vs Mouvement Latéral LAN}
-	
-	\subsection{Principe de la démonstration ``Avant / Après''}
-	
-	L'objectif est de reproduire des événements similaires à ceux de la Phase 3 et de vérifier que :
-	\begin{itemize}
-		\item un pare-feu seul ne fournit pas de contexte sur le contenu d'une attaque,
-		\item Snort déclenche des alertes grâce à ses signatures,
-		\item les alertes permettent de corréler \textbf{source}, \textbf{destination}, \textbf{ports} et \textbf{type d'attaque}.
-	\end{itemize}
-	
-	\subsection{Détection sur WAN : activité de l'attaquant}
-	
-	La figure~\ref{fig:snort-alerts-wan} montre des alertes Snort issues de l'interface \textbf{WAN}, liées à l'activité de la machine attaquante \textbf{Parrot} (192.168.100.150) vers pfSense (192.168.100.6).
-	
-	\subsubsection{Exemple d'alerte : transfert de binaire ELF}
-	
-	Une alerte critique a été déclenchée lors d'un transfert de fichier exécutable Linux :
-	
-	\begin{lstlisting}[style=logstyle,caption={Extrait d'alerte WAN : détection d'un téléchargement ELF (ET POLICY)},label={lst:alert-elf}]
-		Date/Time : 2026-03-14 22:21:02
-		Interface : WAN (em0)
-		Priority  : 1
-		Proto     : TCP
-		Class     : Potential Corporate Privacy Violation
-		Source    : 192.168.100.150:4445
-		Dest      : 192.168.100.6:19767
-		GID:SID   : 1:2000418
-		Message   : ET POLICY Executable and linking format (ELF) file download
-	\end{lstlisting}
-	
-	\textbf{Interprétation :} Snort a identifié, via signature, un motif correspondant à un \textbf{exécutable ELF}. Cette détection est cohérente avec la Phase 3 où un payload \texttt{meterpreter.elf} a été généré et transféré dans le cadre de la post-exploitation.
-	
-	\begin{figure}[H]
-		\centering
-		\includegraphics[width=0.98\textwidth]{screenshots/wan-alerts.png}
-		\caption{Snort Alerts (WAN) : alertes déclenchées par l'activité depuis 192.168.100.150}
-		\label{fig:snort-alerts-wan}
-	\end{figure}
-	
-	\subsection{Détection sur LAN : mouvement latéral via pivot DMZ}
-	
-	La figure~\ref{fig:snort-alerts-lan} montre des alertes issues de l'interface \textbf{LAN} (em1). Ce point est critique car il représente ce que les logs du pare-feu ne caractérisent pas nécessairement : une attaque interne issue d'une machine pivot compromise (DMZ).
-	
-	\subsubsection{Exemple d'alerte : sonde EternalBlue (MS17-010) détectée}
-	
-	\begin{lstlisting}[style=logstyle,caption={Extrait d'alerte LAN : détection d'une sonde MS17-010 (EternalBlue) via pivot},label={lst:alert-eternalblue}]
-		Date/Time : 2026-03-04 15:28:14
-		Interface : LAN (em1)
-		Priority  : 1
-		Proto     : TCP
-		Class     : A Network Trojan was Detected
-		Source    : 192.168.10.100:44152
-		Dest      : 192.168.20.50:445
-		GID:SID   : 1:2025992
-		Message   : ET EXPLOIT Possible ETERNALBLUE Probe MS17-010 (Generic Flags)
-	\end{lstlisting}
-	
-	\textbf{Interprétation :}
-	\begin{itemize}
-		\item La source \textbf{192.168.10.100} correspond au serveur Ubuntu DMZ compromis (pivot).
-		\item La destination \textbf{192.168.20.50:445} correspond au poste Windows XP dans le LAN (service SMB).
-		\item Snort identifie une signature d'activité typique d'une \textbf{sonde EternalBlue (MS17-010)}.
-	\end{itemize}
-	
-	\textbf{Apport défensif :} cette alerte illustre l'intérêt d'un IDS interne : même si le pare-feu autorise (ou laisse passer via une règle permissive DMZ $\rightarrow$ LAN), Snort fournit un \textbf{contexte d'attaque} et un \textbf{indicateur de compromission} utile aux analystes.
-	
-	\begin{figure}[H]
-		\centering
-		\includegraphics[width=0.98\textwidth]{screenshots/lan-alerts.png}
-		\caption{Snort Alerts (LAN) : alertes révélant une activité de mouvement latéral (DMZ $\rightarrow$ LAN)}
-		\label{fig:snort-alerts-lan}
-	\end{figure}
-	
-	\subsection{Discussion : pare-feu vs Snort (visibilité)}
-	
-	\subsubsection{Ce que le pare-feu voit}
-	Le pare-feu pfSense enregistre qu'un flux a été autorisé entre deux zones selon des règles (IP/ports). Toutefois, un flux autorisé ne signifie pas que son contenu est légitime.
-	
-	\subsubsection{Ce que Snort apporte}
-	Snort inspecte la charge utile (DPI), compare à des signatures, et produit :
-	\begin{itemize}
-		\item un horodatage précis,
-		\item une classification,
-		\item une priorité,
-		\item un message décrivant la menace,
-		\item un SID permettant l'identification reproductible.
-	\end{itemize}
-	
-	\subsection{Faux positifs observés et tuning}
-	
-	Les logs montrent des alertes \texttt{http\_inspect} et des règles de \textit{policy} qui peuvent apparaître en trafic normal, par exemple :
-	\begin{itemize}
-		\item \texttt{(http\_inspect) NO CONTENT-LENGTH OR TRANSFER-ENCODING IN HTTP RESPONSE}
-		\item \texttt{ET POLICY GNU/Linux APT User-Agent Outbound likely related to package management}
-	\end{itemize}
-	
-	\textbf{Approche de tuning recommandée :}
-	\begin{enumerate}[leftmargin=*]
-		\item Activer uniquement les catégories pertinentes (scan/exploit/samba/web).
-		\item Utiliser \textbf{Suppress List} pour des signatures trop bruyantes si elles sont jugées bénignes.
-		\item Ajouter des exceptions (\textbf{Pass Lists / IP Lists}) pour des services légitimes.
-		\item Envisager l'activation du mode IPS uniquement après stabilisation du tuning.
-	\end{enumerate}
-	
-	% ==============================================================================
-	% FIN DU CHAPITRE 4 — SNORT IDS
-	% ==============================================================================
 \chapter{Web Application Exploitation --- DVWA et OWASP Top 10}
 \label{chap:dvwa}
 
 \begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectifs du Chapitre}]
-Ce chapitre étend l'analyse sécuritaire à la couche applicative web via DVWA (Damn Vulnerable Web Application). Après avoir compromis l'infrastructure réseau dans les phases précédentes, nous examinons ici 8 catégories de vulnérabilités OWASP Top 10 : Injection SQL, Injection de Commandes, Brute Force, Upload de Fichiers, Sessions Faibles, Credentials par Défaut, Inclusion de Fichiers Locaux, et Divulgation d'Informations. Chaque vulnérabilité est présentée avec sa théorie, son exploitation, et son code de remédiation.
+Objectif : valider la compromission de la couche applicative avec DVWA en exploitant huit catégories OWASP Top 10 (SQL injection, command injection, brute force, upload, sessions faibles, credentials par défaut, LFI, divulgation d'informations). Chaque scénario fournit preuve, impact et remédiation.
 \end{tcolorbox}
 
 \section{Introduction et Objectifs}
@@ -4454,92 +4231,10 @@ Ce chapitre étend l'analyse sécuritaire à la couche applicative web via DVWA 
 	\end{lstlisting}
 	
 	% ══════════════════════════════════════════════════════════════════════
-	% CHAPITRE 5 : RÉSUMÉ DES VULNÉRABILITÉS
+	% CHAPITRE 4 : RÉSUMÉ DES VULNÉRABILITÉS
 	% ══════════════════════════════════════════════════════════════════════
 	
-	\section{Résumé Consolidé des Vulnérabilités}
-	
-	\subsection{Tableau de Synthèse OWASP Top 10 2021}
-	
-	\begin{longtable}{p{2.2cm} p{4.2cm} >{\centering\arraybackslash}p{2.2cm} p{4.2cm}}
-		\hline
-		% Dans le tableau synthèse (ligne ~1130), remplace les \checkmark et ✗:
-		\rowcolor{tablerowalt}
-		\textbf{A01} & Broken Access Control & HAUTE & LFI [OK] \\
-		
-		\textbf{A02} & Security Misconfiguration & CRITIQUE & Default Creds [OK] \\
-		
-		\rowcolor{tablerowalt}
-		\textbf{A03} & Software Supply Chain & MOYENNE & Non testée [X] \\
-		
-		\textbf{A04} & Cryptographic Failures & CRITIQUE & Weak Sessions [OK] \\
-		
-		\rowcolor{tablerowalt}
-		\textbf{A05} & Injection & CRITIQUE & SQL + Command [OK] \\
-		
-		\textbf{A06} & Insecure Design & MOYENNE & Non testée [X] \\
-		
-		\rowcolor{tablerowalt}
-		\textbf{A07} & Authentication Failures & HAUTE & Brute Force [OK] \\
-		
-		\textbf{A08} & File Upload/Integrity & CRITIQUE & Web Shell [OK] \\
-		
-		\rowcolor{tablerowalt}
-		\textbf{A09} & Logging/Alerting Failures & MOYENNE & Non testée [X] \\
-		
-		\textbf{A10} & Exceptional Conditions & MOYENNE & Error Disclosure [OK] \\
-		
-		\caption{Synthèse OWASP Top 10 2021 - Résultats d'Évaluation}
-		\label{tab:owasp-summary}
-	\end{longtable}
-	
-	\subsection{Statistiques des Attaques}
-	
-	\begin{itemize}
-		\item \textbf{Vulnérabilités Testées :} 7/10 (70\%)
-		\item \textbf{Attaques Réussies :} 8/8 (100\%)
-		\item \textbf{Sévérité CRITIQUE :} 4 vulnérabilités
-		\item \textbf{Sévérité HAUTE :} 3 vulnérabilités
-		\item \textbf{Sévérité MOYENNE :} 1 vulnérabilité
-	\end{itemize}
-
-	
-	% ══════════════════════════════════════════════════════════════════════
-	% CHAPITRE 7 : CONCLUSION
-	% ══════════════════════════════════════════════════════════════════════
-	
-	\section{Conclusion}
-	
-	Cette évaluation a permis de démontrer la présence de \textbf{8 vulnérabilités critiques} 
-	dans l'application DVWA, couvrant 7 catégories de la liste OWASP Top 10 2021.
-	
-	\subsection{Résultats Clés}
-	
-	\begin{itemize}
-		\item \textbf{100\% d'Exploitabilité :} Toutes les vulnérabilités testées ont été exploitées avec succès
-		\item \textbf{Risque Critique :} 4 vulnérabilités OWASP A05 (Injection), A08 (Upload), A04 (Crypto), A02 (Config)
-		\item \textbf{Impact Systémique :} Chaque vulnérabilité permet une compromission complète du système
-	\end{itemize}
-	
-	\subsection{Leçons Apprises}
-	
-	\begin{itemize}
-		\item La \textbf{validation des entrées} est le fondement de la sécurité applicative
-		\item La \textbf{segmentation réseau} limite le blast radius mais ne suffit pas seule
-		\item La \textbf{défense en profondeur} (WAF + Code Secure + Monitoring) est essentielle
-		\item Les \textbf{erreurs de configuration} (credentials par défaut) sont souvent les plus critiques
-	\end{itemize}
-	
-	\subsection{Recommandation Finale}
-	
-	DVWA doit être considérée comme \textbf{NON SÉCURISÉE} pour tout environnement de production. 
-	Les vulnérabilités identifiées permettent une compromission complète du système en quelques minutes 
-	par un attaquant ayant une connaissance basique de sécurité web.
-
-% ==============================================================================
-% SECTION 10 : POST-EXPLOITATION DVWA
-% ==============================================================================
-\section{Post-Exploitation DVWA}
+	\section{Post-Exploitation DVWA}
 \label{sec:dvwa-postexploit}
 
 \begin{tcolorbox}[colback=accent!5!white, colframe=accent, title=\textbf{AVERTISSEMENT LÉGAL}]
@@ -4784,6 +4479,333 @@ cat /root/.ssh/id_rsa    # Clé SSH root si présente
 % ==============================================================================
 % CHAPITRE 6 : COWRIE SSH HONEYPOT
 % ==============================================================================
+
+
+\section{Résumé Consolidé des Vulnérabilités}
+	
+	\subsection{Tableau de Synthèse OWASP Top 10 2021}
+	
+	\begin{longtable}{p{2.2cm} p{4.2cm} >{\centering\arraybackslash}p{2.2cm} p{4.2cm}}
+		\hline
+		% Dans le tableau synthèse (ligne ~1130), remplace les \checkmark et ✗:
+		\rowcolor{tablerowalt}
+		\textbf{A01} & Broken Access Control & HAUTE & LFI [OK] \\
+		
+		\textbf{A02} & Security Misconfiguration & CRITIQUE & Default Creds [OK] \\
+		
+		\rowcolor{tablerowalt}
+		\textbf{A03} & Software Supply Chain & MOYENNE & Non testée [X] \\
+		
+		\textbf{A04} & Cryptographic Failures & CRITIQUE & Weak Sessions [OK] \\
+		
+		\rowcolor{tablerowalt}
+		\textbf{A05} & Injection & CRITIQUE & SQL + Command [OK] \\
+		
+		\textbf{A06} & Insecure Design & MOYENNE & Non testée [X] \\
+		
+		\rowcolor{tablerowalt}
+		\textbf{A07} & Authentication Failures & HAUTE & Brute Force [OK] \\
+		
+		\textbf{A08} & File Upload/Integrity & CRITIQUE & Web Shell [OK] \\
+		
+		\rowcolor{tablerowalt}
+		\textbf{A09} & Logging/Alerting Failures & MOYENNE & Non testée [X] \\
+		
+		\textbf{A10} & Exceptional Conditions & MOYENNE & Error Disclosure [OK] \\
+		
+		\caption{Synthèse OWASP Top 10 2021 - Résultats d'Évaluation}
+		\label{tab:owasp-summary}
+	\end{longtable}
+	
+	\subsection{Statistiques des Attaques}
+	
+	\begin{itemize}
+		\item \textbf{Vulnérabilités Testées :} 7/10 (70\%)
+		\item \textbf{Attaques Réussies :} 8/8 (100\%)
+		\item \textbf{Sévérité CRITIQUE :} 4 vulnérabilités
+		\item \textbf{Sévérité HAUTE :} 3 vulnérabilités
+		\item \textbf{Sévérité MOYENNE :} 1 vulnérabilité
+	\end{itemize}
+
+	
+	% ══════════════════════════════════════════════════════════════════════
+	% CHAPITRE 7 : CONCLUSION
+	% ══════════════════════════════════════════════════════════════════════
+	
+	
+
+\section{Conclusion}
+	
+	Cette évaluation a permis de démontrer la présence de \textbf{8 vulnérabilités critiques} 
+	dans l'application DVWA, couvrant 7 catégories de la liste OWASP Top 10 2021.
+	
+	\subsection{Résultats Clés}
+	
+	\begin{itemize}
+		\item \textbf{100\% d'Exploitabilité :} Toutes les vulnérabilités testées ont été exploitées avec succès
+		\item \textbf{Risque Critique :} 4 vulnérabilités OWASP A05 (Injection), A08 (Upload), A04 (Crypto), A02 (Config)
+		\item \textbf{Impact Systémique :} Chaque vulnérabilité permet une compromission complète du système
+	\end{itemize}
+	
+	\subsection{Leçons Apprises}
+	
+	\begin{itemize}
+		\item La \textbf{validation des entrées} est le fondement de la sécurité applicative
+		\item La \textbf{segmentation réseau} limite le blast radius mais ne suffit pas seule
+		\item La \textbf{défense en profondeur} (WAF + Code Secure + Monitoring) est essentielle
+		\item Les \textbf{erreurs de configuration} (credentials par défaut) sont souvent les plus critiques
+	\end{itemize}
+	
+	\subsection{Recommandation Finale}
+	
+	DVWA reste \textbf{NON SÉCURISÉE} pour tout environnement de production : les vulnérabilités identifiées permettent une compromission rapide de l'application et du serveur. Les traces générées par ces attaques sont corrélées au Chapitre~\ref{chap:snort} pour vérifier la capacité de détection IDS.
+
+% ==============================================================================
+% SECTION 10 : POST-EXPLOITATION DVWA
+% ==============================================================================
+\chapter{Détection Active avec Snort IDS}
+\label{chap:snort}
+
+\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectifs du Chapitre}]
+Objectif : valider la détection Snort des attaques observées dans les Chapitres~\ref{chap:exploitation} et~\ref{chap:dvwa}. Le chapitre compare la visibilité pare-feu vs DPI, analyse les alertes WAN/LAN, puis confirme la détection des payloads DVWA par signatures IDS.
+\end{tcolorbox}
+
+\section{Introduction et Objectifs}
+	
+	\subsection{Contexte et Motivation}
+	
+	Cette Phase 5 transforme les preuves offensives en validation défensive. pfSense contrôle les flux L3/L4, tandis que Snort inspecte le \textit{payload} (DPI) pour qualifier les scans, exploitations et mouvements latéraux documentés dans les phases précédentes.
+	
+	\subsection{Objectifs Pédagogiques}
+	
+	À l\'issue de cette Phase 5, l'étudiant doit être capable de :
+	
+	\begin{enumerate}[leftmargin=*]
+		\item Distinguer \textbf{pare-feu}, \textbf{IDS} et \textbf{IPS}, et expliquer leurs rôles complémentaires.
+		\item Installer et configurer \textbf{Snort} sur pfSense.
+		\item Comprendre la \textbf{détection par signatures} et ses limites (attaques zero-day).
+		\item Analyser des \textbf{alertes Snort} (horodatage, IP source/destination, ports, SID, description).
+		\item Expliquer le concept de \textbf{faux positifs} et l'importance du \textbf{tuning}.
+		\item Montrer la valeur d'un IDS pour la détection du \textbf{mouvement latéral} (lateral movement) dans un réseau segmenté.
+	\end{enumerate}
+	
+	\subsection{Cadre Éthique et Légal}
+	
+	\begin{tcolorbox}[colback=accent!5!white, colframe=accent, title=\textbf{AVERTISSEMENT LÉGAL}]
+		\textbf{Tous les tests ont été réalisés dans un environnement de laboratoire isolé et contrôlé.}
+		
+		Les techniques décrites ci-dessous ne doivent être utilisées que dans un cadre légal (pentest autorisé, lab de formation). Toute exploitation sans autorisation explicite est illégale.
+	\end{tcolorbox}
+	
+	% ==============================================================================
+	% CHAPITRE 3 : ENVIRONNEMENT DE LAB
+	% ==============================================================================
+	\section{Déploiement de Snort sur pfSense (IDS Mode)}
+	
+	\subsection{Choix du Mode IDS (Détection seule)}
+	
+	\begin{tcolorbox}[colback=secondary!5!white, colframe=secondary, title=\textbf{Choix de conception : IDS Mode}]
+		Dans ce laboratoire, Snort a été configuré en \textbf{mode IDS} (Blocking Mode \textbf{désactivé}).  
+		
+		\textbf{Justification :}
+		\begin{itemize}
+			\item Permettre la reproduction des attaques de la Phase 3 (exploitation, pivoting) sans interruption.
+			\item Collecter des alertes exploitables pour analyse.
+			\item Éviter des coupures de service dues à des faux positifs.
+		\end{itemize}
+	\end{tcolorbox}
+	
+	\subsection{Installation du paquet Snort}
+	
+	\textbf{Procédure :}
+	\begin{enumerate}[leftmargin=*]
+		\item Accès à l'interface pfSense : \url{https://192.168.10.1}
+		\item Menu : \textbf{System > Package Manager > Available Packages}
+		\item Recherche : \texttt{snort}
+		\item Installation du paquet \textbf{Snort} puis confirmation.
+	\end{enumerate}
+	
+	\subsection{Activation des sources de règles (Signatures)}
+	
+	Les sources suivantes ont été activées dans \textbf{Services > Snort > Global Settings} :
+	\begin{itemize}
+		\item \textbf{Snort GPLv2 Community Rules} (Talos certified subset).
+		\item \textbf{Emerging Threats Open (ET Open)}.
+	\end{itemize}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.98\textwidth]{screenshots/snort-global-settings.png}
+		\caption{Snort : activation des sources de règles (GPLv2 + ET Open)}
+		\label{fig:snort-global-settings}
+	\end{figure}
+	
+	\subsection{Activation sur Interfaces (WAN + DMZ + LAN)}
+	
+	Snort a été activé sur trois interfaces afin de couvrir :
+	\begin{itemize}
+		\item \textbf{WAN :} détection d'attaques externes (reconnaissance, exploitation sur ports exposés).
+		\item \textbf{DMZ :} surveillance de l'hôte pivot (serveur compromis).
+		\item \textbf{LAN :} détection du mouvement latéral vers Windows XP (SMB/RDP).
+	\end{itemize}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.98\textwidth]{screenshots/snort-interfaces.png}
+		\caption{Snort Interfaces : WAN, DMZ et LAN en exécution (IDS mode, blocking disabled)}
+		\label{fig:snort-interfaces}
+	\end{figure}
+	
+	% ==============================================================================
+	% CHAPITRE 5 : VALIDATION ET ANALYSE DES ALERTES
+	% ==============================================================================
+	\section{Validation : Détection WAN vs Mouvement Latéral LAN}
+	
+	\subsection{Principe de la démonstration ``Avant / Après''}
+	
+	L'objectif est de reproduire des événements similaires à ceux de la Phase 3 et de vérifier que :
+	\begin{itemize}
+		\item un pare-feu seul ne fournit pas de contexte sur le contenu d'une attaque,
+		\item Snort déclenche des alertes grâce à ses signatures,
+		\item les alertes permettent de corréler \textbf{source}, \textbf{destination}, \textbf{ports} et \textbf{type d'attaque}.
+	\end{itemize}
+	
+	\subsection{Détection sur WAN : activité de l'attaquant}
+	
+	La figure~\ref{fig:snort-alerts-wan} montre des alertes Snort issues de l'interface \textbf{WAN}, liées à l'activité de la machine attaquante \textbf{Parrot} (192.168.100.150) vers pfSense (192.168.100.6).
+	
+	\subsubsection{Exemple d'alerte : transfert de binaire ELF}
+	
+	Une alerte critique a été déclenchée lors d'un transfert de fichier exécutable Linux :
+	
+	\begin{lstlisting}[style=logstyle,caption={Extrait d'alerte WAN : détection d'un téléchargement ELF (ET POLICY)},label={lst:alert-elf}]
+		Date/Time : 2026-03-14 22:21:02
+		Interface : WAN (em0)
+		Priority  : 1
+		Proto     : TCP
+		Class     : Potential Corporate Privacy Violation
+		Source    : 192.168.100.150:4445
+		Dest      : 192.168.100.6:19767
+		GID:SID   : 1:2000418
+		Message   : ET POLICY Executable and linking format (ELF) file download
+	\end{lstlisting}
+	
+	\textbf{Interprétation :} Snort a identifié, via signature, un motif correspondant à un \textbf{exécutable ELF}. Cette détection est cohérente avec la Phase 3 où un payload \texttt{meterpreter.elf} a été généré et transféré dans le cadre de la post-exploitation.
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.98\textwidth]{screenshots/wan-alerts.png}
+		\caption{Snort Alerts (WAN) : alertes déclenchées par l'activité depuis 192.168.100.150}
+		\label{fig:snort-alerts-wan}
+	\end{figure}
+	
+	\subsection{Détection sur LAN : mouvement latéral via pivot DMZ}
+	
+	La figure~\ref{fig:snort-alerts-lan} montre des alertes issues de l'interface \textbf{LAN} (em1). Ce point est critique car il représente ce que les logs du pare-feu ne caractérisent pas nécessairement : une attaque interne issue d'une machine pivot compromise (DMZ).
+	
+	\subsubsection{Exemple d'alerte : sonde EternalBlue (MS17-010) détectée}
+	
+	\begin{lstlisting}[style=logstyle,caption={Extrait d'alerte LAN : détection d'une sonde MS17-010 (EternalBlue) via pivot},label={lst:alert-eternalblue}]
+		Date/Time : 2026-03-04 15:28:14
+		Interface : LAN (em1)
+		Priority  : 1
+		Proto     : TCP
+		Class     : A Network Trojan was Detected
+		Source    : 192.168.10.100:44152
+		Dest      : 192.168.20.50:445
+		GID:SID   : 1:2025992
+		Message   : ET EXPLOIT Possible ETERNALBLUE Probe MS17-010 (Generic Flags)
+	\end{lstlisting}
+	
+	\textbf{Interprétation :}
+	\begin{itemize}
+		\item La source \textbf{192.168.10.100} correspond au serveur Ubuntu DMZ compromis (pivot).
+		\item La destination \textbf{192.168.20.50:445} correspond au poste Windows XP dans le LAN (service SMB).
+		\item Snort identifie une signature d'activité typique d'une \textbf{sonde EternalBlue (MS17-010)}.
+	\end{itemize}
+	
+	\textbf{Apport défensif :} cette alerte illustre l'intérêt d'un IDS interne : même si le pare-feu autorise (ou laisse passer via une règle permissive DMZ $\rightarrow$ LAN), Snort fournit un \textbf{contexte d'attaque} et un \textbf{indicateur de compromission} utile aux analystes.
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.98\textwidth]{screenshots/lan-alerts.png}
+		\caption{Snort Alerts (LAN) : alertes révélant une activité de mouvement latéral (DMZ $\rightarrow$ LAN)}
+		\label{fig:snort-alerts-lan}
+	\end{figure}
+
+	\subsection{Validation : Détection des Attaques DVWA}
+
+	Les alertes Snort confirment la détection des tentatives d'exploitation applicative exécutées au Chapitre~\ref{chap:dvwa}. Les événements observés incluent SQL injection, command injection et accès à des fichiers sensibles.
+
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.98\textwidth]{screenshots/snort-alerts-lan.png}
+		\caption{Snort alert log detecting DVWA exploitation attempts \textemdash{} SQL injection (SID 1:2016672), command injection (SID 1:2025879, 1:2049400), and file access attempts}
+		\label{fig:snort-dvwa-detection}
+	\end{figure}
+
+	\begin{table}[H]
+		\centering
+		\small
+		\renewcommand{\arraystretch}{1.3}
+		\setlength{\arrayrulewidth}{0.5pt}
+		\begin{tabular}{p{3.2cm} p{2.8cm} p{2.4cm} >{\centering\arraybackslash}p{1.9cm} p{2.8cm}}
+			\arrayrulecolor{tableborder}
+			\hline
+			\tableheadcolor
+			\textcolor{tableheadfg}{\textbf{Attack Vector}} &
+			\textcolor{tableheadfg}{\textbf{Payload Example}} &
+			\textcolor{tableheadfg}{\textbf{Snort SID}} &
+			\textcolor{tableheadfg}{\textbf{Detection}} &
+			\textcolor{tableheadfg}{\textbf{Timestamp}} \\
+			\hline
+			\rowcolor{tablerowalt}
+			DVWA SQL Injection & ' OR '1'='1 & 1:2016672 & \textcolor{green!50!black}{\textbf{Detected}} & 2026-04-05 02:57:06 \\
+			DVWA Command Injection & ; cat /etc/passwd & 1:2025879, 1:2049400 & \textcolor{green!50!black}{\textbf{Detected}} & 2026-04-05 02:55:16 \\
+			\rowcolor{tablerowalt}
+			DVWA File Access (LFI) & /etc/passwd in URI & 1:2049400 & \textcolor{green!50!black}{\textbf{Detected}} & 2026-04-05 02:41:12 \\
+			\hline
+		\end{tabular}
+		\caption{Validation Snort des attaques DVWA}
+		\label{tab:snort-dvwa-validation}
+	\end{table}
+	
+	\subsection{Discussion : pare-feu vs Snort (visibilité)}
+	
+	\subsubsection{Ce que le pare-feu voit}
+	Le pare-feu pfSense enregistre qu'un flux a été autorisé entre deux zones selon des règles (IP/ports). Toutefois, un flux autorisé ne signifie pas que son contenu est légitime.
+	
+	\subsubsection{Ce que Snort apporte}
+	Snort inspecte la charge utile (DPI), compare à des signatures, et produit :
+	\begin{itemize}
+		\item un horodatage précis,
+		\item une classification,
+		\item une priorité,
+		\item un message décrivant la menace,
+		\item un SID permettant l'identification reproductible.
+	\end{itemize}
+	
+	\subsection{Faux positifs observés et tuning}
+	
+	Les logs montrent des alertes \texttt{http\_inspect} et des règles de \textit{policy} qui peuvent apparaître en trafic normal, par exemple :
+	\begin{itemize}
+		\item \texttt{(http\_inspect) NO CONTENT-LENGTH OR TRANSFER-ENCODING IN HTTP RESPONSE}
+		\item \texttt{ET POLICY GNU/Linux APT User-Agent Outbound likely related to package management}
+	\end{itemize}
+	
+	\textbf{Approche de tuning recommandée :}
+	\begin{enumerate}[leftmargin=*]
+		\item Activer uniquement les catégories pertinentes (scan/exploit/samba/web).
+		\item Utiliser \textbf{Suppress List} pour des signatures trop bruyantes si elles sont jugées bénignes.
+		\item Ajouter des exceptions (\textbf{Pass Lists / IP Lists}) pour des services légitimes.
+		\item Envisager l'activation du mode IPS uniquement après stabilisation du tuning.
+	\end{enumerate}
+
+	Ces validations ferment la chaîne attaque$\rightarrow$détection avant le volet deception (Chapitre~6) et la corrélation SIEM (Chapitre~7).
+	
+	% ==============================================================================
+	% FIN DU CHAPITRE 5 — SNORT IDS
+	% ==============================================================================
 \chapter{Cowrie SSH Honeypot --- Détection d'Attaques par Honeypot}
 \label{chap:cowrie}
 
@@ -5032,7 +5054,7 @@ Wazuh agrège les logs des sept phases (pfSense, Snort, Cowrie, agents Ubuntu) p
 \label{app:doc-technique}
 
 \begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Annexe A — Documentation Technique Consolidée}]
-Cette annexe regroupe les commandes de référence, extraits de configuration, scripts, glossaire et ressources utilisés tout au long des chapitres 1 à 5. Elle constitue une référence technique rapide pour reproduire ou auditer les environnements de laboratoire.
+Cette annexe regroupe les commandes de référence, extraits de configuration, scripts, glossaire et ressources utilisés tout au long des chapitres 0 à 7. Elle constitue une référence technique rapide pour reproduire ou auditer les environnements de laboratoire.
 \end{tcolorbox}
 
 % ─────────────────────────────────────────────────────────────────────────────
