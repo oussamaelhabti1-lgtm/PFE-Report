@@ -530,6 +530,7 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 		[ ] Block private networks and loopback addresses
 		[ ] Block bogon networks
 	\end{lstlisting}
+	\textbf{Contexte technique :} cette option est désactivée pour autoriser le trafic RFC1918 du poste attaquant lab (\texttt{192.168.100.150}).
 	\begin{tcolorbox}[colback=warningorange!10!white, colframe=warningorange, title=\textbf{⚠️ Lab Configuration}]
 		This setup is designed for controlled testing only. Production deployments require additional hardening.
 	\end{tcolorbox}
@@ -1254,7 +1255,7 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 	\section{Analyse de la Surface d'Attaque}
 	
 	\subsection{Définition et Contexte}
-	Attack surface = exposed ports + services + protocols. Mesuré: 3/65535 ports (0.005\%).
+	Attack surface = exposed ports + services + protocols. Measured: 3/65535 ports (0.005\%).
 	
 	\subsection{Comparaison : Avec vs. Sans Protection}
 	
@@ -3162,7 +3163,7 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 			\hline
 			Aspect & Details \\
 			\hline
-			Payload & \texttt{' OR '1'='1' --}. Snippet complet en Annexe~\ref{sec:app-configs}. \\
+			Payload & \texttt{' OR '1'='1' --}. Snippet complet en Annexe~\ref{sec:app-commandes}. \\
 			Evidence & Figure~\ref{fig:sql-injection}. \\
 			Risk & CVSS 9.8 --- extraction/modification de données. \\
 			Fix & Requêtes préparées + validation stricte des entrées (Annexe~\ref{sec:app-configs}). \\
@@ -3342,7 +3343,7 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 		\centering
 		\renewcommand{\arraystretch}{1.4}
 		\setlength{\arrayrulewidth}{0.5pt}
-		\begin{tabular}{p{4.3cm} p{4.4cm} p{4.3cm}}
+		\begin{tabular}{p{0.28\textwidth} p{0.34\textwidth} p{0.28\textwidth}}
 			\arrayrulecolor{tableborder}
 			\hline
 			\tableheadcolor
