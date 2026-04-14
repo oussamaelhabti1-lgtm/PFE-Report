@@ -421,7 +421,7 @@ Ce chapitre établit le socle défensif du laboratoire : segmentation WAN/DMZ/LA
 
 \section{Introduction et Objectifs}
 
-Objectif : déployer une infrastructure segmentée (WAN/DMZ/LAN) sous VMware Workstation avec pfSense, pfBlockerNG, UFW et Fail2Ban pour établir une base défensive mesurable.
+Cette section détaille la mise en œuvre opérationnelle de cette base défensive : configuration réseau, filtrage périmétrique et durcissement de l'hôte DMZ.
 
 À l'issue de ce chapitre, l'étudiant maîtrise le déploiement VMware segmenté, la configuration pfSense (routage inter-zone, NAT, règles pare-feu), le filtrage pfBlockerNG, la sécurité hôte (UFW, Fail2Ban, Docker) et l'analyse des logs firewall.
 	
@@ -1945,7 +1945,7 @@ findtime = 600
 \label{chap:exploitation}
 
 \begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectifs du Chapitre}]
-Objectif : exécuter la chaîne d'attaque complète issue du Chapitre~\ref{chap:reconnaissance} (accès initial Telnet, session Meterpreter, pivot DMZ$\rightarrow$LAN, mouvement latéral et collecte post-exploitation). Les indicateurs produits seront utilisés au Chapitre~\ref{chap:snort} pour la validation de détection.
+Objectif : exécuter la chaîne d'attaque complète issue du Chapitre~\ref{chap:reconnaissance} (accès initial Telnet, session Meterpreter, pivot DMZ~$\rightarrow$~LAN, mouvement latéral et collecte post-exploitation). Les indicateurs produits seront utilisés au Chapitre~\ref{chap:snort} pour la validation de détection.
 \end{tcolorbox}
 
 \section{Introduction et Contexte Opérationnel}
@@ -5054,7 +5054,7 @@ Wazuh agrège les logs des sept phases (pfSense, Snort, Cowrie, agents Ubuntu) p
 \label{app:doc-technique}
 
 \begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Annexe A — Documentation Technique Consolidée}]
-Cette annexe regroupe les commandes de référence, extraits de configuration, scripts, glossaire et ressources utilisés tout au long des chapitres 0 à 7 (Introduction Générale + chapitres numérotés 1 à 7). Elle constitue une référence technique rapide pour reproduire ou auditer les environnements de laboratoire.
+Cette annexe regroupe les commandes de référence, extraits de configuration, scripts, glossaire et ressources utilisés tout au long des chapitres 0 à 7. Elle constitue une référence technique rapide pour reproduire ou auditer les environnements de laboratoire.
 \end{tcolorbox}
 
 % ─────────────────────────────────────────────────────────────────────────────
