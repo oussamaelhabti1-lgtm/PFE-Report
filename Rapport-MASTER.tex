@@ -388,8 +388,8 @@ Ce rapport documente sept phases interconnectées qui reproduisent un engagement
 		\textbf{3} & Exploitation \& Post-exploitation & Compromettre la DMZ via Telnet, établir un pivot Meterpreter, effectuer un mouvement latéral \\
 		\textbf{4} & Web Application Exploitation DVWA & Exploiter les vulnérabilités OWASP Top 10 et analyser l'impact applicatif \\
 		\rowcolor{tablerowalt}
-		\textbf{5} & Détection Active Snort IDS & Valider la détection des attaques Telnet, DVWA et mouvement latéral via signatures IDS \\
-		\textbf{6} & Cowrie SSH Honeypot & Déployer un honeypot SSH low/high interaction, collecter des sessions d'attaque, mapper les techniques selon MITRE ATT\&CK \\
+		\textbf{5} & Cowrie SSH Honeypot & Déployer un honeypot SSH low/high interaction, collecter des sessions d'attaque, mapper les techniques selon MITRE ATT\&CK \\
+		\textbf{6} & Détection Active Snort IDS & Valider la détection des attaques Telnet, DVWA et mouvement latéral via signatures IDS \\
 		\rowcolor{tablerowalt}
 		\textbf{7} & Wazuh SIEM & Agréger les logs (pfSense, Snort, Cowrie), configurer des règles de corrélation, gérer les alertes et activer la réponse automatisée IP-blocking \\
 		\hline
@@ -4563,6 +4563,142 @@ cat /root/.ssh/id_rsa    # Clé SSH root si présente
 % ==============================================================================
 % SECTION 10 : POST-EXPLOITATION DVWA
 % ==============================================================================
+\chapter{Cowrie SSH Honeypot --- Détection d'Attaques par Honeypot}
+\label{chap:cowrie}
+
+\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectifs du Chapitre}]
+Ce chapitre documente la Phase 5 : déploiement d'un honeypot SSH de type Cowrie pour collecter et analyser les tentatives d'intrusion, mapper les techniques d'attaque selon MITRE ATT\&CK, et valider les attaques observées en Phase 3.
+\end{tcolorbox}
+
+\section{Introduction et Objectifs}
+
+\subsection{Contexte et Motivation}
+
+Un honeypot est un système intentionnellement vulnérable déployé pour observer les techniques, outils et comportements des attaquants dans un environnement contrôlé. Cowrie (Phase 5) capture les sessions SSH automatiquement, enrichissant les données collectées lors des simulations d'attaque de la Phase 3.
+
+\textbf{Objectifs principaux :}
+\begin{itemize}
+    \item Déployer un honeypot SSH Cowrie (interaction faible/élevée) dans la DMZ
+    \item Collecter les sessions d'attaque complètes au format JSON
+    \item Analyser les comportements des attaquants (identifiants testés, commandes exécutées)
+    \item Mapper les techniques observées selon le framework MITRE ATT\&CK
+    \item Valider et enrichir les observations réalisées lors de la Phase 3
+\end{itemize}
+
+\section{Architecture et Déploiement Cowrie}
+
+\subsection{Présentation de Cowrie}
+
+Cowrie est un honeypot SSH/Telnet de medium interaction développé en Python. Il simule un serveur SSH vulnérable, accepte les connexions des attaquants, enregistre toutes leurs activités et génère des logs détaillés au format JSON. Cowrie peut opérer en deux modes :
+
+\begin{itemize}
+    \item \textbf{Mode shell (low interaction)} : Simule un système de fichiers et un shell basique, sans risque d'exposition réelle
+    \item \textbf{Mode proxy (high interaction)} : Redirige les connexions vers un vrai système (backend) via SSH, capturant l'activité réelle tout en isolant le système de production
+\end{itemize}
+
+\subsection{Configuration du NAT et Port Forwarding}
+
+Le déploiement nécessite une règle NAT sur pfSense pour rediriger le trafic SSH (port 22) de la zone WAN vers le honeypot Cowrie dans la DMZ. Le service SSH légitime du serveur Ubuntu est déplacé sur un port alternatif.
+
+\begin{lstlisting}[language=bash, caption={Configuration SSH — Déplacement du port légitime}]
+# Déplacer le service SSH légitime sur le port 2222 pour libérer le port 22 à Cowrie
+sudo sed -i 's/^#\?Port .*/Port 2222/' /etc/ssh/sshd_config
+
+sudo systemctl restart sshd
+
+# Vérification — SSH légitime écoute désormais sur le port 2222
+sudo ss -tlnp | grep sshd
+\end{lstlisting}
+
+\subsection{Installation et Démarrage de Cowrie}
+
+\begin{lstlisting}[language=bash, caption={Installation de Cowrie dans la DMZ}]
+# Installer les dépendances
+sudo apt update && sudo apt install -y python3-venv python3-dev libssl-dev libffi-dev
+
+# Créer un utilisateur dédié (sécurité)
+sudo adduser --disabled-password cowrie
+
+# Cloner Cowrie
+sudo -u cowrie git clone https://github.com/cowrie/cowrie /home/cowrie/cowrie
+
+# Créer l'environnement virtuel et installer les dépendances
+cd /home/cowrie/cowrie
+python3 -m venv cowrie-env
+source cowrie-env/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+
+# Configurer Cowrie (paramètres essentiels dans etc/cowrie.cfg)
+cp etc/cowrie.cfg.dist etc/cowrie.cfg
+
+# Paramètres clés à modifier :
+# [honeypot]
+#   hostname = svr04          <- Nom du système simulé affiché à l'attaquant
+#   listen_port = 22          <- Port d'écoute Cowrie (22 si NAT ou 2222 si local)
+#   interaction_type = low    <- 'low' (shell simulé) ou 'high' (proxy vers backend)
+# [output_jsonlog]
+#   enabled = true
+#   logfile = ${honeypot:log_path}/cowrie.json  <- Logs JSON pour Wazuh/Filebeat
+
+# Démarrer Cowrie
+bin/cowrie start
+bin/cowrie status
+\end{lstlisting}
+
+\section{Analyse des Sessions d'Attaque}
+
+\subsection{Structure des Logs JSON}
+
+Cowrie génère des logs au format JSON dans \texttt{var/log/cowrie/cowrie.json}. Chaque événement est enregistré avec un horodatage, l'adresse IP source, le type d'événement et les détails de l'action.
+
+\begin{lstlisting}[language=bash, caption={Exemple de log JSON Cowrie — Tentative de connexion SSH}]
+{
+  "eventid": "cowrie.login.failed",
+  "timestamp": "2025-04-12T19:11:29.412Z",
+  "src_ip": "192.168.100.150",
+  "username": "root",
+  "password": "admin",
+  "sensor": "cowrie-dmz",
+  "session": "abc123def456"
+}
+\end{lstlisting}
+
+\subsection{Mapping MITRE ATT\&CK}
+
+Les techniques observées via Cowrie peuvent être mappées directement sur le framework MITRE ATT\&CK :
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{p{3cm} p{4cm} p{5cm}}
+        \hline
+        \rowcolor{tableheadbg}
+        \textcolor{tableheadfg}{\textbf{Technique MITRE}} &
+        \textcolor{tableheadfg}{\textbf{ID}} &
+        \textcolor{tableheadfg}{\textbf{Observation Cowrie}} \\
+        \hline
+        \rowcolor{tablerowalt}
+        Brute Force & T1110 & Tentatives de mots de passe multiples \\
+        Valid Accounts & T1078 & Credentials admin/root testés \\
+        \rowcolor{tablerowalt}
+        Command and Scripting & T1059 & Commandes shell enregistrées \\
+        Discovery & T1082 & Collecte d'informations système \\
+        \rowcolor{tablerowalt}
+        Exfiltration & T1041 & Téléchargements via wget/curl \\
+        \hline
+    \end{tabular}
+    \caption{Mapping MITRE ATT\&CK des Attaques Observées via Cowrie}
+    \label{tab:cowrie-mitre}
+\end{table}
+
+\section{Conclusion}
+
+Cowrie complète Snort : là où Snort détecte les attaques sur les systèmes réels, le honeypot les attire dans un environnement contrôlé. Les sessions JSON collectées alimentent directement Wazuh (Phase 7) pour la corrélation cross-phase.
+
+% ==============================================================================
+% FIN DU CHAPITRE 5 — COWRIE
+% ==============================================================================
 \chapter{Détection Active avec Snort IDS}
 \label{chap:snort}
 
@@ -4574,11 +4710,11 @@ Objectif : valider la détection Snort des attaques observées dans les Chapitre
 	
 	\subsection{Contexte et Motivation}
 	
-	Cette Phase 5 transforme les preuves offensives en validation défensive. pfSense contrôle les flux L3/L4, tandis que Snort inspecte le \textit{payload} (DPI) pour qualifier les scans, exploitations et mouvements latéraux documentés dans les phases précédentes.
+	Cette Phase 6 transforme les preuves offensives en validation défensive. pfSense contrôle les flux L3/L4, tandis que Snort inspecte le \textit{payload} (DPI) pour qualifier les scans, exploitations et mouvements latéraux documentés dans les phases précédentes.
 	
 	\subsection{Objectifs Pédagogiques}
 	
-	À l\'issue de cette Phase 5, l'étudiant doit être capable de :
+	À l\'issue de cette Phase 6, l'étudiant doit être capable de :
 	
 	\begin{enumerate}[leftmargin=*]
 		\item Distinguer \textbf{pare-feu}, \textbf{IDS} et \textbf{IPS}, et expliquer leurs rôles complémentaires.
@@ -4801,144 +4937,11 @@ Objectif : valider la détection Snort des attaques observées dans les Chapitre
 		\item Envisager l'activation du mode IPS uniquement après stabilisation du tuning.
 	\end{enumerate}
 
-	Ces validations ferment la chaîne attaque$\rightarrow$détection avant le volet deception (Chapitre~6) et la corrélation SIEM (Chapitre~7).
+	Ces validations ferment la chaîne attaque$\rightarrow$détection avant le volet deception (Chapitre~5) et la corrélation SIEM (Chapitre~7).
 	
 	% ==============================================================================
-	% FIN DU CHAPITRE 5 — SNORT IDS
+	% FIN DU CHAPITRE 6 — SNORT IDS
 	% ==============================================================================
-\chapter{Cowrie SSH Honeypot --- Détection d'Attaques par Honeypot}
-\label{chap:cowrie}
-
-\begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectifs du Chapitre}]
-Ce chapitre documente la Phase 6 : déploiement d'un honeypot SSH de type Cowrie pour collecter et analyser les tentatives d'intrusion, mapper les techniques d'attaque selon MITRE ATT\&CK, et valider les attaques observées en Phase 3.
-\end{tcolorbox}
-
-\section{Introduction et Objectifs}
-
-\subsection{Contexte et Motivation}
-
-Un honeypot est un système intentionnellement vulnérable déployé pour observer les techniques, outils et comportements des attaquants dans un environnement contrôlé. Cowrie (Phase 6) capture les sessions SSH automatiquement, enrichissant les données collectées lors des simulations d'attaque de la Phase 3.
-
-\textbf{Objectifs principaux :}
-\begin{itemize}
-    \item Déployer un honeypot SSH Cowrie (interaction faible/élevée) dans la DMZ
-    \item Collecter les sessions d'attaque complètes au format JSON
-    \item Analyser les comportements des attaquants (identifiants testés, commandes exécutées)
-    \item Mapper les techniques observées selon le framework MITRE ATT\&CK
-    \item Valider et enrichir les observations réalisées lors de la Phase 3
-\end{itemize}
-
-\section{Architecture et Déploiement Cowrie}
-
-\subsection{Présentation de Cowrie}
-
-Cowrie est un honeypot SSH/Telnet de medium interaction développé en Python. Il simule un serveur SSH vulnérable, accepte les connexions des attaquants, enregistre toutes leurs activités et génère des logs détaillés au format JSON. Cowrie peut opérer en deux modes :
-
-\begin{itemize}
-    \item \textbf{Mode shell (low interaction)} : Simule un système de fichiers et un shell basique, sans risque d'exposition réelle
-    \item \textbf{Mode proxy (high interaction)} : Redirige les connexions vers un vrai système (backend) via SSH, capturant l'activité réelle tout en isolant le système de production
-\end{itemize}
-
-\subsection{Configuration du NAT et Port Forwarding}
-
-Le déploiement nécessite une règle NAT sur pfSense pour rediriger le trafic SSH (port 22) de la zone WAN vers le honeypot Cowrie dans la DMZ. Le service SSH légitime du serveur Ubuntu est déplacé sur un port alternatif.
-
-\begin{lstlisting}[language=bash, caption={Configuration SSH — Déplacement du port légitime}]
-# Déplacer le service SSH légitime sur le port 2222 pour libérer le port 22 à Cowrie
-sudo sed -i 's/^#\?Port .*/Port 2222/' /etc/ssh/sshd_config
-
-sudo systemctl restart sshd
-
-# Vérification — SSH légitime écoute désormais sur le port 2222
-sudo ss -tlnp | grep sshd
-\end{lstlisting}
-
-\subsection{Installation et Démarrage de Cowrie}
-
-\begin{lstlisting}[language=bash, caption={Installation de Cowrie dans la DMZ}]
-# Installer les dépendances
-sudo apt update && sudo apt install -y python3-venv python3-dev libssl-dev libffi-dev
-
-# Créer un utilisateur dédié (sécurité)
-sudo adduser --disabled-password cowrie
-
-# Cloner Cowrie
-sudo -u cowrie git clone https://github.com/cowrie/cowrie /home/cowrie/cowrie
-
-# Créer l'environnement virtuel et installer les dépendances
-cd /home/cowrie/cowrie
-python3 -m venv cowrie-env
-source cowrie-env/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
-
-# Configurer Cowrie (paramètres essentiels dans etc/cowrie.cfg)
-cp etc/cowrie.cfg.dist etc/cowrie.cfg
-
-# Paramètres clés à modifier :
-# [honeypot]
-#   hostname = svr04          <- Nom du système simulé affiché à l'attaquant
-#   listen_port = 22          <- Port d'écoute Cowrie (22 si NAT ou 2222 si local)
-#   interaction_type = low    <- 'low' (shell simulé) ou 'high' (proxy vers backend)
-# [output_jsonlog]
-#   enabled = true
-#   logfile = ${honeypot:log_path}/cowrie.json  <- Logs JSON pour Wazuh/Filebeat
-
-# Démarrer Cowrie
-bin/cowrie start
-bin/cowrie status
-\end{lstlisting}
-
-\section{Analyse des Sessions d'Attaque}
-
-\subsection{Structure des Logs JSON}
-
-Cowrie génère des logs au format JSON dans \texttt{var/log/cowrie/cowrie.json}. Chaque événement est enregistré avec un horodatage, l'adresse IP source, le type d'événement et les détails de l'action.
-
-\begin{lstlisting}[language=bash, caption={Exemple de log JSON Cowrie — Tentative de connexion SSH}]
-{
-  "eventid": "cowrie.login.failed",
-  "timestamp": "2025-04-12T19:11:29.412Z",
-  "src_ip": "192.168.100.150",
-  "username": "root",
-  "password": "admin",
-  "sensor": "cowrie-dmz",
-  "session": "abc123def456"
-}
-\end{lstlisting}
-
-\subsection{Mapping MITRE ATT\&CK}
-
-Les techniques observées via Cowrie peuvent être mappées directement sur le framework MITRE ATT\&CK :
-
-\begin{table}[H]
-    \centering
-    \renewcommand{\arraystretch}{1.4}
-    \begin{tabular}{p{3cm} p{4cm} p{5cm}}
-        \hline
-        \rowcolor{tableheadbg}
-        \textcolor{tableheadfg}{\textbf{Technique MITRE}} &
-        \textcolor{tableheadfg}{\textbf{ID}} &
-        \textcolor{tableheadfg}{\textbf{Observation Cowrie}} \\
-        \hline
-        \rowcolor{tablerowalt}
-        Brute Force & T1110 & Tentatives de mots de passe multiples \\
-        Valid Accounts & T1078 & Credentials admin/root testés \\
-        \rowcolor{tablerowalt}
-        Command and Scripting & T1059 & Commandes shell enregistrées \\
-        Discovery & T1082 & Collecte d'informations système \\
-        \rowcolor{tablerowalt}
-        Exfiltration & T1041 & Téléchargements via wget/curl \\
-        \hline
-    \end{tabular}
-    \caption{Mapping MITRE ATT\&CK des Attaques Observées via Cowrie}
-    \label{tab:cowrie-mitre}
-\end{table}
-
-\section{Conclusion}
-
-Cowrie complète Snort : là où Snort détecte les attaques sur les systèmes réels, le honeypot les attire dans un environnement contrôlé. Les sessions JSON collectées alimentent directement Wazuh (Phase 7) pour la corrélation cross-phase.
-
 % ==============================================================================
 % CHAPITRE 7 : WAZUH SIEM
 % ==============================================================================
