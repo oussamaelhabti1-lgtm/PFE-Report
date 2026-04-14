@@ -419,191 +419,11 @@ Toutes les phases partagent la même infrastructure virtualisée sous VMware Wor
 Ce chapitre présente la phase fondatrice du projet : la conception et le déploiement d'une infrastructure réseau segmentée multi-couches. Nous y construisons les défenses périmètriques (pfSense), l'hôte de défense (UFW, Fail2Ban), la détection d'intrusion (Snort), et la threat intelligence (pfBlockerNG). Cette infrastructure constitue le socle sur lequel toutes les phases suivantes reposent.
 \end{tcolorbox}
 
-\section{Introduction et Objectifs Pédagogiques}
-	
-	\subsection{Contexte du Projet}
-	Ce chapitre déploie une infrastructure segmentée (WAN/DMZ/LAN) sous VMware Workstation : pare-feu pfSense, IDS Snort, pfBlockerNG, UFW et Fail2Ban. L'infrastructure constitue le socle commun à toutes les phases suivantes.
-	
-	\subsection{Objectifs Techniques Détaillés}
-	À l'issue de ce travail pratique, l'étudiant maîtrise :
-	
-	\begin{enumerate}[leftmargin=*]
-		\item \textbf{Architecture Réseau :} Déployer une infrastructure VMware segmentée, configurer pfSense, appliquer routage inter-zone et NAT.
-		\item \textbf{Sécurité Périmétrique :} Déployer Snort et pfBlockerNG, configurer des règles firewall stateful, gérer des listes de blocage IP.
-		\item \textbf{Sécurité des Hôtes :} Durcissement via UFW, prévention brute-force via Fail2Ban, isolation des services via Docker.
-		\item \textbf{Analyse et Validation :} Analyser des logs firewall/IDS, valider la segmentation, documenter incidents et configurations.
-	\end{enumerate}
-	
-	\subsection{Méthodologie Employée}
-	La démarche suivie respecte un cycle de vie de sécurité classique :
-	\begin{description}
-		\item[Conception :] Définition de la topologie, des plages IP et des politiques de sécurité.
-		\item[Déploiement :] Installation des VMs sous VMware, configuration des interfaces et des services.
-		\item[Durcissement :] Application des règles de pare-feu, installation des paquets de sécurité.
-		\item[Test :] Scans de ports, tentatives d'intrusion, vérification des logs.
-		\item[Analyse :] Corrélation des événements, rédaction du rapport.
-	\end{description}
-	
-	% ------------------------------------------------------------------------------
-	% CHAPITRE 2 : ARCHITECTURE RÉSEAU
-	% ------------------------------------------------------------------------------
-	\section{Architecture Réseau et Infrastructure Virtuelle}
-	
-	\subsection{Topologie Logique}
-	L'infrastructure est constituée de plusieurs machines virtuelles (VMs) interconnectées via des réseaux internes VMware. Cette segmentation logique permet d'isoler les zones de confiance différentes.
-	
-	\begin{table}[ht]
-		\centering
-		\renewcommand{\arraystretch}{1.4}
-		\setlength{\arrayrulewidth}{0.5pt}
-		\begin{tabular}{>{\bfseries}p{3.5cm} p{3.2cm} p{2.8cm} p{3.2cm}}
-			\arrayrulecolor{tableborder}
-			\hline
-			\tableheadcolor
-			\textcolor{tableheadfg}{\textbf{Machine}} &
-			\textcolor{tableheadfg}{\textbf{Rôle}} &
-			\textcolor{tableheadfg}{\textbf{Zone}} &
-			\textcolor{tableheadfg}{\textbf{OS}} \\
-			\hline
-			\rowcolor{tablerowalt}
-			pfSense-Firewall & Routeur / Pare-feu & WAN/DMZ/LAN & pfSense 2.8.0 \\
-			ubuntuserver & Cible DMZ (Services) & DMZ & Ubuntu 25.04 \\
-			\rowcolor{tablerowalt}
-			Parrot Security & Attaquant / Testeur & WAN & Parrot Security OS \\
-			Windows Client & Poste de Travail & LAN & Windows XP Professional \\
-			\hline
-		\end{tabular}
-		\caption{Inventaire des Machines Virtuelles}
-		\label{tab:vm-inventory}
-	\end{table}
-	
-	
-	\subsubsection{Adaptation des Systèmes d'Exploitation}
-	\label{subsec:adaptation-os}
-	
-	Pour des raisons de disponibilité des ressources et de contraintes matérielles, 
-	certaines machines ont été substituées par des équivalents fonctionnels 
-	par rapport au cahier des charges initial:
-	
-	\begin{itemize}
-		\item \textbf{Parrot Security OS au lieu de Kali Linux:} 
-		Distribution Debian spécialisée en tests d'intrusion, embarquant 
-		les mêmes outils (Metasploit Framework, Nmap, Burp Suite, etc.). 
-		Fonctionnellement équivalente pour les objectifs du laboratoire.
-		
-		\item \textbf{Ubuntu Server 25.04 au lieu de Metasploitable:} 
-		Système moderne permettant l'installation et la conteneurisation 
-		(via Docker) de services volontairement vulnérables (DVWA, Telnet, Samba). 
-		Plus flexible que Metasploitable pour les configurations avancées 
-		des phases ultérieures.
-		
-		\item \textbf{Windows XP Pro SP3 au lieu de Windows Server + Windows Client:} 
-		Limitation des ressources matérielles disponibles (RAM, CPU). 
-		Windows XP représente une cible LAN réaliste, simulant un environnement 
-		legacy encore présent dans certaines infrastructures industrielles.
-		
-		% ============================================
-		% AJOUTER CE 4ÈME POINT ICI
-		% ============================================
-		
-		\item \textbf{VMware Workstation 17 Pro au lieu de VirtualBox:}
-		Utilisation de l'hyperviseur VMware disponible dans l'environnement 
-		de laboratoire. Les concepts de segmentation réseau restent identiques: 
-		les \textit{LAN Segments} de VMware (\texttt{DMZ\_SEG}, \texttt{LAN\_SEG}) 
-		sont fonctionnellement équivalents aux \textit{Internal Networks} de 
-		VirtualBox (\texttt{dmz-net}, \texttt{lan-net}). Les deux mécanismes 
-		créent des commutateurs virtuels isolés permettant la communication 
-		entre VMs d'un même segment tout en les isolant des autres segments.
-		
-	\end{itemize}
-	
-	\textbf{Impact sur les objectifs pédagogiques:} Ces substitutions 
-	n'altèrent pas les concepts fondamentaux enseignés (segmentation réseau, 
-	filtrage pare-feu, défense en profondeur). La topologie WAN/DMZ/LAN 
-	et les mécanismes de sécurité restent identiques.
-	
-	
-	\subsection{Segmentation Réseau}
-	Le réseau est divisé en trois zones distinctes, chacune ayant un niveau de confiance spécifique :
-	
-	\subsubsection{Zone WAN (Wide Area Network)}
-	\begin{itemize}
-		\item \textbf{Rôle :} Interface externe, point d'entrée du trafic Internet.
-		\item \textbf{Sous-réseau :} $192.168.100.0/24$
-		\item \textbf{Passerelle :} Fournisseur d'accès Internet (simulé).
-		\item \textbf{Machines :} Parrot Security (Attaquant), Interface WAN de pfSense.
-		\item \textbf{Politique :} Zone non fiable, tout trafic entrant est bloqué par défaut sauf exceptions explicites.
-	\end{itemize}
-	
-	\subsubsection{Zone DMZ (Demilitarized Zone)}
-	\begin{itemize}
-		\item \textbf{Rôle :} Zone tampon pour services exposés (Web, Samba).
-		\item \textbf{Sous-réseau :} $192.168.10.0/24$
-		\item \textbf{Passerelle :} 192.168.10.1 (pfSense)
-		\item \textbf{Machines :} Ubuntu Server (Docker Host).
-		\item \textbf{Politique :} Zone à faible confiance, isolation stricte du LAN.
-		\item \textbf{Segment VMware :} DMZ\_SEG (LAN Segment)  % <--- AJOUT
-	\end{itemize}
-	
-	\subsubsection{Zone LAN (Local Area Network)}
-	\begin{itemize}
-		\item \textbf{Rôle :} Réseau interne sécurisé, ressources critiques.
-		\item \textbf{Sous-réseau :} $192.168.20.0/24$
-		\item \textbf{Passerelle :} 192.168.20.1 (pfSense)
-		\item \textbf{Machines :} Windows XP Professional.
-		\item \textbf{Politique :} Zone de haute confiance, accès restreint depuis la DMZ.
-		\item \textbf{Segment VMware :} LAN\_SEG (LAN Segment)  % <--- AJOUT
-	\end{itemize}
-	
-	\subsection{Plan d'Adressage IP}
-	
-	\begin{table}[ht]
-		\centering
-		\small
-		\renewcommand{\arraystretch}{1.5}
-		\setlength{\arrayrulewidth}{0.5pt}
-		\begin{tabular}{p{4.5cm} >{\centering\arraybackslash}p{3.5cm} >{\centering\arraybackslash}p{3.5cm}}
-			\arrayrulecolor{tableborder}
-			\hline
-			\tableheadcolor
-			\textcolor{tableheadfg}{\textbf{Machine}} &
-			\textcolor{tableheadfg}{\textbf{Adresse IP}} &
-			\textcolor{tableheadfg}{\textbf{Passerelle}} \\
-			\hline
-			\rowcolor{tablerowalt}
-			pfSense (WAN) & 192.168.100.6 (DHCP) & 192.168.100.2 \\
-			
-			pfSense (DMZ) & 192.168.10.1 & N/A \\
-			
-			\rowcolor{tablerowalt}
-			pfSense (INTERNAL\_LAN) & 192.168.20.1 & N/A \\
-			
-			Ubuntu DMZ & 192.168.10.100 & 192.168.10.1 \\
-			
-			\rowcolor{tablerowalt}
-			Windows Client & 192.168.20.50 (DHCP) & 192.168.20.1 \\
-			
-			Parrot Security & 192.168.100.150 & 192.168.100.2 \\
-			\hline
-		\end{tabular}
-		\caption{Plan d'Adressage IP Détaillé}
-		\label{tab:ip-plan}
-	\end{table}
-	
-	\subsection{Configuration VMware}
-	Les réseaux internes sont configurés comme suit dans l'hyperviseur VMware Workstation :
-	\begin{lstlisting}[caption=Configuration des Réseaux Internes VMware]
-		Edit > Virtual Network Editor
-		+ Ajouter : DMZ_SEG  (LAN Segment)
-		+ Ajouter : LAN_SEG  (LAN Segment)
-	\end{lstlisting}
-	
-	Chaque machine virtuelle se voit attribuer des adaptateurs spécifiques :
-	\begin{itemize}
-		\item \textbf{pfSense :} 3 adaptateurs (NAT/Bridged, Custom: DMZ\_SEG, Custom: LAN\_SEG).
-		\item \textbf{Ubuntu :} 1 adaptateur (Custom: DMZ\_SEG).
-		\item \textbf{Parrot Security :} 1 adaptateur (NAT/Bridged pour atteindre le WAN).
-	\end{itemize}
+\section{Introduction et Objectifs}
+
+Ce chapitre déploie une infrastructure segmentée (WAN/DMZ/LAN) sous VMware Workstation : pare-feu pfSense, IDS Snort, pfBlockerNG, UFW et Fail2Ban. L'infrastructure constitue le socle commun à toutes les phases suivantes (voir Section~\ref{chap:introduction} pour les détails).
+
+À l'issue de ce chapitre, l'étudiant maîtrise : déploiement VMware segmenté, configuration pfSense (routage inter-zone, NAT), sécurité périmétrique (Snort, pfBlockerNG, règles pare-feu), sécurité des hôtes (UFW, Fail2Ban, Docker), et analyse des logs firewall/IDS.
 	
 	% ------------------------------------------------------------------------------
 	% CHAPITRE 3 : CONFIGURATION PFSENSE
@@ -960,9 +780,6 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 
 \section{Introduction et Objectifs Pédagogiques}
 	
-	\subsection{Contexte du Projet}
-	Cette phase adopte la perspective de l'attaquant pour évaluer la \textbf{surface d'attaque} exposée. Nmap cartographie les services accessibles depuis le WAN, le NAT Port Forwarding contrôle l'exposition, et les résultats quantifient l'efficacité des contrôles de la Phase 1.
-	
 	\subsection{Objectifs Pédagogiques}
 	À la fin de ce travail pratique, les étudiants sont capables de :
 	
@@ -973,62 +790,10 @@ Ce chapitre documente la phase de reconnaissance active : installation du servic
 		\item \textbf{Analyse :} Calculer le pourcentage de ports exposés, comparer avec/sans protection, proposer des durcissements.
 	\end{enumerate}
 	
-	\subsection{Architecture du Laboratoire}
-	L'infrastructure utilisée est identique à celle de la Phase 1, avec les composants suivants :
-	
-	\begin{table}[ht]
-		\centering
-		\renewcommand{\arraystretch}{1.4}
-		\setlength{\arrayrulewidth}{0.5pt}
-		\begin{tabular}{>{\bfseries}p{3.5cm} p{3.2cm} p{2.8cm} p{3.2cm}}
-			\arrayrulecolor{tableborder}
-			\hline
-			\tableheadcolor
-			\textcolor{tableheadfg}{\textbf{Machine}} &
-			\textcolor{tableheadfg}{\textbf{Rôle}} &
-			\textcolor{tableheadfg}{\textbf{Zone}} &
-			\textcolor{tableheadfg}{\textbf{IP Address}} \\
-			\hline
-			\rowcolor{tablerowalt}
-			pfSense-Firewall & Routeur / Pare-feu & WAN/DMZ/LAN & 192.168.100.6 (WAN) \\
-			Ubuntu Server & Serveur DMZ (Cible) & DMZ & 192.168.10.100 \\
-			\rowcolor{tablerowalt}
-			Parrot Security & Machine Attaquante & WAN & 192.168.100.150 \\
-			CentOS 7 & Admin Temporaire & WAN/DMZ & 192.168.100.131 \\
-			\hline
-		\end{tabular}
-		\caption{Configuration des Machines Virtuelles (Phase 2)}
-		\label{tab:vm-config-tp2}
-	\end{table}
-	
-	\textbf{Note sur CentOS 7 :} Machine dual-homed (WAN: 192.168.100.131, DMZ: 192.168.10.x) utilisée pour la configuration initiale de pfSense (Phase 1) et les tests de validation préliminaires (Phase 2). Parrot Security (192.168.100.150) est la machine attaquante principale pour tous les tests offensifs.
-	
-	\subsection{Méthodologie}
-	Ce projet suit une approche en trois phases :
-	
-	\begin{description}
-		\item[Phase 1 --- Configuration Défensive :] Installation et configuration du service Telnet sur le serveur Ubuntu DMZ, incluant la sécurisation au niveau hôte (pare-feu UFW).
-		
-		\item[Phase 2 --- Exposition Contrôlée :] Configuration des règles NAT Port Forwarding sur pfSense pour exposer sélectivement les services de la DMZ vers le WAN.
-		
-		\item[Phase 3 --- Tests Offensifs :] Utilisation de Nmap depuis la machine attaquante (Parrot Security) pour scanner la surface d'attaque exposée et analyser les résultats.
-	\end{description}
-	
 	% ------------------------------------------------------------------------------
 	% CHAPITRE 2 : CONFIGURATION TELNET
 	% ------------------------------------------------------------------------------
 	\section{Configuration du Service Telnet (DMZ)}
-	
-	\subsection{Contexte et Justification}
-	Le protocole Telnet (Telecommunication Network Protocol) est un protocole de communication en mode texte utilisé pour l'accès distant aux systèmes. Bien que largement remplacé par SSH en raison de l'absence de chiffrement, Telnet reste pertinent dans un contexte pédagogique pour :
-	
-	\begin{itemize}
-		\item Démontrer les risques liés aux protocoles en clair.
-		\item Illustrer la configuration de services réseau classiques.
-		\item Servir de cible contrôlée pour les tests d'intrusion.
-	\end{itemize}
-	
-	\textbf{Note de Sécurité :} Telnet transmet les identifiants et données en clair. Son utilisation en production est \textbf{fortement déconseillée}. Ce déploiement est strictement limité à l'environnement de laboratoire isolé.
 	
 	\subsection{Installation du Serveur Telnet}
 	
@@ -2281,33 +2046,6 @@ findtime = 600
 		\end{itemize}
 	\end{enumerate}
 	
-	\subsection{Compétences Acquises}
-	Les étudiants ont développé les compétences suivantes :
-	
-	\begin{itemize}
-		\item \textbf{Technique :}
-		\begin{itemize}
-			\item Configuration de services réseau (Telnet, inetd).
-			\item Maîtrise des pare-feu multi-niveaux (pfSense, UFW).
-			\item Utilisation avancée de Nmap pour la reconnaissance.
-			\item Analyse de logs et dépannage réseau.
-		\end{itemize}
-		
-		\item \textbf{Analytique :}
-		\begin{itemize}
-			\item Interprétation des états de ports (open, closed, filtered).
-			\item Calcul et quantification de la surface d'attaque.
-			\item Corrélation entre configuration et résultats de scan.
-		\end{itemize}
-		
-		\item \textbf{Stratégique :}
-		\begin{itemize}
-			\item Compréhension du concept de défense en profondeur.
-			\item Capacité à adopter les perspectives offensive et défensive.
-			\item Proposition de mesures de durcissement supplémentaires.
-		\end{itemize}
-	\end{itemize}
-	
 \chapter{Exploitation et Post-Exploitation}
 \label{chap:exploitation}
 
@@ -2316,20 +2054,6 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 \end{tcolorbox}
 
 \section{Introduction et Contexte Opérationnel}
-	
-	\subsection{Contexte du Projet}
-	
-	Cette phase valide pratiquement les vulnérabilités identifiées lors de la Phase 2 : le service Telnet (port 23, CVSS 9.8) sert de vecteur d'accès initial. Après compromission du serveur DMZ, deux techniques avancées sont démontrées : le \textbf{pivoting réseau} (utiliser un hôte compromis comme point de rebond vers le LAN) et le \textbf{mouvement latéral} (atteindre Windows XP en zone LAN).
-	
-	\subsubsection{Architecture Cible}
-	
-	L'infrastructure est celle déployée en Phase 1 et configurée en Phase 2 :
-	\begin{itemize}
-		\item \textbf{Zone WAN} (192.168.100.0/24) : Parrot Security OS — machine attaquante
-		\item \textbf{Zone DMZ} (192.168.10.0/24) : Ubuntu Server exposant Telnet (port 23), HTTP (80), SMB (139/445)
-		\item \textbf{Zone LAN} (192.168.20.0/24) : Windows XP SP3 — cible secondaire via pivot
-		\item \textbf{pfSense 2.8.0} : Segmentation stricte entre zones, règles de blocage par défaut
-	\end{itemize}
 	
 	\subsection{Objectifs Pédagogiques}
 	
@@ -2358,139 +2082,6 @@ Ce chapitre documente la phase d'exploitation complète : compromission initiale
 	\subsection{Méthodologie d'Attaque}
 	
 	La démarche suit le modèle \textit{Cyber Kill Chain} : Reconnaissance (résultats Nmap Phase 2) → Weaponization (payload Meterpreter) → Delivery (wget HTTP) → Exploitation (Telnet) → Installation (persistence C2) → Command \& Control (sessions Meterpreter) → Actions on Objectives (pivoting LAN, exfiltration).
-	
-	% ------------------------------------------------------------------------------
-	% CHAPITRE 2 : ARCHITECTURE
-	% ------------------------------------------------------------------------------
-	\section{Architecture Réseau et Topologie Cible}
-	
-	\subsection{Vue d'Ensemble de l'Infrastructure}
-	
-	Infrastructure identique à la Phase 1 (voir Section~\ref{chap:infrastructure}). Rappel des composants :
-	
-	\begin{table}[ht]
-		\centering
-		\renewcommand{\arraystretch}{1.4}
-		\setlength{\arrayrulewidth}{0.5pt}
-		\begin{tabular}{>{\bfseries}p{3.5cm} p{3.2cm} p{2.8cm} p{3.2cm}}
-			\arrayrulecolor{tableborder}
-			\hline
-			\tableheadcolor
-			\textcolor{tableheadfg}{\textbf{Machine}} &
-			\textcolor{tableheadfg}{\textbf{Rôle}} &
-			\textcolor{tableheadfg}{\textbf{Zone}} &
-			\textcolor{tableheadfg}{\textbf{OS}} \\
-			\hline
-			\rowcolor{tablerowalt}
-			pfSense-Firewall & Pare-feu Segmenteur & WAN/DMZ/LAN & pfSense 2.8.0 \\
-			Ubuntu DMZ & Cible Initiale & DMZ & Ubuntu 25.04 \\
-			\rowcolor{tablerowalt}
-			Parrot Security & Machine Attaquante & WAN & Parrot Security OS \\
-			Windows XP Client & Cible Secondaire & LAN & Windows XP SP3 \\
-			\hline
-		\end{tabular}
-		\caption{Inventaire des Machines Virtuelles}
-		\label{tab:vm-inventory-tp3}
-	\end{table}
-	
-	\subsection{Plan d'Adressage IP}
-	
-	\begin{table}[ht]
-		\centering
-		\small
-		\renewcommand{\arraystretch}{1.5}
-		\setlength{\arrayrulewidth}{0.5pt}
-		\begin{tabular}{p{4.5cm} >{\centering\arraybackslash}p{3.5cm} >{\centering\arraybackslash}p{3.5cm}}
-			\arrayrulecolor{tableborder}
-			\hline
-			\tableheadcolor
-			\textcolor{tableheadfg}{\textbf{Machine}} &
-			\textcolor{tableheadfg}{\textbf{Adresse IP}} &
-			\textcolor{tableheadfg}{\textbf{Passerelle}} \\
-			\hline
-			\rowcolor{tablerowalt}
-			pfSense (WAN) & 192.168.100.6 & 192.168.100.2 \\
-			pfSense (DMZ) & 192.168.10.1 & N/A \\
-			\rowcolor{tablerowalt}
-			pfSense (INTERNAL\_LAN) & 192.168.20.1 & N/A \\
-			Ubuntu DMZ & 192.168.10.100 & 192.168.10.1 \\
-			\rowcolor{tablerowalt}
-			Windows XP Client & 192.168.20.50 & 192.168.20.1 \\
-			Parrot Security (Attaquant) & 192.168.100.150 & 192.168.100.2 \\
-			\hline
-		\end{tabular}
-		\caption{Plan d'Adressage IP Détaillé}
-		\label{tab:ip-plan-tp3}
-	\end{table}
-	
-	\subsection{Configuration des Règles de Pare-feu}
-	
-	Les règles pfSense configurées lors de la Phase 1 restent actives, notamment :
-	
-	\begin{itemize}
-		\item \textbf{Port Forwarding NAT :} Redirection des ports 80, 139, 445 vers 192.168.10.100.
-		\item \textbf{Règles WAN :} Autorisation du trafic entrant vers la DMZ.
-		\item \textbf{Isolation DMZ/LAN :} Par défaut, aucun trafic DMZ → LAN n'est autorisé.
-	\end{itemize}
-	
-	\begin{figure}[H]
-		\centering
-		\IfFileExists{screenshots/firewall-rules-3.png}{
-			\includegraphics[width=0.9\textwidth]{screenshots/firewall-rules-3.png}
-		}{
-			\includegraphics[width=0.9\textwidth]{example-image}
-			\caption*{\textbf{Attention :} Fichier screenshots/firewall-rules-3.png introuvable.}
-		}
-		\caption{Règles de Pare-feu WAN Actives}
-		\label{fig:firewall-tp3}
-	\end{figure}
-	
-	\begin{figure}[H]
-		\centering
-		\IfFileExists{screenshots/nat-rules-3.png}{
-			\includegraphics[width=0.9\textwidth]{screenshots/nat-rules-3.png}
-		}{
-			\includegraphics[width=0.9\textwidth]{example-image}
-			\caption*{\textbf{Attention :} Fichier screenshots/nat-rules-3.png introuvable.}
-		}
-		\caption{Configuration NAT Port Forward}
-		\label{fig:nat-tp3}
-	\end{figure}
-	
-	\subsection{Topologie Logique}
-	
-	\begin{figure}[H]
-		\centering
-		\begin{tikzpicture}[
-			node distance=2.5cm,
-			every node/.style={font=\small},
-			box/.style={rectangle, draw=primary, fill=primary!10, thick, minimum width=3cm, minimum height=1.2cm, align=center},
-			compromised/.style={rectangle, draw=accent, fill=accent!20, thick, minimum width=3cm, minimum height=1.2cm, align=center},
-			target/.style={rectangle, draw=secondary, fill=secondary!10, thick, minimum width=3cm, minimum height=1.2cm, align=center}
-			]
-			
-			% Attacker
-			\node[compromised] (attacker) {\textbf{Parrot Security}\\192.168.100.150\\(Attaquant)};
-			
-			% pfSense
-			\node[box, below=of attacker] (pfsense) {\textbf{pfSense}\\WAN: 192.168.100.6\\DMZ: 192.168.10.1\\LAN: 192.168.20.1};
-			
-			% Ubuntu DMZ
-			\node[compromised, below left=of pfsense, xshift=-1.5cm] (ubuntu) {\textbf{Ubuntu DMZ}\\192.168.10.100\\{\color{accent}\textbf{COMPROMIS}}};
-			
-			% Windows XP
-			\node[target, below right=of pfsense, xshift=1.5cm] (windows) {\textbf{Windows XP}\\192.168.20.50\\(Cible Secondaire)};
-			
-			% Arrows
-			\draw[->, thick, accent] (attacker) -- node[right] {①Telnet} (pfsense);
-			\draw[->, thick, accent] (pfsense) -- node[left, xshift=-0.3cm] {②Compromise} (ubuntu);
-			\draw[->, thick, secondary, dashed] (ubuntu) -- node[below, yshift=-0.2cm] {③Pivot Route} (pfsense);
-			\draw[->, thick, secondary, dashed] (pfsense) -- node[right, xshift=0.3cm] {④Scan via Pivot} (windows);
-			
-		\end{tikzpicture}
-		\caption{Topologie Logique de l'Attaque}
-		\label{fig:topology-tp3}
-	\end{figure}
 	
 % ------------------------------------------------------------------------------
 % CHAPITRE 3 : COMPROMISSION INITIALE
@@ -4033,146 +3624,7 @@ Ce chapitre présente le déploiement de Snort IDS sur pfSense pour la détectio
 	\end{tcolorbox}
 	
 	% ==============================================================================
-	% CHAPITRE 2 : FONDEMENTS THÉORIQUES
-	% ==============================================================================
-	\section{Fondements Théoriques : Pare-feu vs IDS/IPS}
-	
-	\subsection{Pare-feu : Filtrage L3/L4}
-	
-	Un pare-feu traditionnel applique des règles de filtrage principalement basées sur les en-têtes réseau (\textbf{couches 3 et 4 du modèle OSI}) :
-	\begin{itemize}
-		\item adresses IP (source/destination),
-		\item ports (source/destination),
-		\item protocoles (TCP/UDP/ICMP),
-		\item état des connexions.
-	\end{itemize}
-	
-	Ainsi, si un flux est autorisé (ex : trafic SMB DMZ $\rightarrow$ LAN via une règle permissive), le pare-feu ne caractérise pas nécessairement le contenu comme malveillant.
-	
-	\subsection{IDS et IPS : Inspection approfondie (DPI)}
-	
-	\subsubsection{IDS (Intrusion Detection System)}
-	Un IDS inspecte le trafic (\textbf{Deep Packet Inspection}) et génère des alertes dès qu'une signature correspond à un motif d'attaque connu. Il s'agit d'une défense \textbf{passive} : détection, journalisation, alerte.
-	
-	\subsubsection{IPS (Intrusion Prevention System)}
-	Un IPS effectue la même inspection, mais peut \textbf{bloquer activement} le trafic (drop, reset, blocage IP). Il s'agit d'une défense \textbf{active} mais plus risquée en cas de faux positifs.
-	
-	\subsubsection{Comparaison synthétique}
-	\begin{table}[H]
-		\centering
-		\renewcommand{\arraystretch}{1.5}
-		\setlength{\arrayrulewidth}{0.5pt}
-		\begin{tabular}{p{3cm} p{5.3cm} p{5.3cm}}
-			\arrayrulecolor{tableborder}
-			\hline
-			\tableheadcolor
-			\textcolor{tableheadfg}{\textbf{Technologie}} &
-			\textcolor{tableheadfg}{\textbf{Principe}} &
-			\textcolor{tableheadfg}{\textbf{Limites}} \\
-			\hline
-			\rowcolor{tablerowalt}
-			Pare-feu &
-			Filtrage IP/ports/protocoles (L3/L4) &
-			Peu de visibilité sur le contenu, ne détecte pas forcément une attaque dans un flux autorisé \\
-			IDS &
-			DPI + signatures, alerte sans blocage &
-			Dépend des signatures, bruit (faux positifs), pas d'action directe \\
-			\rowcolor{tablerowalt}
-			IPS &
-			DPI + signatures + blocage actif &
-			Risque d'interruption de services légitimes si mauvais tuning \\
-			\hline
-		\end{tabular}
-		\caption{Comparaison Pare-feu vs IDS vs IPS}
-		\label{tab:fw-ids-ips}
-	\end{table}
-	
-	\subsection{Signatures Snort : Reconnaître l'ennemi}
-	
-	Snort compare en temps réel les flux réseau à une base de règles (signatures). Chaque règle est identifiée par un \textbf{SID} et contient :
-	\begin{itemize}
-		\item critères de correspondance (protocoles, ports, contenu),
-		\item message (description),
-		\item priorité (sévérité),
-		\item classification.
-	\end{itemize}
-	
-	\textbf{Limite :} la détection par signatures est très efficace sur les attaques connues, mais moins sur les attaques inconnues (zero-day) ou chiffrées.
-	
-	\subsection{Faux Positifs}
-	Un \textit{faux positif} correspond à une alerte générée sur une activité légitime. Les conséquences :
-	\begin{itemize}
-		\item fatigue d'alerte,
-		\item perte de temps d'analyse,
-		\item risque de manquer une vraie attaque (faux négatif par distraction),
-		\item en mode IPS : risque de coupure de service.
-	\end{itemize}
-	
-	Le \textbf{tuning} consiste à ajuster catégories, seuils, listes de suppression, et exceptions pour réduire le bruit.
-	
-	% ==============================================================================
 	% CHAPITRE 3 : ENVIRONNEMENT DE LAB
-	% ==============================================================================
-	\section{Environnement, Topologie et Plan d'Adressage}
-	
-	\subsection{Inventaire des Machines}
-	
-	\begin{table}[H]
-		\centering
-		\renewcommand{\arraystretch}{1.4}
-		\setlength{\arrayrulewidth}{0.5pt}
-		\begin{tabular}{>{\bfseries}p{3.5cm} p{3.2cm} p{2.8cm} p{3.2cm}}
-			\arrayrulecolor{tableborder}
-			\hline
-			\tableheadcolor
-			\textcolor{tableheadfg}{\textbf{Machine}} &
-			\textcolor{tableheadfg}{\textbf{Rôle}} &
-			\textcolor{tableheadfg}{\textbf{Zone}} &
-			\textcolor{tableheadfg}{\textbf{OS}} \\
-			\hline
-			\rowcolor{tablerowalt}
-			pfSense-Firewall & Pare-feu + IDS/IPS & WAN/DMZ/LAN & pfSense 2.8.0 \\
-			Ubuntu DMZ & Serveur exposé / Pivot & DMZ & Ubuntu 25.04 \\
-			\rowcolor{tablerowalt}
-			Parrot Security & Machine attaquante & WAN & Parrot Security OS \\
-			Windows XP Client & Cible secondaire & LAN & Windows XP SP3 \\
-			\hline
-		\end{tabular}
-		\caption{Inventaire des Machines Virtuelles (Phase 4)}
-		\label{tab:vm-inventory-tp4}
-	\end{table}
-	
-	\subsection{Plan d'Adressage IP (Lab)}
-	
-	\begin{table}[H]
-		\centering
-		\renewcommand{\arraystretch}{1.4}
-		\setlength{\arrayrulewidth}{0.5pt}
-		\begin{tabular}{p{4cm} p{4cm} p{6cm}}
-			\arrayrulecolor{tableborder}
-			\hline
-			\tableheadcolor
-			\textcolor{tableheadfg}{\textbf{Zone}} &
-			\textcolor{tableheadfg}{\textbf{Équipement}} &
-			\textcolor{tableheadfg}{\textbf{Adresse IP}} \\
-			\hline
-			\rowcolor{tablerowalt}
-			WAN (192.168.100.0/24) & pfSense WAN & 192.168.100.6 \\
-			WAN (192.168.100.0/24) & Parrot (Attaquant) & 192.168.100.150 \\
-			\rowcolor{tablerowalt}
-			DMZ (192.168.10.0/24) & pfSense DMZ (GUI) & 192.168.10.1 \\
-			DMZ (192.168.10.0/24) & Ubuntu DMZ & 192.168.10.100 \\
-			\rowcolor{tablerowalt}
-			LAN (192.168.20.0/24) & pfSense LAN & 192.168.20.1 \\
-			LAN (192.168.20.0/24) & Windows XP & 192.168.20.50 \\
-			\hline
-		\end{tabular}
-		\caption{Plan d'Adressage IP utilisé dans la Phase 4}
-		\label{tab:ip-plan-tp4}
-	\end{table}
-	
-	% ==============================================================================
-	% CHAPITRE 4 : INSTALLATION ET CONFIGURATION DE SNORT
 	% ==============================================================================
 	\section{Déploiement de Snort sur pfSense (IDS Mode)}
 	
@@ -4350,10 +3802,6 @@ Ce chapitre étend l'analyse sécuritaire à la couche applicative web via DVWA 
 
 \section{Introduction et Objectifs}
 	
-	\subsection{Contexte de l'Évaluation}
-	
-	Ce chapitre documente une évaluation de DVWA v1.10 déployée dans la DMZ via Docker. L'environnement : pfSense (WAN/DMZ/LAN), machine attaquante Parrot Security OS, IDS Snort et pfBlockerNG actifs.
-	
 	\subsection{Objectifs de Sécurité}
 	
 	L'évaluation vise à atteindre les objectifs suivants :
@@ -4376,89 +3824,6 @@ Ce chapitre étend l'analyse sécuritaire à la couche applicative web via DVWA 
 		\item[Post-Exploitation] : Analyse des conséquences de chaque compromission
 		\item[Documentation] : Enregistrement détaillé avec preuves (screenshots)
 	\end{description}
-	
-	% ══════════════════════════════════════════════════════════════════════
-	% CHAPITRE 2 : ARCHITECTURE RÉSEAU
-	% ══════════════════════════════════════════════════════════════════════
-	
-	\section{Architecture Réseau et Infrastructure}
-	
-	\subsection{Topologie Logique}
-	
-	L'infrastructure de test est basée sur une architecture défense-en-profondeur, avec segmentation stricte :
-	
-	\begin{table}[ht]
-		\centering
-		\renewcommand{\arraystretch}{1.4}
-		\begin{tabular}{>{\bfseries}p{3.5cm} p{3.2cm} p{2.8cm} p{3.2cm}}
-			\hline
-			\rowcolor{tableheadbg}
-			\textcolor{tableheadfg}{\textbf{Machine}} &
-			\textcolor{tableheadfg}{\textbf{Rôle}} &
-			\textcolor{tableheadfg}{\textbf{Zone}} &
-			\textcolor{tableheadfg}{\textbf{OS}} \\
-			\hline
-			\rowcolor{tablerowalt}
-			pfSense-Firewall & Routeur / Pare-feu & WAN/DMZ/LAN & pfSense 2.8.0 \\
-			ubuntuserver & Serveur Web (DVWA) & DMZ & Ubuntu 25.04 \\
-			\rowcolor{tablerowalt}
-			Parrot Security & Machine Attaquante & WAN & Parrot Security OS \\
-			\hline
-		\end{tabular}
-		\caption{Inventaire des Machines de Test}
-		\label{tab:vm-inventory-dvwa}
-	\end{table}
-	
-	\subsection{Plan d'Adressage IP}
-	
-	\begin{table}[ht]
-		\centering
-		\small
-		\renewcommand{\arraystretch}{1.5}
-		\begin{tabular}{p{4.5cm} >{\centering\arraybackslash}p{3.5cm} >{\centering\arraybackslash}p{3.5cm}}
-			\hline
-			\rowcolor{tableheadbg}
-			\textcolor{tableheadfg}{\textbf{Machine}} &
-			\textcolor{tableheadfg}{\textbf{Adresse IP}} &
-			\textcolor{tableheadfg}{\textbf{Passerelle}} \\
-			\hline
-			\rowcolor{tablerowalt}
-			pfSense (WAN) & 192.168.100.6 & 192.168.100.2 \\
-			
-			pfSense (DMZ) & 192.168.10.1 & N/A \\
-			
-			\rowcolor{tablerowalt}
-			Ubuntu DMZ & 192.168.10.100 & 192.168.10.1 \\
-			
-			Parrot Security & 192.168.100.150 & 192.168.100.2 \\
-			\hline
-		\end{tabular}
-		\caption{Plan d'Adressage IP}
-		\label{tab:ip-plan-dvwa}
-	\end{table}
-	
-	\subsection{Segmentation Réseau}
-	
-	\subsubsection{Zone WAN (192.168.100.0/24)}
-	\begin{itemize}
-		\item \textbf{Rôle :} Réseau externe, point d'entrée pour les attaquants
-		\item \textbf{Politiques :} Tout trafic entrant bloqué par défaut
-		\item \textbf{Machines :} Parrot Security (attaquant), Interface WAN de pfSense
-	\end{itemize}
-	
-	\subsubsection{Zone DMZ (192.168.10.0/24)}
-	\begin{itemize}
-		\item \textbf{Rôle :} Zone tampon pour services exposés publiquement
-		\item \textbf{Politiques :} Trafic WAN autorisé sur ports 80, 139, 445 uniquement
-		\item \textbf{Machines :} Ubuntu Server (DVWA, Docker)
-		\item \textbf{Isolation :} Strictement isolée du LAN par pfSense
-	\end{itemize}
-	
-	\subsubsection{Zone LAN (192.168.20.0/24)}
-	\begin{itemize}
-		\item \textbf{Rôle :} Réseau interne sécurisé (non utilisé dans ce TP)
-		\item \textbf{Politiques :} Aucun trafic direct depuis WAN/DMZ autorisé
-	\end{itemize}
 	
 	% ══════════════════════════════════════════════════════════════════════
 	% CHAPITRE 3 : INSTALLATION ET CONFIGURATION DVWA
