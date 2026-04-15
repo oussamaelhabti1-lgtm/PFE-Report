@@ -268,6 +268,9 @@
 		([xshift=-2.8cm]current page.north east) --
 		(current page.north east) --
 		([yshift=-2.8cm]current page.north east) -- cycle;
+		\node[circle, draw=primary, line width=2pt, minimum size=4.2cm, inner sep=0pt, fill=white]
+		at ([xshift=-2.5cm,yshift=-5.7cm]current page.north east)
+		{\includegraphics[width=3.5cm]{pfp.png}};
 	\end{tikzpicture}
 
 	\vspace*{0.8cm}
@@ -311,6 +314,7 @@
 		\setlength{\tabcolsep}{0pt}
 		\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash\color{primary}\textbf}m{4.4cm}@{\hspace{0.45cm}}>{\raggedright\arraybackslash}X@{}}
 			AUTEURS & Yasser BELLA • Oussama EL HABTI\\
+			\multicolumn{2}{@{}c@{}}{\parbox{0.95\linewidth}{\centering\fontsize{10.5}{13}\selectfont Nous remercions les membres du jury d'avoir accepté d'évaluer ce projet lors de la soutenance de fin d'études.}}\\[0.18cm]
 			ÉTABLISSEMENT & ESTK — École Supérieure de Technologie de Kénitra\\
 			FILIÈRE & Infrastructure Digitale, Réseau et Sécurité (IDRS)\\
 			TECHNOLOGIES & pfSense 2.8.0 • Snort IDS/IPS • Metasploit • DVWA • Cowrie • Wazuh\\
