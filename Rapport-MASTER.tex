@@ -421,57 +421,6 @@ Sur le plan pratique, l'absence de coûts de licence permet de concentrer l'effo
 
 Enfin, la disponibilité de communautés actives et de documentation de qualité accélère la résolution de problèmes et la montée en compétence. Le projet reste maintenable dans le temps, sans dépendance à un éditeur unique ni verrou technologique. Ce facteur est décisif pour un travail de fin d'études orienté apprentissage durable.
 
-La Figure~\ref{fig:intro-end-to-end-architecture} synthétise la chaîne de bout en bout et le positionnement des outils retenus.
-
-	\begin{figure}[H]
-		\centering
-		\resizebox{\textwidth}{!}{
-		\begin{tikzpicture}[font=\small]
-			\tikzset{
-				zone/.style={
-					rectangle, rounded corners=6pt,
-					draw=primary, thick, dashed,
-					minimum width=5.5cm, minimum height=5cm,
-					inner sep=10pt, align=center
-				}
-			}
-
-			\node[zone] (wan_zone) at (0,0) {\small\bfseries WAN / Internet};
-			\node[diagbox] (attacker) at ([yshift=1.1cm]wan_zone.center) {Attacker\\Parrot};
-			\node[diagbox] (internet) at ([yshift=-1.1cm]wan_zone.center) {Internet};
-
-			\node[zone, minimum height=5.8cm, right=6.5cm of wan_zone] (dmz_zone) {\small\bfseries DMZ};
-			\node[diagbox, fill=primary!16] (fw) at ([yshift=1.7cm]dmz_zone.center) {pfSense\\Firewall\\Router};
-			\node[diagbox] (dvwa) at ([yshift=0.4cm]dmz_zone.center) {DVWA\\Cowrie};
-			\node[diagbox] (dmzhost) at ([yshift=-0.9cm]dmz_zone.center) {Hôte DMZ};
-			\node[diagbox, fill=secondary!14] (snort) at ([yshift=-2.2cm]dmz_zone.center) {Snort IDS};
-
-			\node[zone, right=6.5cm of dmz_zone] (lan_zone) {\small\bfseries LAN Interne};
-			\node[diagbox, fill=green!18] (wazuh) at ([yshift=1.1cm]lan_zone.center) {Wazuh SIEM};
-			\node[diagbox, fill=green!14] (assets) at ([yshift=-1.1cm]lan_zone.center) {Assets LAN};
-
-			\path[diagflow, bend left=22]
-				(wan_zone.east) edge node[above, font=\small, yshift=0.5cm] {Flux officiel} (dmz_zone.west);
-
-			\path[diagflow, bend left=20]
-				(dmz_zone.east) edge node[above, font=\small, yshift=0.8cm] {Accès} (lan_zone.west);
-
-			\path[diagflow, bend right=25, dashed]
-				(lan_zone.west) edge node[below, font=\small, yshift=-0.5cm] {Flux officieux} (dmz_zone.east);
-
-			\draw[diagflow, warningorange!90!black] (attacker.east) -- (fw.west);
-			\draw[diagflow, warningorange!90!black] (internet.east) -- (fw.west);
-			\draw[diagflow, green!60!black] (dvwa.east) -- (wazuh.west);
-			\draw[diagflow, green!60!black] (snort.east) -- (wazuh.west);
-			\draw[diagflow, primary] (dmzhost.east) -- (assets.west);
-
-			\draw[thick, primary, dash pattern=on 2pt off 2pt]
-				([xshift=-0.3cm,yshift=0.3cm]dmz_zone.north west) -- ([xshift=0.3cm,yshift=-0.3cm]lan_zone.south east);
-		\end{tikzpicture}
-		}
-		\caption{Architecture globale bout en bout : zones de confiance, outils et flux principaux}
-		\label{fig:intro-end-to-end-architecture}
-	\end{figure}
 
 \subsection{Solutions Non Retenues et Raisons}
 
@@ -654,34 +603,7 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 		\label{tab:nat-rules}
 	\end{table}
 
-	La Figure~\ref{fig:nat-flow-diagram} détaille le flux de paquets avant/après traduction NAT et le chemin retour.
 
-	\begin{figure}[H]
-		\centering
-		\resizebox{0.98\textwidth}{!}{
-		\begin{tikzpicture}[font=\small]
-			\node[diagbox, minimum width=3cm] (ext) at (0,0) {Attaquant externe\\\texttt{192.168.100.150}};
-			\node[diagbox, minimum width=3cm, fill=primary!16, right=2cm of ext] (wan) {Interface WAN\\pfSense};
-			\node[diagdiamond, minimum width=6cm, minimum height=4.2cm, right=2cm of wan] (nat) {\small\bfseries Règle NAT\\\small Port Forward ?};
-			\node[diagbox, minimum width=3.4cm, right=2cm of nat] (dmz) {Hôte DMZ\\\texttt{192.168.10.100}};
-
-			\node[diaglabel, font=\small\bfseries, anchor=south] at ([yshift=2.5cm]nat.center) {post-NAT : dst=\texttt{192.168.10.100:80/139/445}};
-			\node[diaglabel, font=\small\bfseries, anchor=south] at ([yshift=1.3cm]nat.center) {pré-NAT : dst=\texttt{192.168.100.6:80/139/445}};
-			\node[diagbox, minimum width=3cm, fill=secondary!10, below=1.8cm of nat] (deny) {\small Sinon: DROP\\\textit{(règles WAN)}};
-
-			\draw[diagflow, warningorange!90!black] (ext) -- node[above] {\scriptsize paquet entrant} (wan);
-			\draw[diagflow, warningorange!90!black] (wan) -- (nat);
-			\draw[diagflow, green!60!black] (nat) -- node[above, font=\tiny] {match} (dmz);
-			\draw[diagflow, accent] (nat) -- (deny);
-			\node[diaglabel, font=\tiny] at ([xshift=-1.1cm,yshift=-1.0cm]nat.center) {pas de match};
-			\draw[diagflow, blue!70!black, dashed] (dmz.south) to[bend right=30] node[below] {\scriptsize trafic retour stateful} (wan.south);
-			\draw[diagflow, blue!70!black, dashed] (wan.south west) to[bend right=20] (ext.south);
-		\end{tikzpicture}
-		}
-		\caption{Flux NAT et règles WAN : traduction d'adresse, décision de forwarding et chemin retour}
-		\label{fig:nat-flow-diagram}
-	\end{figure}
-	
 	\textbf{Note Technique :} L'option \textit{Filter Rule Association} a été définie sur \texttt{Add associated filter rule} pour générer automatiquement les règles de pare-feu correspondantes, assurant ainsi la cohérence entre NAT et filtrage. Cela évite les erreurs de correspondance de destination post-NAT.
 	
 	\begin{figure}[H]
@@ -767,34 +689,7 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 	% ------------------------------------------------------------------------------
 	\section{Sécurité au Niveau de l'Hôte (Ubuntu DMZ)}
 
-	La Figure~\ref{fig:defense-in-depth-stack} illustre le principe de défense en profondeur appliqué à notre laboratoire.
 
-	\begin{figure}[H]
-		\centering
-		\begin{tikzpicture}[font=\small]
-			\draw[rounded corners=6pt, fill=primary!8, draw=primary, thick] (-6.2,-4.0) rectangle (6.2,4.0);
-			\draw[rounded corners=6pt, fill=primary!14, draw=primary, thick] (-5.8,-3.6) rectangle (5.8,3.6);
-			\draw[rounded corners=6pt, fill=primary!20, draw=primary, thick] (-5.4,-3.2) rectangle (5.4,3.2);
-			\draw[rounded corners=6pt, fill=secondary!16, draw=primary, thick] (-5.0,-2.8) rectangle (5.0,2.8);
-			\draw[rounded corners=6pt, fill=secondary!24, draw=primary, thick] (-4.6,-2.4) rectangle (4.6,2.4);
-			\draw[rounded corners=6pt, fill=green!28, draw=primary, thick] (-4.2,-2.0) rectangle (4.2,2.0);
-
-			\node[anchor=west] at (6.7,3.7) {\textbf{Internet}};
-			\node[anchor=west] at (6.7,3.1) {\textbf{pfSense}};
-			\node[anchor=west] at (6.7,2.5) {\textbf{NAT}};
-			\node[anchor=west] at (6.7,1.9) {\textbf{WAN Rules}};
-			\node[anchor=west] at (6.7,1.3) {\textbf{UFW}};
-			\node[anchor=west] at (6.7,0.7) {\textbf{Fail2Ban}};
-			\node[anchor=west] at (6.7,0.1) {\textbf{Application}};
-
-			\draw[-Latex, ultra thick, dashed, accent] (-7.0,0) -- (-3.6,0) node[midway, above, diaglabel] {tentative d'attaque};
-			\draw[-Latex, very thick, dashed, accent!70!black] (-3.6,0) -- (-1.2,0);
-			\node[anchor=west, diaglabel] at (1.5,-3.4) {Plus on approche du centre, plus le contrôle est fin.};
-		\end{tikzpicture}
-		\caption{Défense en profondeur : empilement des contrôles périmétriques et hôte}
-		\label{fig:defense-in-depth-stack}
-	\end{figure}
-	
 	\subsection{UFW : Pare-feu Applicatif}
 	Un pare-feu local (Uncomplicated Firewall) a été configuré sur le serveur Ubuntu pour contrôler les connexions entrantes au niveau du kernel.
 	
@@ -1739,28 +1634,6 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		\label{tab:cvss-scale}
 	\end{table}
 
-	La Figure~\ref{fig:cvss-risk-heatmap} met en évidence la priorisation des services selon leur criticité CVSS.
-
-	\begin{figure}[H]
-		\centering
-		\setlength{\tabcolsep}{8pt}
-		\renewcommand{\arraystretch}{1.3}
-		\begin{tabularx}{14cm}{|>{\bfseries\centering\arraybackslash}m{2.8cm}|>{\centering\arraybackslash}m{1.6cm}|>{\centering\arraybackslash}m{1.6cm}|>{\centering\arraybackslash}m{1.6cm}|>{\centering\arraybackslash}m{1.6cm}|}
-			\hline
-			\textbf{Service}\rule{0pt}{1.5cm} & \textbf{Critical} & \textbf{High} & \textbf{Medium} & \textbf{Low} \\
-			\hline
-			Telnet\rule{0pt}{1.2cm} & \cellcolor{red!60}\centering 9.8 & \cellcolor{orange!60}\centering 0 & \cellcolor{yellow!40}\centering 0 & \cellcolor{green!40}\centering 0 \\
-			\hline
-			HTTP/DVWA\rule{0pt}{1.2cm} & \cellcolor{red!60}\centering 9.1 & \cellcolor{orange!60}\centering 0 & \cellcolor{yellow!40}\centering 0 & \cellcolor{green!40}\centering 0 \\
-			\hline
-			SMB445\rule{0pt}{1.2cm} & \cellcolor{red!60}\centering 0 & \cellcolor{orange!60}\centering 8.4 & \cellcolor{yellow!40}\centering 0 & \cellcolor{green!40}\centering 0 \\
-			\hline
-			Samba139\rule{0pt}{1.2cm} & \cellcolor{red!60}\centering 0 & \cellcolor{orange!60}\centering 7.5 & \cellcolor{yellow!40}\centering 0 & \cellcolor{green!40}\centering 0 \\
-			\hline
-		\end{tabularx}
-		\caption{Heatmap de risque CVSS des services exposés en DMZ}
-		\label{fig:cvss-risk-heatmap}
-	\end{figure}
 
 	\subsection{Telnet (Port 23) --- CVSS 9.8 : Critique}
 	\label{subsec:telnet-cvss}
@@ -3225,37 +3098,6 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 	
 	\subsubsection{Timeline de l'Attaque}
 
-	\begin{figure}[H]
-		\centering
-		\resizebox{\textwidth}{!}{
-		\begin{tikzpicture}[font=\scriptsize]
-			\foreach \y/\actor in {0/Attacker, -1.7/DMZ Host, -3.4/pfSense, -5.1/LAN Host, -6.8/IDS Snort}
-			{
-				\node[anchor=east, font=\bfseries] at (-0.25,\y) {\actor};
-				\draw[gray!55] (0,\y) -- (18,\y);
-			}
-			\foreach \x/\t in {1/T1,3.5/T3,6/T5,8.5/T7,11/T9,13.5/T10,16/T11}
-			{
-				\draw[gray!45, dashed] (\x,0.6) -- (\x,-7.3);
-				\node[above] at (\x,0.35) {\t};
-			}
-			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=primary!18] at (1,0) {Recon scan};
-			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=criticalred!18] at (3.5,0) {Telnet access};
-			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=criticalred!26] at (6,-1.7) {Meterpreter};
-			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=warningorange!26] at (8.5,-1.7) {Pivot route};
-			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=warningorange!26] at (11,-5.1) {SMB probe};
-			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=green!25] at (13.5,-1.7) {Collection};
-			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=green!35] at (16,0) {Exfil RDP};
-			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=primary!15] at (3.5,-3.4) {NAT session};
-			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=primary!15] at (11,-3.4) {DMZ→LAN pass};
-			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=secondary!15] at (1,-6.8) {Alert scan};
-			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=secondary!15] at (11,-6.8) {Alert ETERNALBLUE};
-		\end{tikzpicture}
-		}
-		\caption{Timeline swimlane multi-acteurs de la chaîne d'attaque}
-		\label{fig:attack-swimlane}
-	\end{figure}
-	
 	\begin{table}[H]
 		\centering
 		\small
@@ -3296,32 +3138,6 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 	
 	\subsubsection{Techniques MITRE ATT\&CK Utilisées}
 
-	\begin{figure}[H]
-		\centering
-		\resizebox{\textwidth}{!}{
-		\begin{tikzpicture}[font=\scriptsize]
-			\foreach \x/\tac in {0/Reconnaissance,2.9/Execution,5.8/Persistence,8.7/Lateral Movement,11.6/Collection,14.5/Exfiltration}
-				\node[diagbox, minimum width=2.5cm, fill=primary!14] at (\x,2.0) {\textbf{\tac}};
-
-			\foreach \x/\tech/\col in {
-				0/T1018\\T1078/blue!22,
-				2.9/T1059.004\\T1105/red!28,
-				5.8/T1548.003/yellow!34,
-				8.7/T1090.001\\T1021.002/orange!32,
-				11.6/T1087\\T1082/green!28,
-				14.5/T1005\\T1572/green!42}
-			{
-				\node[diagbox, minimum width=1.8cm, minimum height=12mm, fill=\col] at (\x,0) {\tech};
-				\draw[diagarrow] (\x,1.4) -- (\x,0.7);
-				\draw[gray!50] (\x-1.25,0.8) rectangle (\x+1.25,-0.8);
-			}
-			\draw[gray!50] (-1.25,2.8) rectangle (15.75,-0.8);
-		\end{tikzpicture}
-		}
-		\caption{Matrice MITRE ATT\&CK des tactiques et techniques observées}
-		\label{fig:mitre-matrix}
-	\end{figure}
-	
 	\begin{table}[H]
 		\centering
 		\small
@@ -4085,40 +3901,6 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 		\label{tab:owasp-summary}
 	\end{longtable}
 
-	\begin{figure}[H]
-		\centering
-		\begin{tikzpicture}[font=\small]
-			\def\owaspCell{1.3}
-			\node[anchor=west, font=\bfseries] at (0,7.4) {Catégorie};
-			\node[anchor=west, font=\bfseries] at (3.6,7.4) {Critical};
-			\node[anchor=west, font=\bfseries] at (5.1,7.4) {High};
-			\node[anchor=west, font=\bfseries] at (6.6,7.4) {Medium};
-			\node[anchor=west, font=\bfseries] at (8.1,7.4) {Low};
-			\draw[primary, thick] (0,7.0) rectangle (9.4,8.2);
-
-			\newcommand{\owaspheatrow}[7]{
-				\node[anchor=west] at (0,#1) {#2};
-				\fill[#3] (3.6,#1-0.65) rectangle (4.9,#1+0.65);
-				\fill[#4] (5.1,#1-0.65) rectangle (6.4,#1+0.65);
-				\fill[#5] (6.6,#1-0.65) rectangle (7.9,#1+0.65);
-				\fill[#6] (8.1,#1-0.65) rectangle (9.4,#1+0.65);
-				\node[font=\small] at (4.25,#1) {#7};
-			}
-			\owaspheatrow{6.2}{A01 Broken Access}{criticalred!10}{warningorange!80}{yellow!10}{green!10}{H}
-			\owaspheatrow{4.7}{A02 Misconfig}{criticalred!80}{warningorange!10}{yellow!10}{green!10}{C}
-			\owaspheatrow{3.2}{A04 Crypto Failures}{criticalred!80}{warningorange!10}{yellow!10}{green!10}{C}
-			\owaspheatrow{1.7}{A05 Injection}{criticalred!80}{warningorange!10}{yellow!10}{green!10}{C}
-			\owaspheatrow{0.2}{A07 Auth Failures}{criticalred!10}{warningorange!80}{yellow!10}{green!10}{H}
-			\owaspheatrow{-1.3}{A08 File Upload}{criticalred!80}{warningorange!10}{yellow!10}{green!10}{C}
-			\owaspheatrow{-2.8}{A10 Error Disclosure}{criticalred!10}{warningorange!10}{yellow!70}{green!10}{M}
-
-			\draw[thick, primary] (3.6,-3.5) rectangle (9.4,6.9);
-			\node[diaglabel, anchor=west] at (0,-4.3) {\textbf{Légende :} C = critique, H = haute, M = moyenne};
-		\end{tikzpicture}
-		\caption{Heatmap de sévérité OWASP consolidée pour priorisation des risques}
-		\label{fig:owasp-severity-heatmap}
-	\end{figure}
-	
 	\subsection{Statistiques des Attaques}
 	
 	\begin{itemize}
@@ -4135,7 +3917,6 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 	% ══════════════════════════════════════════════════════════════════════
 	
 	
-
 \section{Conclusion}
 	
 	Huit scénarios d'exploitation OWASP ont été validés avec preuves visuelles. Les vulnérabilités critiques (A05, A08, A02, A04) montrent un risque élevé de compromission applicative. Le niveau de risque global reste incompatible avec un usage production sans remédiation. Les traces d'attaque restent corrélables au Chapitre~\ref{chap:snort}.
@@ -4153,29 +3934,6 @@ Cette phase présente les preuves de déploiement : exposition SSH via pfSense, 
 \section{Architecture de Déploiement et Flux Réseau}
 
 Le chemin validé en production est : \texttt{Parrot (192.168.100.150) $\rightarrow$ pfSense WAN (192.168.100.6) $\rightarrow$ NAT WAN:22 $\rightarrow$ DMZ 192.168.10.100:22}. Le service Cowrie tourne dans un conteneur Docker (\texttt{0.0.0.0:22->2222/tcp}) et capte les sessions SSH de reconnaissance réelles.
-
-\begin{figure}[H]
-	\centering
-	\resizebox{0.95\textwidth}{!}{
-	\begin{tikzpicture}[font=\small]
-		\node[diaglabel, yshift=0.5cm] at (8.2,3.3) {\textbf{Exposition NAT contrôlée du honeypot SSH}};
-		\node[diagbox, minimum width=2.8cm] (ext) at (0,0) {Attacker externe\\192.168.100.150};
-		\node[diagbox, minimum width=2.8cm, fill=primary!16] (fw) at (4.2,0) {pfSense WAN\\192.168.100.6:22};
-		\node[diagdiamond, minimum width=5cm, minimum height=3.5cm] (nat) at (8.6,0) {NAT 22/TCP\\barrière SSH-Leurre\\port forward\\logs session};
-		\node[diagbox, minimum width=2.8cm, fill=warningorange!18] (host) at (13.0,0.9) {DMZ Host\\192.168.10.100:22};
-		\node[diagbox, minimum width=2.8cm, fill=secondary!20] (cow) at (13.0,-1.2) {Cowrie container\\2222/tcp};
-
-		\draw[diagflow, warningorange!90!black] (ext) -- (fw);
-		\draw[diagflow, warningorange!90!black] (fw) -- (nat);
-		\draw[diagflow, warningorange!90!black] (nat) -- (host);
-		\draw[diagflow, secondary] (host) -- node[right=0.4cm, diaglabel] {redirection locale} (cow);
-		\draw[diagflow, blue!70!black, dashed] (cow.south west) to[bend right=30] node[below=0.5cm, diaglabel] {bannière SSH leurre + logs session} (ext.south east);
-		\node[diagbox, minimum width=4.8cm, fill=green!20] at (8.6,2.1) {Leurre: émulation shell\\capture commandes};
-	\end{tikzpicture}
-	}
-	\caption{Architecture Cowrie et exposition NAT contrôlée sur l'interface WAN}
-	\label{fig:cowrie-architecture-tikz}
-\end{figure}
 
 \begin{table}[H]
 	\centering
@@ -4497,34 +4255,6 @@ Objectif : valider la détection Snort des attaques observées dans les Chapitre
 	
 	La figure~\ref{fig:snort-alerts-wan} montre des alertes Snort issues de l'interface \textbf{WAN}, liées à l'activité de la machine attaquante \textbf{Parrot} (192.168.100.150) vers pfSense (192.168.100.6).
 
-	\begin{figure}[H]
-		\centering
-		\resizebox{0.95\textwidth}{!}{
-		\begin{tikzpicture}[font=\small]
-			\node[diagzone, minimum width=3.5cm, minimum height=3cm, fill=secondary!10] (zw) at (2.4,0) {};
-			\node[diagzone, minimum width=3.5cm, minimum height=3cm, fill=warningorange!10] (zd) at (7.2,0) {};
-			\node[diagzone, minimum width=3.5cm, minimum height=3cm, fill=green!10] (zl) at (12.0,0) {};
-			\node[font=\bfseries] at (2.4,1.8) {WAN};
-			\node[font=\bfseries] at (7.2,1.8) {DMZ};
-			\node[font=\bfseries] at (12.0,1.8) {LAN};
-			\node[diagbox, minimum width=2.8cm] (atk) at (0,0) {Attacker\\192.168.100.150};
-			\node[diagbox, minimum width=2.5cm, fill=primary!16] (wan) at (2.4,0.8) {Snort WAN\\Recon/ELF};
-			\node[diagbox, minimum width=2.5cm, fill=warningorange!16] (dmz) at (7.2,0.0) {Snort DMZ\\SSH/Cowrie};
-			\node[diagbox, minimum width=2.5cm, fill=green!20] (lan) at (12.0,-0.8) {Snort LAN\\Pivot/SMB};
-			\node[diagbox, minimum width=2.8cm, fill=secondary!15] (soc) at (7.2,2.9) {Corrélation IDS\\multi-interface};
-
-			\draw[diagflow, blue!70!black] (atk) -- (wan);
-			\draw[diagflow, warningorange!90!black] (wan) -- (dmz);
-			\draw[diagflow, red!70!black] (dmz) -- (lan);
-			\draw[diagflow, green!60!black] (wan) -- (soc);
-			\draw[diagflow, green!60!black] (dmz) -- (soc);
-			\draw[diagflow, green!60!black] (lan) -- (soc);
-		\end{tikzpicture}
-		}
-		\caption{Carte de détection multi-interface : WAN, DMZ et LAN}
-		\label{fig:snort-multi-interface-map}
-	\end{figure}
-	
 	\subsubsection{Exemple d'alerte : transfert de binaire ELF}
 	
 	Une alerte critique a été déclenchée lors d'un transfert de fichier exécutable Linux :
@@ -4918,53 +4648,6 @@ Wazuh représente la couche de supervision globale qui relie l'infrastructure d�
 \begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Annexe A — Documentation Technique Consolidée}]
 Cette annexe regroupe uniquement les commandes et configurations effectivement appliquées dans les chapitres pratiques, ainsi que les références nécessaires à la reproduction du laboratoire. Le contenu a été réduit aux éléments opérationnels réellement utilisés.
 \end{tcolorbox}
-
-\begin{figure}[H]
-	\centering
-	\resizebox{\textwidth}{!}{
-	\begin{tikzpicture}[font=\small]
-		\node[diagzone, minimum width=4.0cm, minimum height=3.5cm, fill=secondary!10] (wan) at (0,0) {};
-		\node[diagzone, minimum width=4.0cm, minimum height=3.5cm, fill=primary!10] (pf) at (5.5,0) {};
-		\node[diagzone, minimum width=4.8cm, minimum height=3.5cm, fill=warningorange!12] (dmz) at (11.0,0) {};
-		\node[diagzone, minimum width=4.8cm, minimum height=3.5cm, fill=green!12] (lan) at (16.5,0) {};
-
-		\node[above=4pt of wan.north] {\textbf{Internet / WAN}};
-		\node[above=4pt of pf.north] {\textbf{pfSense Interfaces}};
-		\node[above=4pt of dmz.north] {\textbf{DMZ 192.168.10.0/24}};
-		\node[above=4pt of lan.north] {\textbf{LAN 192.168.20.0/24}};
-
-		\node[diagbox, minimum width=2.8cm] (atk) at (0,1.3) {Parrot\\192.168.100.150};
-		\node[diagbox, minimum width=2.8cm] (inet) at (0,-1.3) {WAN GW\\192.168.100.0/24};
-		\node[diagbox, minimum width=2.8cm, fill=primary!18] (pfi) at (5.5,1.3) {WAN em0\\192.168.100.6};
-		\node[diagbox, minimum width=2.8cm, fill=primary!18] (pfd) at (5.5,0) {DMZ em1\\192.168.10.1};
-		\node[diagbox, minimum width=2.8cm, fill=primary!18] (pfl) at (5.5,-1.3) {LAN em2\\192.168.20.1};
-
-		\node[diagbox, minimum width=2.8cm] (tel) at (9.6,1.3) {Telnet/SSH\\192.168.10.100};
-		\node[diagbox, minimum width=2.8cm] (dv) at (12.4,1.3) {DVWA\\:8080};
-		\node[diagbox, minimum width=2.8cm] (co) at (11.0,-1.3) {Cowrie\\:22→2222};
-		\node[diagbox, minimum width=2.8cm] (xp) at (16.5,1.3) {Windows XP\\192.168.20.50};
-		\node[diagbox, minimum width=2.8cm] (ids) at (16.5,0.0) {Snort\\IDS};
-		\node[diagbox, minimum width=2.8cm, fill=green!22] (siem) at (16.5,-1.3) {Wazuh SIEM\\collector};
-
-		\draw[diagflow, warningorange!90!black] (atk.east) -- (pfi.west);
-		\draw[diagflow, warningorange!90!black] (pfi.east) -- (tel.west);
-		\draw[diagflow, warningorange!90!black] (pfi.east) -- (dv.west);
-		\draw[diagflow, warningorange!90!black] (pfi.east) -- (co.west);
-		\draw[diagflow, red!70!black] (tel.east) -- (xp.west);
-		\draw[diagflow, green!60!black] (ids.east) -- (siem.west);
-		\draw[diagflow, green!60!black] (co.east) -- (siem.west);
-		\draw[diagflow, green!60!black] (pfd.east) -- (siem.west);
-		\draw[trustborder] ([xshift=-0.3cm,yshift=0.3cm]wan.north west) rectangle ([xshift=0.3cm,yshift=-0.3cm]wan.south east);
-		\draw[trustborder] ([xshift=-0.3cm,yshift=0.3cm]dmz.north west) rectangle ([xshift=0.3cm,yshift=-0.3cm]dmz.south east);
-		\draw[trustborder] ([xshift=-0.3cm,yshift=0.3cm]lan.north west) rectangle ([xshift=0.3cm,yshift=-0.3cm]lan.south east);
-		\node[diaglabel, above=0.4cm of pfi.north] {Router/Firewall};
-		\node[diaglabel, above=0.4cm of tel.north] {Serveur DMZ};
-		\node[diaglabel, above=0.4cm of xp.north] {Cible interne};
-	\end{tikzpicture}
-	}
-	\caption{Topologie consolidée du laboratoire : zones, interfaces, rôles et adressage}
-	\label{fig:appendix-lab-topology}
-\end{figure}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Commandes de Diagnostic}
