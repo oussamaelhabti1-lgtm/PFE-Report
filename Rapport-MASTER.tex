@@ -4125,10 +4125,10 @@ Le chemin validé en production est : \texttt{Parrot (192.168.100.150) $\rightar
 	\begin{tikzpicture}[font=\small]
 		\node[diagbox, minimum width=3.4cm, minimum height=14mm, inner sep=6pt, text width=3.0cm] (ext) at (0,0) {Attacker externe\\192.168.100.150};
 		\node[diagbox, minimum width=3.4cm, minimum height=14mm, inner sep=6pt, text width=3.0cm, fill=primary!16] (fw) at (5.0,0) {pfSense WAN\\192.168.100.6:22};
-		\node[diagdiamond, minimum width=5.6cm, minimum height=15mm, inner sep=4pt, text width=4.0cm] (nat) at (11.0,0) {NAT 22/TCP\\port forward vers DMZ};
+		\node[diagdiamond, minimum width=5.6cm, minimum height=15mm, inner sep=4pt, text width=4.0cm] (nat) at (11.0,0) {NAT 22/TCP\\port forward to DMZ};
 		\node[diagbox, minimum width=3.6cm, minimum height=14mm, inner sep=6pt, text width=3.2cm, fill=warningorange!18] (host) at (17.0,1.8) {DMZ Host\\192.168.10.100:22};
 		\node[diagbox, minimum width=3.6cm, minimum height=14mm, inner sep=6pt, text width=3.2cm, fill=secondary!20] (cow) at (17.0,-1.8) {Cowrie container\\2222/tcp};
-		\node[font=\small\bfseries, align=center] at (11.0,2.3) {barrière SSH-Leurre};
+		\node[font=\small\bfseries, align=center] at (11.0,2.3) {barrière SSH-Cowrie};
 		\node[font=\small, align=center] at (11.0,-2.3) {logs session};
 
 		\draw[diagflow, warningorange!90!black] (ext) -- (fw);
@@ -4297,7 +4297,7 @@ Ready to accept SSH connections on 0.0.0.0:2222
 		\node[diagbox, fill=green!25, minimum width=3.8cm, minimum height=14mm, inner sep=6pt, text width=3.2cm] at (6.8,2.0) {Auth success\\root/admin};
 		\node[diagbox, fill=green!25, minimum width=3.8cm, minimum height=14mm, inner sep=6pt, text width=3.2cm] at (12.0,2.0) {Auth success\\root/oussama};
 		\node[diagbox, fill=secondary!20, minimum width=4.5cm, minimum height=15mm, inner sep=7pt, text width=4.0cm] at (6.8,-2.1) {CMD: ls, whoami, exit\\\textit{\footnotesize durée : 13.3s}};
-		\node[diagbox, fill=secondary!20, minimum width=5.0cm, minimum height=15mm, inner sep=7pt, text width=4.4cm] at (12.2,-2.1) {CMD: ls, uname, whoami,\\\texttt{tail /etc/passwd}\\\textit{\footnotesize durée : 211.2s}};
+		\node[diagbox, fill=secondary!20, minimum width=5.0cm, minimum height=15mm, inner sep=7pt, text width=4.4cm] at (12.2,-2.1) {CMD: ls, uname\\whoami, \texttt{tail /etc/passwd}\\\textit{\footnotesize durée : 211.2s}};
 		\draw[dashed, gray] (5.0,2.8) -- (5.0,-2.9);
 		\draw[dashed, gray] (9.8,2.8) -- (9.8,-2.9);
 		\draw[dashed, gray] (14.6,2.8) -- (14.6,-2.9);
