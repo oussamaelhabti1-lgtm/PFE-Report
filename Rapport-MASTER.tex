@@ -216,11 +216,12 @@
 \newcommand{\tableheadcolor}{\rowcolor{tableheadbg}}
 
 \tikzset{
-	diagbox/.style={rectangle, rounded corners=3pt, draw=primary, fill=primary!6, thick, align=center, minimum height=9mm, inner sep=3pt},
-	diagzone/.style={rectangle, rounded corners=4pt, draw=primary, thick, fill=primary!4, inner sep=6pt},
-	diagdiamond/.style={diamond, draw=primary, thick, fill=secondary!12, align=center, inner sep=2pt, aspect=2},
+	diagbox/.style={rectangle, rounded corners=3pt, draw=primary, fill=primary!6, thick, align=center, minimum width=2.8cm, minimum height=14mm, inner sep=6pt, text width=2.4cm},
+	diagzone/.style={rectangle, rounded corners=4pt, draw=primary, thick, fill=primary!4, minimum width=3.2cm, minimum height=16mm, inner sep=8pt, align=center, text width=2.8cm},
+	diagdiamond/.style={diamond, draw=primary, thick, fill=secondary!12, minimum width=5cm, minimum height=3cm, align=center, inner sep=8pt, text width=4.2cm},
 	diagarrow/.style={-Latex, thick, draw=primary},
-	diagflow/.style={-Latex, very thick},
+	diagflow/.style={-Latex, very thick, draw=primary},
+	diaglabel/.style={font=\small, text=primary, align=center},
 	trustborder/.style={rounded corners=4pt, dashed, draw=secondary, line width=0.9pt}
 }
 
@@ -426,37 +427,35 @@ La Figure~\ref{fig:intro-end-to-end-architecture} synthétise la chaîne de bout
 	\centering
 	\resizebox{\textwidth}{!}{
 	\begin{tikzpicture}[font=\small]
-		\node[diagzone, minimum width=2.8cm, minimum height=4.4cm, fill=secondary!10] (wan) at (0,0) {};
-		\node[diagzone, minimum width=2.5cm, minimum height=4.4cm, fill=primary!10] (pfs) at (3.8,0) {};
-		\node[diagzone, minimum width=4.6cm, minimum height=4.4cm, fill=warningorange!10] (dmz) at (8.0,0) {};
-		\node[diagzone, minimum width=4.6cm, minimum height=4.4cm, fill=green!10] (lan) at (13.1,0) {};
+		\node[diagzone, minimum width=3.2cm, minimum height=4.2cm, fill=secondary!10] (wan) at (0,0) {};
+		\node[diagzone, minimum width=5.0cm, minimum height=4.2cm, fill=warningorange!10] (dmz) at (5.2,0) {};
+		\node[diagzone, minimum width=5.0cm, minimum height=4.2cm, fill=green!10] (lan) at (10.4,0) {};
+		\node[diagbox, minimum width=2.8cm, fill=primary!16] (fw) at (2.6,0) {pfSense\\Firewall / Router};
 
-		\node[above=2pt of wan.north] {\textbf{WAN / Internet}};
-		\node[above=2pt of pfs.north] {\textbf{pfSense}};
-		\node[above=2pt of dmz.north] {\textbf{DMZ}};
-		\node[above=2pt of lan.north] {\textbf{LAN Interne}};
+		\node[above=4pt of wan.north] {\textbf{WAN / Internet}};
+		\node[above=4pt of dmz.north] {\textbf{DMZ}};
+		\node[above=4pt of lan.north] {\textbf{LAN Interne}};
 
-		\node[diagbox, minimum width=2cm] (attacker) at (0,1.1) {Attacker\\Parrot};
-		\node[diagbox, minimum width=2cm] (internet) at (0,-1.1) {Internet};
-		\node[diagbox, minimum width=2cm, fill=primary!16] (fw) at (3.8,0.9) {Firewall\\/ Router};
-		\node[diagbox, minimum width=2cm, fill=secondary!14] (snort) at (3.8,-1.0) {Snort IDS};
-		\node[diagbox, minimum width=1.8cm] (dvwa) at (7.1,1.1) {DVWA};
-		\node[diagbox, minimum width=1.8cm] (cowrie) at (8.9,1.1) {Cowrie};
-		\node[diagbox, minimum width=1.8cm] (dmzhost) at (8.0,-1.0) {Hôte DMZ};
-		\node[diagbox, minimum width=2.2cm, fill=green!18] (wazuh) at (13.1,1.1) {Wazuh SIEM};
-		\node[diagbox, minimum width=2.2cm, fill=green!14] (assets) at (13.1,-1.0) {Assets LAN};
+		\node[diagbox, minimum width=2.5cm] (attacker) at (0,1.5) {Attacker\\Parrot};
+		\node[diagbox, minimum width=2.5cm] (internet) at (0,-1.5) {Internet};
+		\node[diagbox, minimum width=2.5cm, fill=secondary!14] (snort) at (2.6,-1.5) {Snort IDS};
+		\node[diagbox, minimum width=2.5cm] (dvwa) at (4.2,1.5) {DVWA};
+		\node[diagbox, minimum width=2.5cm] (cowrie) at (6.2,1.5) {Cowrie};
+		\node[diagbox, minimum width=2.5cm] (dmzhost) at (5.2,-1.5) {Hôte DMZ};
+		\node[diagbox, minimum width=2.8cm, fill=green!18] (wazuh) at (10.4,1.5) {Wazuh SIEM};
+		\node[diagbox, minimum width=2.8cm, fill=green!14] (assets) at (10.4,-1.5) {Assets LAN};
 
-		\draw[diagflow, blue!70!black] (attacker.east) -- node[above, sloped] {\scriptsize Flux offensif} (fw.west);
-		\draw[diagflow, warningorange!90!black] (fw.east) -- node[above, sloped] {\scriptsize NAT / filtrage} (dvwa.west);
+		\draw[diagflow, blue!70!black] (attacker.east) -- node[diaglabel, above, sloped] {Flux offensif} (fw.west);
+		\draw[diagflow, warningorange!90!black] (fw.east) -- node[diaglabel, above, sloped] {NAT / filtrage} (dvwa.west);
 		\draw[diagflow, warningorange!90!black] (fw.east) -- (cowrie.west);
 		\draw[diagflow, green!60!black] (dvwa.east) -- (wazuh.west);
 		\draw[diagflow, green!60!black] (cowrie.east) -- (wazuh.west);
 		\draw[diagflow, green!60!black] (snort.east) -- (wazuh.west);
 		\draw[diagflow, primary] (fw.east) -- (assets.west);
 		\draw[diagflow, primary!70!black, dashed] (internet.east) -- (fw.west);
-		\draw[trustborder] ([xshift=-1.2cm,yshift=1.9cm]wan.north west) rectangle ([xshift=1.2cm,yshift=-1.9cm]wan.south east);
-		\draw[trustborder] ([xshift=-2.2cm,yshift=1.9cm]dmz.north west) rectangle ([xshift=2.2cm,yshift=-1.9cm]dmz.south east);
-		\draw[trustborder] ([xshift=-2.2cm,yshift=1.9cm]lan.north west) rectangle ([xshift=2.2cm,yshift=-1.9cm]lan.south east);
+		\draw[trustborder] ([xshift=-0.3cm,yshift=0.3cm]wan.north west) rectangle ([xshift=0.3cm,yshift=-0.3cm]wan.south east);
+		\draw[trustborder] ([xshift=-0.3cm,yshift=0.3cm]dmz.north west) rectangle ([xshift=0.3cm,yshift=-0.3cm]dmz.south east);
+		\draw[trustborder] ([xshift=-0.3cm,yshift=0.3cm]lan.north west) rectangle ([xshift=0.3cm,yshift=-0.3cm]lan.south east);
 	\end{tikzpicture}
 	}
 	\caption{Architecture globale bout en bout : zones de confiance, outils et flux principaux}
@@ -524,21 +523,21 @@ La progression pédagogique est également représentée visuellement dans la Fi
 	\centering
 	\resizebox{\textwidth}{!}{
 	\begin{tikzpicture}[font=\small]
-		\node[diagbox, minimum width=2.4cm] (p1) at (0,0) {1. Infrastructure};
-		\node[diagbox, minimum width=2.4cm, right=0.8cm of p1] (p2) {2. Reconnaissance};
-		\node[diagbox, minimum width=2.4cm, right=0.8cm of p2] (p3) {3. Exploitation};
-		\node[diagbox, minimum width=2.4cm, right=0.8cm of p3] (p4) {4. Web (DVWA)};
-		\node[diagbox, minimum width=2.4cm, right=0.8cm of p4] (p5) {5. Honeypot};
-		\node[diagbox, minimum width=2.4cm, right=0.8cm of p5] (p6) {6. Détection IDS};
-		\node[diagbox, minimum width=2.4cm, right=0.8cm of p6] (p7) {7. SIEM};
+		\node[diagbox, minimum width=2.5cm, minimum height=18mm] (p1) at (0,0) {1. Infrastructure};
+		\node[diagbox, minimum width=2.5cm, minimum height=18mm, right=1.5cm of p1] (p2) {2. Reconnaissance};
+		\node[diagbox, minimum width=2.5cm, minimum height=18mm, right=1.5cm of p2] (p3) {3. Exploitation};
+		\node[diagbox, minimum width=2.5cm, minimum height=18mm, right=1.5cm of p3] (p4) {4. Web\\(DVWA)};
+		\node[diagbox, minimum width=2.5cm, minimum height=18mm, right=1.5cm of p4] (p5) {5. Honeypot};
+		\node[diagbox, minimum width=2.5cm, minimum height=18mm, right=1.5cm of p5] (p6) {6. Détection\\IDS};
+		\node[diagbox, minimum width=2.5cm, minimum height=18mm, right=1.5cm of p6] (p7) {7. SIEM};
 		\draw[diagarrow] (p1) -- (p2);
 		\draw[diagarrow] (p2) -- (p3);
 		\draw[diagarrow] (p3) -- (p4);
 		\draw[diagarrow] (p4) -- (p5);
 		\draw[diagarrow] (p5) -- (p6);
 		\draw[diagarrow] (p6) -- (p7);
-		\draw[-Latex, thick, draw=secondary] (p7.south) to[bend right=38] node[below] {\scriptsize feedback~SOC} (p3.south);
-		\draw[-Latex, thick, draw=secondary] (p6.north) to[bend left=30] node[above] {\scriptsize tuning} (p2.north);
+		\draw[-Latex, thick, draw=secondary] (p7.south) to[bend right=38] node[pos=0.55, below=0.3cm, diaglabel] {feedback SOC} (p3.south);
+		\draw[-Latex, thick, draw=secondary] (p6.north) to[bend left=30] node[pos=0.55, above=0.3cm, diaglabel] {tuning} (p2.north);
 	\end{tikzpicture}
 	}
 	\caption{Approche pédagogique en 7 phases avec progression et boucles de rétroaction}
@@ -643,19 +642,19 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 		\centering
 		\resizebox{0.98\textwidth}{!}{
 		\begin{tikzpicture}[font=\small]
-			\node[diagbox, minimum width=2.5cm] (ext) at (0,0) {Attaquant externe\\\texttt{192.168.100.150}};
-			\node[diagbox, minimum width=2.5cm, fill=primary!16] (wan) at (3.8,0) {Interface WAN\\pfSense};
-			\node[diagdiamond, minimum width=2.9cm] (nat) at (7.8,0) {Règle NAT\\Port Forward ?};
-			\node[diagbox, minimum width=3.3cm] (dmz) at (12.3,0) {Hôte DMZ\\\texttt{192.168.10.100}};
+			\node[diagbox, minimum width=3cm] (ext) at (0,0) {Attaquant externe\\\texttt{192.168.100.150}};
+			\node[diagbox, minimum width=3cm, fill=primary!16] (wan) at (3.6,0) {Interface WAN\\pfSense};
+			\node[diagdiamond, minimum width=5cm, minimum height=3cm] (nat) at (7.2,0) {Règle NAT\\Port Forward ?};
+			\node[diagbox, minimum width=3.4cm] (dmz) at (10.8,0) {Hôte DMZ\\\texttt{192.168.10.100}};
 
-			\node[align=left, anchor=west] at (1.2,1.3) {\scriptsize Avant NAT: dst=\texttt{192.168.100.6:80/139/445}};
-			\node[align=left, anchor=west] at (9.5,1.3) {\scriptsize Après NAT: dst=\texttt{192.168.10.100:80/139/445}};
-			\node[diagbox, minimum width=2.5cm, fill=secondary!10] (deny) at (7.8,-2.2) {Sinon: DROP\\(règles WAN)};
+			\node[diaglabel, align=left, anchor=west] at (0.8,1.8) {pré-NAT: dst=\texttt{192.168.100.6:80/139/445}};
+			\node[diaglabel, align=left, anchor=west] at (8.3,1.8) {post-NAT: dst=\texttt{192.168.10.100:80/139/445}};
+			\node[diagbox, minimum width=3cm, fill=secondary!10] (deny) at (7.2,-2.4) {Sinon: DROP\\(règles WAN)};
 
 			\draw[diagflow, warningorange!90!black] (ext) -- node[above] {\scriptsize paquet entrant} (wan);
 			\draw[diagflow, warningorange!90!black] (wan) -- (nat);
 			\draw[diagflow, green!60!black] (nat) -- node[above] {\scriptsize match règle} (dmz);
-			\draw[diagflow, accent] (nat) -- node[right] {\scriptsize pas de match} (deny);
+			\draw[diagflow, accent] (nat) -- node[right=0.3cm, diaglabel] {pas de match} (deny);
 			\draw[diagflow, blue!70!black, dashed] (dmz.south) to[bend right=30] node[below] {\scriptsize trafic retour stateful} (wan.south);
 			\draw[diagflow, blue!70!black, dashed] (wan.south west) to[bend right=20] (ext.south);
 		\end{tikzpicture}
@@ -754,24 +753,24 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 	\begin{figure}[H]
 		\centering
 		\begin{tikzpicture}[font=\small]
-			\draw[rounded corners=6pt, fill=primary!8, draw=primary, thick] (-5.6,-3.5) rectangle (5.6,3.5);
-			\draw[rounded corners=6pt, fill=primary!14, draw=primary, thick] (-4.8,-2.9) rectangle (4.8,2.9);
-			\draw[rounded corners=6pt, fill=primary!20, draw=primary, thick] (-4.0,-2.3) rectangle (4.0,2.3);
-			\draw[rounded corners=6pt, fill=secondary!16, draw=primary, thick] (-3.2,-1.7) rectangle (3.2,1.7);
-			\draw[rounded corners=6pt, fill=secondary!22, draw=primary, thick] (-2.4,-1.1) rectangle (2.4,1.1);
-			\draw[rounded corners=6pt, fill=green!22, draw=primary, thick] (-1.5,-0.6) rectangle (1.5,0.6);
+			\draw[rounded corners=6pt, fill=primary!8, draw=primary, thick] (-6.2,-4.0) rectangle (6.2,4.0);
+			\draw[rounded corners=6pt, fill=primary!14, draw=primary, thick] (-5.8,-3.6) rectangle (5.8,3.6);
+			\draw[rounded corners=6pt, fill=primary!20, draw=primary, thick] (-5.4,-3.2) rectangle (5.4,3.2);
+			\draw[rounded corners=6pt, fill=secondary!16, draw=primary, thick] (-5.0,-2.8) rectangle (5.0,2.8);
+			\draw[rounded corners=6pt, fill=secondary!24, draw=primary, thick] (-4.6,-2.4) rectangle (4.6,2.4);
+			\draw[rounded corners=6pt, fill=green!28, draw=primary, thick] (-4.2,-2.0) rectangle (4.2,2.0);
 
-			\node at (0,3.1) {\textbf{Internet}};
-			\node at (0,2.45) {\textbf{pfSense}};
-			\node at (0,1.85) {\textbf{NAT}};
-			\node at (0,1.25) {\textbf{WAN Rules}};
-			\node at (0,0.65) {\textbf{UFW}};
-			\node at (0,0.05) {\textbf{Fail2Ban}};
-			\node at (0,-0.35) {\textbf{Application}};
+			\node[anchor=west] at (6.7,3.7) {\textbf{Internet}};
+			\node[anchor=west] at (6.7,3.1) {\textbf{pfSense}};
+			\node[anchor=west] at (6.7,2.5) {\textbf{NAT}};
+			\node[anchor=west] at (6.7,1.9) {\textbf{WAN Rules}};
+			\node[anchor=west] at (6.7,1.3) {\textbf{UFW}};
+			\node[anchor=west] at (6.7,0.7) {\textbf{Fail2Ban}};
+			\node[anchor=west] at (6.7,0.1) {\textbf{Application}};
 
-			\draw[-Latex, ultra thick, accent] (-6.2,0) -- (-2.8,0) node[midway, above] {\scriptsize tentative d'attaque};
-			\draw[-Latex, thick, accent!70!black] (-2.8,0) -- (-1.0,0);
-			\node[anchor=west] at (1.8,-2.8) {\scriptsize Plus on approche du centre, plus le contrôle est fin.};
+			\draw[-Latex, ultra thick, dashed, accent] (-7.0,0) -- (-3.6,0) node[midway, above, diaglabel] {tentative d'attaque};
+			\draw[-Latex, very thick, dashed, accent!70!black] (-3.6,0) -- (-1.2,0);
+			\node[anchor=west, diaglabel] at (1.5,-3.4) {Plus on approche du centre, plus le contrôle est fin.};
 		\end{tikzpicture}
 		\caption{Défense en profondeur : empilement des contrôles périmétriques et hôte}
 		\label{fig:defense-in-depth-stack}
@@ -1530,9 +1529,9 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		\begin{tikzpicture}
 			\begin{axis}[
 				ybar stacked,
-				bar width=22pt,
+				bar width=28pt,
 				width=0.92\textwidth,
-				height=7.2cm,
+				height=8.0cm,
 				ymin=0,
 				ymax=100,
 				symbolic x coords={Sans protection,Avec protection},
@@ -1540,8 +1539,10 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 				ylabel={Distribution (\%)},
 				nodes near coords,
 				nodes near coords align={vertical},
-				legend style={at={(0.5,1.12)},anchor=south,legend columns=3,draw=none},
-				enlarge x limits=0.25
+				x tick label style={font=\small},
+				y tick label style={font=\small},
+				legend style={at={(0.5,-0.22)},anchor=north,legend columns=1,draw=none},
+				enlarge x limits=0.5
 			]
 				\addplot[fill=criticalred!75] coordinates {(Sans protection,35) (Avec protection,0.2)};
 				\addplot[fill=warningorange!75] coordinates {(Sans protection,15) (Avec protection,99.6)};
@@ -1724,25 +1725,39 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 	\begin{figure}[H]
 		\centering
 		\begin{tikzpicture}[font=\small]
-			\node[anchor=west, font=\bfseries] at (0,3.4) {Service};
-			\node[anchor=west, font=\bfseries] at (3.3,3.4) {Score CVSS};
-			\node[anchor=west, font=\bfseries] at (6.2,3.4) {Niveau};
-			\node[anchor=west, font=\bfseries] at (8.8,3.4) {Priorité};
+			\def\svcw{3.0}
+			\def\cellw{1.2}
+			\def\cellh{1.2}
+			\node[anchor=west, font=\bfseries] at (0,5.3) {Service};
+			\node[anchor=west, font=\bfseries] at (3.2,5.3) {Critical};
+			\node[anchor=west, font=\bfseries] at (4.5,5.3) {High};
+			\node[anchor=west, font=\bfseries] at (5.8,5.3) {Medium};
+			\node[anchor=west, font=\bfseries] at (7.1,5.3) {Low};
 
-			\foreach \y/\svc/\score/\lvl/\prio/\col in {
-				2.6/Telnet/9.8/Critique/P1 immédiate/criticalred!70,
-				1.8/HTTP\/DVWA/9.1/Critique/P1 immédiate/criticalred!65,
-				1.0/SMB\/445/8.4/Élevée/P2 court terme/warningorange!70,
-				0.2/Samba\/139/7.5/Élevée/P2 court terme/warningorange!55}
+			\foreach \i/\svc/\score/\crit/\high/\med/\low in {
+				0/Telnet/9.8/9.8/0/0/0,
+				1/HTTP\/DVWA/9.1/9.1/0/0/0,
+				2/SMB\/445/8.4/0/8.4/0/0,
+				3/Samba\/139/7.5/0/7.5/0/0}
 			{
-				\fill[\col] (0,\y-0.28) rectangle (11.6,\y+0.28);
-				\draw[white, line width=0.6pt] (0,\y-0.28) rectangle (11.6,\y+0.28);
-				\node[anchor=west, text=white, font=\bfseries] at (0.2,\y) {\svc};
-				\node[anchor=west, text=white, font=\bfseries] at (3.4,\y) {\score};
-				\node[anchor=west, text=white, font=\bfseries] at (6.3,\y) {\lvl};
-				\node[anchor=west, text=white, font=\bfseries] at (8.9,\y) {\prio};
+				\pgfmathsetmacro{\y}{4.0-\i*1.3}
+				\draw[primary, thick] (0,\y) rectangle (\svcw,\y+\cellh);
+				\node[anchor=west, font=\bfseries] at (0.15,\y+0.6) {\svc};
+				\fill[criticalred!70] (\svcw,\y) rectangle (\svcw+\cellw,\y+\cellh);
+				\fill[warningorange!70] (\svcw+1.3,\y) rectangle (\svcw+1.3+\cellw,\y+\cellh);
+				\fill[yellow!60] (\svcw+2.6,\y) rectangle (\svcw+2.6+\cellw,\y+\cellh);
+				\fill[green!45] (\svcw+3.9,\y) rectangle (\svcw+3.9+\cellw,\y+\cellh);
+				\draw[primary, thick] (\svcw,\y) rectangle (\svcw+\cellw,\y+\cellh);
+				\draw[primary, thick] (\svcw+1.3,\y) rectangle (\svcw+1.3+\cellw,\y+\cellh);
+				\draw[primary, thick] (\svcw+2.6,\y) rectangle (\svcw+2.6+\cellw,\y+\cellh);
+				\draw[primary, thick] (\svcw+3.9,\y) rectangle (\svcw+3.9+\cellw,\y+\cellh);
+				\node[font=\tiny] at (\svcw+0.6,\y+0.6) {\crit};
+				\node[font=\tiny] at (\svcw+1.9,\y+0.6) {\high};
+				\node[font=\tiny] at (\svcw+3.2,\y+0.6) {\med};
+				\node[font=\tiny] at (\svcw+4.5,\y+0.6) {\low};
+				\node[anchor=west, diaglabel] at (8.8,\y+0.6) {\textbf{Score~\score} \ifdim\score pt>8.9pt P1 immédiate\else P2 court terme\fi};
 			}
-			\draw[thick, draw=primary] (0,-0.3) rectangle (11.6,3.1);
+			\draw[primary, thick] (0,-0.1) rectangle (9.8,5.0);
 		\end{tikzpicture}
 		\caption{Heatmap de risque CVSS des services exposés en DMZ}
 		\label{fig:cvss-risk-heatmap}
@@ -2009,33 +2024,33 @@ Objectif : exécuter la chaîne d'attaque complète issue du Chapitre~\ref{chap:
 		\begin{tikzpicture}[font=\scriptsize]
 			\foreach \x/\txt/\col in {
 				0/Recon/blue!20,
-				1.9/Resource Dev/blue!28,
-				3.8/Initial Access/red!25,
-				5.7/Execution/red!35,
-				7.6/Persistence/yellow!35,
-				9.5/Privilege Esc./yellow!45,
-				11.4/Lateral Move/orange!35,
-				13.3/Collection/green!28,
-				15.2/Exfiltration/green!38}
+				2.9/Resource Dev/blue!28,
+				5.8/Initial Access/red!25,
+				8.7/Execution/red!35,
+				11.6/Persistence/yellow!35,
+				14.5/Privilege Esc./yellow!45,
+				17.4/Lateral Move/orange!35,
+				20.3/Collection/green!28,
+				23.2/Exfiltration/green!38}
 			{
-				\node[diagbox, fill=\col, minimum width=1.75cm, minimum height=0.9cm] at (\x,1.0) {\txt};
+				\node[diagbox, fill=\col, minimum width=2.2cm, minimum height=1.0cm] at (\x,1.2) {\txt};
 			}
-			\foreach \a/\b in {0/1.9,1.9/3.8,3.8/5.7,5.7/7.6,7.6/9.5,9.5/11.4,11.4/13.3,13.3/15.2}
-				\draw[diagarrow] (\a+0.85,1.0) -- (\b-0.85,1.0);
+			\foreach \a/\b in {0/2.9,2.9/5.8,5.8/8.7,8.7/11.6,11.6/14.5,14.5/17.4,17.4/20.3,20.3/23.2}
+				\draw[diagarrow] (\a+1.1,1.2) -- (\b-1.1,1.2);
 
 			\foreach \x/\lab in {
 				0/Scan Nmap,
-				1.9/msfvenom payload,
-				3.8/Telnet creds,
-				5.7/Exec meterpreter,
-				7.6/Session durable,
-				9.5/sudo ALL,
-				11.4/Pivot DMZ→LAN,
-				13.3/Loot 121KB,
-				15.2/RDP tunnel}
+				2.9/msfvenom payload,
+				5.8/Telnet creds,
+				8.7/Exec meterpreter,
+				11.6/Session durable,
+				14.5/sudo ALL,
+				17.4/Pivot DMZ→LAN,
+				20.3/Loot 121KB,
+				23.2/RDP tunnel}
 			{
-				\node[diagbox, minimum width=1.75cm, minimum height=0.8cm, fill=white] at (\x,-0.45) {\lab};
-				\draw[dashed, thick, draw=primary] (\x,0.55) -- (\x,-0.05);
+				\node[diagbox, minimum width=2.0cm, minimum height=0.8cm, fill=white] at (\x,-0.7) {\lab};
+				\draw[dashed, thick, draw=primary] (\x,0.6) -- (\x,-0.2);
 			}
 		\end{tikzpicture}
 		}
@@ -2485,18 +2500,18 @@ Nous avons obtenu :
 		\centering
 		\resizebox{0.95\textwidth}{!}{
 		\begin{tikzpicture}[font=\small]
-			\node[diagbox] (att) at (0,0) {Attacker\\192.168.100.150};
-			\node[diagbox, fill=primary!15] (wan) at (3.8,0) {pfSense WAN\\192.168.100.6};
-			\node[diagbox, fill=warningorange!20] (pivot) at (8.0,0) {Pivot DMZ\\192.168.10.100};
-			\node[diagbox, fill=green!20] (lan) at (12.2,0) {Cibles LAN\\192.168.20.0/24};
+			\node[diagbox, minimum width=3cm] (att) at (0,0) {Attacker\\192.168.100.150};
+			\node[diagbox, minimum width=3cm, fill=primary!15] (wan) at (4.6,0) {pfSense WAN\\192.168.100.6};
+			\node[diagbox, minimum width=3cm, fill=warningorange!20] (pivot) at (9.2,0) {Pivot DMZ\\192.168.10.100};
+			\node[diagbox, minimum width=3cm, fill=green!20] (lan) at (13.8,0) {Cibles LAN\\192.168.20.0/24};
 
-			\draw[diagflow, blue!70!black] (att) -- node[above] {\scriptsize chemin initial} (wan);
+			\draw[diagflow, blue!70!black] (att) -- node[above=0.5cm, diaglabel] {chemin initial} (wan);
 			\draw[diagflow, blue!70!black] (wan) -- (pivot);
-			\draw[diagflow, red!70!black, very thick] (pivot) -- node[above] {\scriptsize tunnel pivot} (lan);
-			\draw[diagflow, red!70!black, dashed] (lan.south) to[bend right=22] node[below] {\scriptsize trafic latéral} (pivot.south);
+			\draw[diagflow, red!70!black, very thick] (pivot) -- node[above=0.5cm, diaglabel] {tunnel pivot} (lan);
+			\draw[diagflow, red!70!black, dashed] (lan.south) to[bend right=22] node[below=0.5cm, diaglabel] {trafic latéral} (pivot.south);
 
-			\node[diagbox, minimum width=4.6cm, fill=secondary!8] (ctrl) at (4.2,-2.2) {Control plane\\\texttt{route add 192.168.20.0/24}};
-			\node[diagbox, minimum width=4.6cm, fill=secondary!8] (data) at (10.0,-2.2) {Data plane\\SMB / RDP / scan LAN};
+			\node[diagbox, minimum width=3.5cm, fill=secondary!8] (ctrl) at (5.0,-2.7) {Control plane\\\texttt{route add 192.168.20.0/24}};
+			\node[diagbox, minimum width=3.5cm, fill=secondary!8] (data) at (11.2,-2.7) {Data plane\\SMB / RDP / scan LAN};
 			\draw[diagarrow, dashed] (ctrl.east) -- (data.west);
 		\end{tikzpicture}
 		}
@@ -3215,27 +3230,27 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 		\centering
 		\resizebox{\textwidth}{!}{
 		\begin{tikzpicture}[font=\scriptsize]
-			\foreach \y/\actor in {0/Attacker, -1.1/DMZ Host, -2.2/pfSense, -3.3/LAN Host, -4.4/IDS Snort}
+			\foreach \y/\actor in {0/Attacker, -1.7/DMZ Host, -3.4/pfSense, -5.1/LAN Host, -6.8/IDS Snort}
 			{
 				\node[anchor=east, font=\bfseries] at (-0.25,\y) {\actor};
-				\draw[gray!55] (0,\y) -- (14,\y);
+				\draw[gray!55] (0,\y) -- (18,\y);
 			}
-			\foreach \x/\t in {1/T1,3/T3,5/T5,7/T7,9/T9,11/T10,13/T11}
+			\foreach \x/\t in {1/T1,3.5/T3,6/T5,8.5/T7,11/T9,13.5/T10,16/T11}
 			{
-				\draw[gray!45, dashed] (\x,0.35) -- (\x,-4.75);
+				\draw[gray!45, dashed] (\x,0.6) -- (\x,-7.3);
 				\node[above] at (\x,0.35) {\t};
 			}
-			\node[diagbox, fill=primary!18] at (1,0) {Recon scan};
-			\node[diagbox, fill=criticalred!18] at (3,0) {Telnet access};
-			\node[diagbox, fill=criticalred!26] at (5,-1.1) {Meterpreter};
-			\node[diagbox, fill=warningorange!26] at (7,-1.1) {Pivot route};
-			\node[diagbox, fill=warningorange!26] at (9,-3.3) {SMB probe};
-			\node[diagbox, fill=green!25] at (11,-1.1) {Collection};
-			\node[diagbox, fill=green!35] at (13,0) {Exfil RDP};
-			\node[diagbox, fill=primary!15] at (3,-2.2) {NAT session};
-			\node[diagbox, fill=primary!15] at (9,-2.2) {DMZ→LAN pass};
-			\node[diagbox, fill=secondary!15] at (1,-4.4) {Alert scan};
-			\node[diagbox, fill=secondary!15] at (9,-4.4) {Alert ETERNALBLUE};
+			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=primary!18] at (1,0) {Recon scan};
+			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=criticalred!18] at (3.5,0) {Telnet access};
+			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=criticalred!26] at (6,-1.7) {Meterpreter};
+			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=warningorange!26] at (8.5,-1.7) {Pivot route};
+			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=warningorange!26] at (11,-5.1) {SMB probe};
+			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=green!25] at (13.5,-1.7) {Collection};
+			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=green!35] at (16,0) {Exfil RDP};
+			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=primary!15] at (3.5,-3.4) {NAT session};
+			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=primary!15] at (11,-3.4) {DMZ→LAN pass};
+			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=secondary!15] at (1,-6.8) {Alert scan};
+			\node[diagbox, minimum width=2cm, minimum height=1cm, fill=secondary!15] at (11,-6.8) {Alert ETERNALBLUE};
 		\end{tikzpicture}
 		}
 		\caption{Timeline swimlane multi-acteurs de la chaîne d'attaque}
@@ -3286,20 +3301,22 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 		\centering
 		\resizebox{\textwidth}{!}{
 		\begin{tikzpicture}[font=\scriptsize]
-			\foreach \x/\tac in {0/Reconnaissance,2.6/Execution,5.2/Persistence,7.8/Lateral Movement,10.4/Collection,13.0/Exfiltration}
-				\node[diagbox, minimum width=2.3cm, fill=primary!14] at (\x,1.8) {\textbf{\tac}};
+			\foreach \x/\tac in {0/Reconnaissance,2.9/Execution,5.8/Persistence,8.7/Lateral Movement,11.6/Collection,14.5/Exfiltration}
+				\node[diagbox, minimum width=2.5cm, fill=primary!14] at (\x,2.0) {\textbf{\tac}};
 
 			\foreach \x/\tech/\col in {
 				0/T1018\\T1078/blue!22,
-				2.6/T1059.004\\T1105/red!28,
-				5.2/T1548.003/yellow!34,
-				7.8/T1090.001\\T1021.002/orange!32,
-				10.4/T1087\\T1082/green!28,
-				13.0/T1005\\T1572/green!42}
+				2.9/T1059.004\\T1105/red!28,
+				5.8/T1548.003/yellow!34,
+				8.7/T1090.001\\T1021.002/orange!32,
+				11.6/T1087\\T1082/green!28,
+				14.5/T1005\\T1572/green!42}
 			{
-				\node[diagbox, minimum width=2.3cm, minimum height=1.3cm, fill=\col] at (\x,0) {\tech};
-				\draw[diagarrow] (\x,1.35) -- (\x,0.7);
+				\node[diagbox, minimum width=1.8cm, minimum height=12mm, fill=\col] at (\x,0) {\tech};
+				\draw[diagarrow] (\x,1.4) -- (\x,0.7);
+				\draw[gray!50] (\x-1.25,0.8) rectangle (\x+1.25,-0.8);
 			}
+			\draw[gray!50] (-1.25,2.8) rectangle (15.75,-0.8);
 		\end{tikzpicture}
 		}
 		\caption{Matrice MITRE ATT\&CK des tactiques et techniques observées}
@@ -3530,19 +3547,19 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 	\begin{figure}[H]
 		\centering
 		\begin{tikzpicture}[font=\small]
-			\draw[diagarrow] (0,0) -- (14,0);
-			\node[below] at (2,0) {\textbf{Immédiat (jours)}};
-			\node[below] at (7,0) {\textbf{Court terme (semaines)}};
-			\node[below] at (12,0) {\textbf{Long terme (mois)}};
-			\draw[gray!45] (4.5,0.5) -- (4.5,-2.4);
-			\draw[gray!45] (9.5,0.5) -- (9.5,-2.4);
+			\draw[diagflow] (0,0) -- (17,0);
+			\node[above=0.8cm] at (2.6,0) {\textbf{Immédiat (jours)}};
+			\node[above=0.8cm] at (8.5,0) {\textbf{Court terme (semaines)}};
+			\node[above=0.8cm] at (14.4,0) {\textbf{Long terme (mois)}};
+			\draw[gray!45] (5.7,0.7) -- (5.7,-6.5);
+			\draw[gray!45] (11.4,0.7) -- (11.4,-6.5);
 
-			\node[diagbox, fill=criticalred!28, minimum width=3.6cm] (r1) at (2,-0.8) {Désactiver Telnet\\+ rotation secrets};
-			\node[diagbox, fill=warningorange!25, minimum width=3.6cm] (r2) at (6.7,-1.5) {Durcissement pfSense\\+ SSH + Fail2Ban};
-			\node[diagbox, fill=green!25, minimum width=3.6cm] (r3) at (11.8,-0.8) {SIEM centralisé\\+ Zero Trust};
-			\node[diagbox, fill=green!20, minimum width=3.6cm] (r4) at (11.8,-2.1) {Renouvellement OS\\+ audits réguliers};
-			\draw[-Latex, thick, draw=primary] (r1.east) -- (r2.west);
-			\draw[-Latex, thick, draw=primary] (r2.east) -- (r3.west);
+			\node[diagbox, fill=criticalred!28, minimum width=2.8cm, minimum height=18mm, inner sep=8pt] (r1) at (2.6,-1.8) {Désactiver Telnet\\+ rotation secrets};
+			\node[diagbox, fill=warningorange!25, minimum width=2.8cm, minimum height=18mm, inner sep=8pt] (r2) at (8.5,-4.3) {Durcissement pfSense\\SSH + Fail2Ban};
+			\node[diagbox, fill=green!25, minimum width=2.8cm, minimum height=18mm, inner sep=8pt] (r3) at (14.4,-1.8) {SIEM centralisé\\+ Zero Trust};
+			\node[diagbox, fill=green!20, minimum width=2.8cm, minimum height=18mm, inner sep=8pt] (r4) at (14.4,-6.0) {Renouvellement OS\\+ audits réguliers};
+			\draw[-Latex, thick, draw=primary] (r1.east) to[bend left=15] (r2.west);
+			\draw[-Latex, thick, draw=primary] (r2.east) to[bend right=15] (r3.west);
 			\draw[-Latex, thick, draw=primary] (r3.south) -- (r4.north);
 		\end{tikzpicture}
 		\caption{Feuille de route de remédiation : priorités, dépendances et horizon temporel}
@@ -3757,28 +3774,32 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 		\centering
 		\resizebox{\textwidth}{!}{
 		\begin{tikzpicture}[font=\scriptsize]
-			\node[diagbox, fill=criticalred!24, minimum width=2.4cm] (cat1) at (0,1.5) {A05 Injection\\(2 cas)};
-			\node[diagbox, fill=criticalred!24, minimum width=2.4cm] (cat2) at (0,0.2) {A08 File Upload\\(1 cas)};
-			\node[diagbox, fill=warningorange!24, minimum width=2.4cm] (cat3) at (0,-1.1) {A07 Auth\\(1 cas)};
+			\node[diagbox, fill=criticalred!24, minimum width=2.3cm] (cat1) at (0,1.6) {A05 Injection\\(2 cas)};
+			\node[diagbox, fill=criticalred!24, minimum width=2.3cm] (cat2) at (0,0.0) {A08 File Upload\\(1 cas)};
+			\node[diagbox, fill=warningorange!24, minimum width=2.3cm] (cat3) at (0,-1.6) {A07 Auth\\(1 cas)};
 
-			\node[diagbox, minimum width=2.8cm] (v1) at (3.3,1.5) {SQLi / Cmdi};
-			\node[diagbox, minimum width=2.8cm] (v2) at (3.3,0.2) {Web shell};
-			\node[diagbox, minimum width=2.8cm] (v3) at (3.3,-1.1) {Bruteforce};
+			\node[diagbox, minimum width=2.3cm] (v1) at (4.1,1.6) {SQLi / Cmdi};
+			\node[diagbox, minimum width=2.3cm] (v2) at (4.1,0.0) {Web shell};
+			\node[diagbox, minimum width=2.3cm] (v3) at (4.1,-1.6) {Bruteforce};
 
-			\node[diagbox, minimum width=2.8cm, fill=secondary!14] (e1) at (6.9,1.5) {Payload HTTP};
-			\node[diagbox, minimum width=2.8cm, fill=secondary!14] (e2) at (6.9,0.2) {Upload + Exec};
-			\node[diagbox, minimum width=2.8cm, fill=secondary!14] (e3) at (6.9,-1.1) {Essais répétitifs};
+			\node[diagbox, minimum width=2.3cm, fill=secondary!14] (e1) at (8.2,1.6) {Payload HTTP};
+			\node[diagbox, minimum width=2.3cm, fill=secondary!14] (e2) at (8.2,0.0) {Upload + Exec};
+			\node[diagbox, minimum width=2.3cm, fill=secondary!14] (e3) at (8.2,-1.6) {Essais répétitifs};
 
-			\node[diagbox, minimum width=2.8cm, fill=warningorange!16] (i1) at (10.5,1.5) {Impact: DB / OS};
-			\node[diagbox, minimum width=2.8cm, fill=warningorange!16] (i2) at (10.5,0.2) {Impact: RCE};
-			\node[diagbox, minimum width=2.8cm, fill=warningorange!16] (i3) at (10.5,-1.1) {Impact: takeover};
+			\node[diagbox, minimum width=2.3cm, fill=warningorange!16] (i1) at (12.3,1.6) {Impact: DB / OS};
+			\node[diagbox, minimum width=2.3cm, fill=warningorange!16] (i2) at (12.3,0.0) {Impact: RCE};
+			\node[diagbox, minimum width=2.3cm, fill=warningorange!16] (i3) at (12.3,-1.6) {Impact: takeover};
 
-			\node[diagbox, minimum width=2.8cm, fill=green!20] (r1) at (14.1,1.5) {Remédiation\\paramétrée};
-			\node[diagbox, minimum width=2.8cm, fill=green!20] (r2) at (14.1,0.2) {Validation upload\\+ AV};
-			\node[diagbox, minimum width=2.8cm, fill=green!20] (r3) at (14.1,-1.1) {MFA + rate limit};
+			\node[diagbox, minimum width=2.3cm, fill=green!20] (r1) at (16.4,1.6) {Remédiation\\paramétrée};
+			\node[diagbox, minimum width=2.3cm, fill=green!20] (r2) at (16.4,0.0) {Validation upload\\+ AV};
+			\node[diagbox, minimum width=2.3cm, fill=green!20] (r3) at (16.4,-1.6) {MFA + rate limit};
+
+			\fill[criticalred!12] (-1.6,2.5) rectangle (17.8,2.9);
+			\fill[warningorange!12] (-1.6,-0.2) rectangle (17.8,0.2);
+			\fill[green!12] (-1.6,-2.9) rectangle (17.8,-2.5);
 
 			\foreach \a/\b in {cat1/v1,cat2/v2,cat3/v3,v1/e1,v2/e2,v3/e3,e1/i1,e2/i2,e3/i3,i1/r1,i2/r2,i3/r3}
-				\draw[diagarrow] (\a.east) -- (\b.west);
+				\draw[diagarrow] (\a.east) to[bend left=8] (\b.west);
 		\end{tikzpicture}
 		}
 		\caption{Chaîne OWASP : catégorie $\rightarrow$ vulnérabilité $\rightarrow$ exploitation $\rightarrow$ impact $\rightarrow$ remédiation}
@@ -4043,42 +4064,32 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 	\begin{figure}[H]
 		\centering
 		\begin{tikzpicture}[font=\small]
-			\node[anchor=west, font=\bfseries] at (0,4.8) {Catégorie};
-			\node[anchor=west, font=\bfseries] at (3.8,4.8) {Critical};
-			\node[anchor=west, font=\bfseries] at (5.9,4.8) {High};
-			\node[anchor=west, font=\bfseries] at (7.6,4.8) {Medium};
-			\node[anchor=west, font=\bfseries] at (9.6,4.8) {Low};
+			\def\owaspCell{1.3}
+			\node[anchor=west, font=\bfseries] at (0,7.4) {Catégorie};
+			\node[anchor=west, font=\bfseries] at (3.6,7.4) {Critical};
+			\node[anchor=west, font=\bfseries] at (5.1,7.4) {High};
+			\node[anchor=west, font=\bfseries] at (6.6,7.4) {Medium};
+			\node[anchor=west, font=\bfseries] at (8.1,7.4) {Low};
+			\draw[primary, thick] (0,7.0) rectangle (9.4,8.2);
 
-			\newcommand{\owaspheatrow}[6]{
+			\newcommand{\owaspheatrow}[7]{
 				\node[anchor=west] at (0,#1) {#2};
-				\fill[#3] (3.8,#1-0.28) rectangle (5.3,#1+0.28);
-				\fill[#4] (5.9,#1-0.28) rectangle (7.3,#1+0.28);
-				\fill[#5] (7.6,#1-0.28) rectangle (9.1,#1+0.28);
-				\fill[#6] (9.6,#1-0.28) rectangle (11.0,#1+0.28);
+				\fill[#3] (3.6,#1-0.65) rectangle (4.9,#1+0.65);
+				\fill[#4] (5.1,#1-0.65) rectangle (6.4,#1+0.65);
+				\fill[#5] (6.6,#1-0.65) rectangle (7.9,#1+0.65);
+				\fill[#6] (8.1,#1-0.65) rectangle (9.4,#1+0.65);
+				\node[font=\small] at (4.25,#1) {#7};
 			}
-			\owaspheatrow{4.1}{A01 Broken Access}{criticalred!10}{warningorange!80}{yellow!10}{green!10}
-			\owaspheatrow{3.3}{A02 Misconfig}{criticalred!80}{warningorange!10}{yellow!10}{green!10}
-			\owaspheatrow{2.5}{A04 Crypto Failures}{criticalred!80}{warningorange!10}{yellow!10}{green!10}
-			\owaspheatrow{1.7}{A05 Injection}{criticalred!80}{warningorange!10}{yellow!10}{green!10}
-			\owaspheatrow{0.9}{A07 Auth Failures}{criticalred!10}{warningorange!80}{yellow!10}{green!10}
-			\owaspheatrow{0.1}{A08 File Upload}{criticalred!80}{warningorange!10}{yellow!10}{green!10}
-			\owaspheatrow{-0.7}{A10 Error Disclosure}{criticalred!10}{warningorange!10}{yellow!70}{green!10}
+			\owaspheatrow{6.2}{A01 Broken Access}{criticalred!10}{warningorange!80}{yellow!10}{green!10}{H}
+			\owaspheatrow{4.7}{A02 Misconfig}{criticalred!80}{warningorange!10}{yellow!10}{green!10}{C}
+			\owaspheatrow{3.2}{A04 Crypto Failures}{criticalred!80}{warningorange!10}{yellow!10}{green!10}{C}
+			\owaspheatrow{1.7}{A05 Injection}{criticalred!80}{warningorange!10}{yellow!10}{green!10}{C}
+			\owaspheatrow{0.2}{A07 Auth Failures}{criticalred!10}{warningorange!80}{yellow!10}{green!10}{H}
+			\owaspheatrow{-1.3}{A08 File Upload}{criticalred!80}{warningorange!10}{yellow!10}{green!10}{C}
+			\owaspheatrow{-2.8}{A10 Error Disclosure}{criticalred!10}{warningorange!10}{yellow!70}{green!10}{M}
 
-			\foreach \y/\c/\h/\m/\l in {
-				4.1/0/1/0/0,
-				3.3/1/0/0/0,
-				2.5/1/0/0/0,
-				1.7/1/0/0/0,
-				0.9/0/1/0/0,
-				0.1/1/0/0/0,
-				-0.7/0/0/1/0}
-			{
-				\node at (4.55,\y) {\c};
-				\node at (6.6,\y) {\h};
-				\node at (8.35,\y) {\m};
-				\node at (10.3,\y) {\l};
-			}
-			\draw[thick, primary] (3.8,-1.1) rectangle (11.0,4.45);
+			\draw[thick, primary] (3.6,-3.5) rectangle (9.4,6.9);
+			\node[diaglabel, anchor=west] at (0,-4.3) {\textbf{Légende :} C = critique, H = haute, M = moyenne};
 		\end{tikzpicture}
 		\caption{Heatmap de sévérité OWASP consolidée pour priorisation des risques}
 		\label{fig:owasp-severity-heatmap}
@@ -4123,18 +4134,19 @@ Le chemin validé en production est : \texttt{Parrot (192.168.100.150) $\rightar
 	\centering
 	\resizebox{0.95\textwidth}{!}{
 	\begin{tikzpicture}[font=\small]
-		\node[diagbox] (ext) at (0,0) {Attacker externe\\192.168.100.150};
-		\node[diagbox, fill=primary!16] (fw) at (4.0,0) {pfSense WAN\\192.168.100.6:22};
-		\node[diagdiamond, minimum width=2.8cm] (nat) at (8.2,0) {NAT 22/TCP\\port forward};
-		\node[diagbox, fill=warningorange!18] (host) at (12.4,0.7) {DMZ Host\\192.168.10.100:22};
-		\node[diagbox, fill=secondary!20] (cow) at (12.4,-1.0) {Cowrie container\\2222/tcp};
+		\node[diaglabel, yshift=0.5cm] at (8.2,3.3) {\textbf{Exposition NAT contrôlée du honeypot SSH}};
+		\node[diagbox, minimum width=2.8cm] (ext) at (0,0) {Attacker externe\\192.168.100.150};
+		\node[diagbox, minimum width=2.8cm, fill=primary!16] (fw) at (4.2,0) {pfSense WAN\\192.168.100.6:22};
+		\node[diagdiamond, minimum width=5cm, minimum height=3.5cm] (nat) at (8.6,0) {NAT 22/TCP\\barrière SSH-Leurre\\port forward\\logs session};
+		\node[diagbox, minimum width=2.8cm, fill=warningorange!18] (host) at (13.0,0.9) {DMZ Host\\192.168.10.100:22};
+		\node[diagbox, minimum width=2.8cm, fill=secondary!20] (cow) at (13.0,-1.2) {Cowrie container\\2222/tcp};
 
 		\draw[diagflow, warningorange!90!black] (ext) -- (fw);
 		\draw[diagflow, warningorange!90!black] (fw) -- (nat);
 		\draw[diagflow, warningorange!90!black] (nat) -- (host);
-		\draw[diagflow, secondary] (host) -- node[right] {\scriptsize redirection locale} (cow);
-		\draw[diagflow, blue!70!black, dashed] (cow.south west) to[bend right=30] node[below] {\scriptsize bannière SSH leurre + logs session} (ext.south east);
-		\node[diagbox, minimum width=4.6cm, fill=green!20] at (8.0,2.0) {Leurre: émulation shell + capture commandes};
+		\draw[diagflow, secondary] (host) -- node[right=0.4cm, diaglabel] {redirection locale} (cow);
+		\draw[diagflow, blue!70!black, dashed] (cow.south west) to[bend right=30] node[below=0.5cm, diaglabel] {bannière SSH leurre + logs session} (ext.south east);
+		\node[diagbox, minimum width=4.8cm, fill=green!20] at (8.6,2.1) {Leurre: émulation shell\\capture commandes};
 	\end{tikzpicture}
 	}
 	\caption{Architecture Cowrie et exposition NAT contrôlée sur l'interface WAN}
@@ -4287,18 +4299,18 @@ Ready to accept SSH connections on 0.0.0.0:2222
 	\begin{tikzpicture}[font=\scriptsize]
 		\draw[diagarrow] (0,0) -- (13.5,0);
 		\node[above] at (0.8,0) {t0};
-		\node[above] at (4.2,0) {t1};
-		\node[above] at (7.8,0) {t2};
-		\node[above] at (11.8,0) {t3};
+		\node[above] at (2.8,0) {t1};
+		\node[above] at (5.8,0) {t2};
+		\node[above] at (8.3,0) {t3};
 
-		\node[diagbox, fill=criticalred!25, minimum width=3.4cm] at (2.1,1.1) {Auth failed\\ubuntuserver/***};
-		\node[diagbox, fill=green!25, minimum width=3.4cm] at (5.8,1.1) {Auth success\\root/admin};
-		\node[diagbox, fill=green!25, minimum width=3.4cm] at (9.8,1.1) {Auth success\\root/oussama};
-		\node[diagbox, fill=secondary!20, minimum width=3.8cm] at (5.8,-1.1) {CMD: ls, whoami, exit\\duration 13.3s};
-		\node[diagbox, fill=secondary!20, minimum width=4.2cm] at (10.0,-1.1) {CMD: ls, uname, whoami, tail /etc/passwd\\duration 211.2s};
-		\draw[dashed, gray] (4.2,1.6) -- (4.2,-1.7);
-		\draw[dashed, gray] (7.8,1.6) -- (7.8,-1.7);
-		\draw[dashed, gray] (11.8,1.6) -- (11.8,-1.7);
+		\node[diagbox, fill=criticalred!25, minimum width=3.4cm, minimum height=15mm, inner sep=8pt] at (1.8,1.8) {Auth failed\\ubuntuserver/***};
+		\node[diagbox, fill=green!25, minimum width=3.4cm, minimum height=15mm, inner sep=8pt] at (4.8,1.8) {Auth success\\root/admin};
+		\node[diagbox, fill=green!25, minimum width=3.4cm, minimum height=15mm, inner sep=8pt] at (8.8,1.8) {Auth success\\root/oussama};
+		\node[diagbox, fill=secondary!20, minimum width=3.8cm, minimum height=15mm, inner sep=8pt] at (4.8,-1.8) {CMD: ls, whoami, exit\\duration 13.3s};
+		\node[diagbox, fill=secondary!20, minimum width=4.2cm, minimum height=15mm, inner sep=8pt] at (9.8,-1.8) {CMD: ls, uname, whoami, tail /etc/passwd\\duration 211.2s};
+		\draw[dashed, gray] (2.8,2.5) -- (2.8,-2.6);
+		\draw[dashed, gray] (5.8,2.5) -- (5.8,-2.6);
+		\draw[dashed, gray] (8.3,2.5) -- (8.3,-2.6);
 	\end{tikzpicture}
 	\caption{Timeline comportementale des sessions capturées par Cowrie}
 	\label{fig:cowrie-session-timeline}
@@ -4465,11 +4477,17 @@ Objectif : valider la détection Snort des attaques observées dans les Chapitre
 		\centering
 		\resizebox{0.95\textwidth}{!}{
 		\begin{tikzpicture}[font=\small]
-			\node[diagbox] (atk) at (0,0) {Attacker\\192.168.100.150};
-			\node[diagbox, fill=primary!16] (wan) at (3.8,1.2) {Snort WAN\\Recon/ELF};
-			\node[diagbox, fill=warningorange!16] (dmz) at (7.8,0) {Snort DMZ\\SSH/Cowrie};
-			\node[diagbox, fill=green!20] (lan) at (11.8,-1.2) {Snort LAN\\Pivot/SMB};
-			\node[diagbox, minimum width=3.2cm, fill=secondary!15] (soc) at (7.8,2.7) {Corrélation IDS\\multi-interface};
+			\node[diagzone, minimum width=3.5cm, minimum height=3cm, fill=secondary!10] (zw) at (2.4,0) {};
+			\node[diagzone, minimum width=3.5cm, minimum height=3cm, fill=warningorange!10] (zd) at (7.2,0) {};
+			\node[diagzone, minimum width=3.5cm, minimum height=3cm, fill=green!10] (zl) at (12.0,0) {};
+			\node[font=\bfseries] at (2.4,1.8) {WAN};
+			\node[font=\bfseries] at (7.2,1.8) {DMZ};
+			\node[font=\bfseries] at (12.0,1.8) {LAN};
+			\node[diagbox, minimum width=2.8cm] (atk) at (0,0) {Attacker\\192.168.100.150};
+			\node[diagbox, minimum width=2.5cm, fill=primary!16] (wan) at (2.4,0.8) {Snort WAN\\Recon/ELF};
+			\node[diagbox, minimum width=2.5cm, fill=warningorange!16] (dmz) at (7.2,0.0) {Snort DMZ\\SSH/Cowrie};
+			\node[diagbox, minimum width=2.5cm, fill=green!20] (lan) at (12.0,-0.8) {Snort LAN\\Pivot/SMB};
+			\node[diagbox, minimum width=2.8cm, fill=secondary!15] (soc) at (7.2,2.9) {Corrélation IDS\\multi-interface};
 
 			\draw[diagflow, blue!70!black] (atk) -- (wan);
 			\draw[diagflow, warningorange!90!black] (wan) -- (dmz);
@@ -4552,17 +4570,17 @@ Objectif : valider la détection Snort des attaques observées dans les Chapitre
 	\begin{figure}[H]
 		\centering
 		\begin{tikzpicture}[font=\scriptsize]
-			\node[diagbox, fill=primary!14] (e1) at (0,0) {T1 Snort WAN\\SID 1:2001219};
-			\node[diagbox, fill=primary!14] (e2) at (3.6,0) {T2 pfSense log\\NAT 22 pass};
-			\node[diagbox, fill=secondary!16] (e3) at (7.2,0) {T3 Cowrie\\session open};
-			\node[diagbox, fill=green!20] (e4) at (10.8,0) {T4 Snort DMZ/LAN\\pivot alert};
-			\node[diagbox, fill=warningorange!18, minimum width=4.8cm] (out) at (5.4,-1.8) {Évidence corrélée multi-sources\\(même campagne d'attaque)};
+			\node[diagbox, minimum width=2.8cm, fill=primary!14] (e1) at (0,0) {T1 Snort WAN\\SID 1:2001219};
+			\node[diagbox, minimum width=2.8cm, fill=primary!14] (e2) at (3.6,0) {T2 pfSense log\\NAT 22 pass};
+			\node[diagbox, minimum width=2.8cm, fill=secondary!16] (e3) at (7.2,0) {T3 Cowrie\\session open};
+			\node[diagbox, minimum width=2.8cm, fill=green!20] (e4) at (10.8,0) {T4 Snort DMZ/LAN\\pivot alert};
+			\node[diagbox, minimum width=2.8cm, fill=warningorange!18] (out) at (5.4,-2.2) {Évidence corrélée\\multi-sources};
 			\draw[diagarrow] (e1) -- (e2);
 			\draw[diagarrow] (e2) -- (e3);
 			\draw[diagarrow] (e3) -- (e4);
-			\draw[diagarrow] (e2) -- (out);
-			\draw[diagarrow] (e3) -- (out);
-			\draw[diagarrow] (e4) -- (out);
+			\draw[diagarrow] (e2) to[bend right=20] node[left=0.3cm, diaglabel] {corrèle} (out);
+			\draw[diagarrow] (e3) -- node[right=0.3cm, diaglabel] {corrèle} (out);
+			\draw[diagarrow] (e4) to[bend left=20] node[right=0.3cm, diaglabel] {corrèle} (out);
 		\end{tikzpicture}
 		\caption{Graphe de corrélation des événements de détection entre Snort, pfSense et Cowrie}
 		\label{fig:detection-correlation-graph}
@@ -4720,24 +4738,27 @@ Les données normalisées sont ensuite indexées pour permettre des recherches, 
 	\centering
 	\resizebox{\textwidth}{!}{
 	\begin{tikzpicture}[font=\small]
-		\node[diagbox, minimum width=2.8cm] (src1) at (0,1.3) {pfSense logs};
+		\node[diagbox, minimum width=2.8cm] (src1) at (0,1.8) {pfSense logs};
 		\node[diagbox, minimum width=2.8cm] (src2) at (0,0.0) {Snort alerts};
-		\node[diagbox, minimum width=2.8cm] (src3) at (0,-1.3) {Cowrie sessions};
+		\node[diagbox, minimum width=2.8cm] (src3) at (0,-1.8) {Cowrie sessions};
 
-		\node[diagbox, minimum width=2.8cm, fill=primary!14] (collect) at (3.8,0) {Collecte};
-		\node[diagbox, minimum width=2.8cm, fill=primary!18] (norm) at (7.3,0) {Normalisation};
-		\node[diagbox, minimum width=2.8cm, fill=secondary!14] (corr) at (10.8,0) {Corrélation};
-		\node[diagbox, minimum width=2.8cm, fill=warningorange!18] (anal) at (14.3,0) {Analyse risque};
-		\node[diagbox, minimum width=2.8cm, fill=green!25] (alert) at (17.8,0.8) {Alerting};
-		\node[diagbox, minimum width=2.8cm, fill=green!30] (resp) at (17.8,-0.8) {Réponse};
+		\node[diagbox, minimum width=2.5cm, fill=primary!14] (collect) at (3.6,0) {Collecte\\(agents)};
+		\node[diagbox, minimum width=2.5cm, fill=primary!18] (norm) at (7.2,0) {Normalisation\\(parser)};
+		\node[diagbox, minimum width=2.5cm, fill=secondary!14] (corr) at (10.8,0) {Corrélation\\(règles)};
+		\node[diagbox, minimum width=2.5cm, fill=warningorange!18] (anal) at (14.4,0) {Analyse\\risque};
+		\node[diagbox, minimum width=2.5cm, fill=green!25] (alert) at (18.0,1.0) {Alerting\\SOC};
+		\node[diagbox, minimum width=2.5cm, fill=green!30] (resp) at (18.0,-1.0) {Réponse\\playbook};
 
 		\foreach \s in {src1,src2,src3}
 			\draw[diagarrow] (\s.east) -- (collect.west);
-		\draw[diagarrow] (collect) -- (norm);
-		\draw[diagarrow] (norm) -- (corr);
-		\draw[diagarrow] (corr) -- (anal);
-		\draw[diagarrow] (anal) -- (alert);
-		\draw[diagarrow] (anal) -- (resp);
+		\draw[diagflow] (collect) -- (norm);
+		\draw[diagflow] (norm) -- (corr);
+		\draw[diagflow] (corr) -- (anal);
+		\draw[diagflow] (anal) -- (alert);
+		\draw[diagflow] (anal) -- (resp);
+		\node[diaglabel, above=0.3cm of collect.north] {Entrée multi-source};
+		\node[diaglabel, right=0.5cm of alert.east] {Sortie: alerte};
+		\node[diaglabel, right=0.5cm of resp.east] {Sortie: action};
 	\end{tikzpicture}
 	}
 	\caption{Pipeline opérationnel SIEM : collecte, normalisation, corrélation, analyse et réponse}
@@ -4772,25 +4793,25 @@ Le modèle de détection de Wazuh combine plusieurs logiques complémentaires :
 	\centering
 	\resizebox{0.96\textwidth}{!}{
 	\begin{tikzpicture}[font=\scriptsize]
-		\node[diagbox] (pf) at (0,1.2) {pfSense};
-		\node[diagbox] (sn) at (0,0.0) {Snort};
-		\node[diagbox] (cw) at (0,-1.2) {Cowrie};
-		\node[diagbox, fill=primary!16, minimum width=3.1cm] (r1) at (4.3,1.1) {Rule R1\\Recon scan};
-		\node[diagbox, fill=primary!16, minimum width=3.1cm] (r2) at (4.3,-0.1) {Rule R2\\SSH brute-force};
-		\node[diagbox, fill=primary!16, minimum width=3.1cm] (r3) at (4.3,-1.3) {Rule R3\\Pivot behavior};
-		\node[diagbox, fill=secondary!18, minimum width=3.3cm] (pat) at (8.8,0) {Pattern\\campaign};
-		\node[diagbox, fill=warningorange!22, minimum width=3.5cm] (al) at (13.0,0) {Alerte consolidée\\SOC};
+		\node[diagbox, minimum width=2.8cm] (pf) at (0,2.0) {pfSense};
+		\node[diagbox, minimum width=2.8cm] (sn) at (0,0.0) {Snort};
+		\node[diagbox, minimum width=2.8cm] (cw) at (0,-2.0) {Cowrie};
+		\node[diagbox, minimum width=2.8cm, fill=primary!16] (r1) at (4.0,2.0) {Rule R1\\Recon scan};
+		\node[diagbox, minimum width=2.8cm, fill=primary!16] (r2) at (4.0,0.0) {Rule R2\\SSH brute-force};
+		\node[diagbox, minimum width=2.8cm, fill=primary!16] (r3) at (4.0,-2.0) {Rule R3\\Pivot behavior};
+		\node[diagbox, minimum width=2.8cm, fill=secondary!18] (pat) at (8.2,0) {Pattern\\campaign};
+		\node[diagbox, minimum width=2.8cm, fill=warningorange!22] (al) at (12.4,0) {Alerte consolidée\\SOC};
 
-		\draw[diagarrow] (pf.east) -- (r1.west);
-		\draw[diagarrow] (sn.east) -- (r1.west);
-		\draw[diagarrow] (sn.east) -- (r2.west);
-		\draw[diagarrow] (cw.east) -- (r2.west);
-		\draw[diagarrow] (pf.east) -- (r3.west);
-		\draw[diagarrow] (cw.east) -- (r3.west);
-		\draw[diagarrow] (r1.east) -- (pat.west);
+		\draw[diagarrow] (pf.east) to[bend left=10] node[above=0.3cm, diaglabel] {flow} (r1.west);
+		\draw[diagarrow] (sn.east) to[bend left=10] (r1.west);
+		\draw[diagarrow] (sn.east) -- node[above=0.3cm, diaglabel] {scan} (r2.west);
+		\draw[diagarrow] (cw.east) to[bend right=8] (r2.west);
+		\draw[diagarrow] (pf.east) to[bend right=10] (r3.west);
+		\draw[diagarrow] (cw.east) to[bend left=10] node[below=0.3cm, diaglabel] {session} (r3.west);
+		\draw[diagarrow] (r1.east) to[bend left=8] (pat.west);
 		\draw[diagarrow] (r2.east) -- (pat.west);
-		\draw[diagarrow] (r3.east) -- (pat.west);
-		\draw[diagarrow] (pat.east) -- (al.west);
+		\draw[diagarrow] (r3.east) to[bend right=8] (pat.west);
+		\draw[diagflow] (pat.east) -- node[above=0.3cm, diaglabel] {alerte} (al.west);
 	\end{tikzpicture}
 	}
 	\caption{Réseau de corrélation multi-sources : événement unique vers alerte SIEM consolidée}
@@ -4878,28 +4899,28 @@ Cette annexe regroupe uniquement les commandes et configurations effectivement a
 	\centering
 	\resizebox{\textwidth}{!}{
 	\begin{tikzpicture}[font=\small]
-		\node[diagzone, minimum width=4.0cm, minimum height=4.4cm, fill=secondary!10] (wan) at (0,0) {};
-		\node[diagzone, minimum width=3.2cm, minimum height=4.4cm, fill=primary!10] (pf) at (4.5,0) {};
-		\node[diagzone, minimum width=5.0cm, minimum height=4.4cm, fill=warningorange!12] (dmz) at (9.5,0) {};
-		\node[diagzone, minimum width=4.8cm, minimum height=4.4cm, fill=green!12] (lan) at (14.8,0) {};
+		\node[diagzone, minimum width=4.0cm, minimum height=3.5cm, fill=secondary!10] (wan) at (0,0) {};
+		\node[diagzone, minimum width=4.0cm, minimum height=3.5cm, fill=primary!10] (pf) at (5.5,0) {};
+		\node[diagzone, minimum width=4.8cm, minimum height=3.5cm, fill=warningorange!12] (dmz) at (11.0,0) {};
+		\node[diagzone, minimum width=4.8cm, minimum height=3.5cm, fill=green!12] (lan) at (16.5,0) {};
 
-		\node[above=2pt of wan.north] {\textbf{Internet / WAN}};
-		\node[above=2pt of pf.north] {\textbf{pfSense Interfaces}};
-		\node[above=2pt of dmz.north] {\textbf{DMZ 192.168.10.0/24}};
-		\node[above=2pt of lan.north] {\textbf{LAN 192.168.20.0/24}};
+		\node[above=4pt of wan.north] {\textbf{Internet / WAN}};
+		\node[above=4pt of pf.north] {\textbf{pfSense Interfaces}};
+		\node[above=4pt of dmz.north] {\textbf{DMZ 192.168.10.0/24}};
+		\node[above=4pt of lan.north] {\textbf{LAN 192.168.20.0/24}};
 
-		\node[diagbox, minimum width=2.4cm] (atk) at (0,1.1) {Parrot\\192.168.100.150};
-		\node[diagbox, minimum width=2.4cm] (inet) at (0,-1.1) {WAN GW\\192.168.100.0/24};
-		\node[diagbox, minimum width=2.6cm, fill=primary!18] (pfi) at (4.5,0.9) {WAN em0\\192.168.100.6};
-		\node[diagbox, minimum width=2.6cm, fill=primary!18] (pfd) at (4.5,-0.1) {DMZ em1\\192.168.10.1};
-		\node[diagbox, minimum width=2.6cm, fill=primary!18] (pfl) at (4.5,-1.1) {LAN em2\\192.168.20.1};
+		\node[diagbox, minimum width=2.8cm] (atk) at (0,1.3) {Parrot\\192.168.100.150};
+		\node[diagbox, minimum width=2.8cm] (inet) at (0,-1.3) {WAN GW\\192.168.100.0/24};
+		\node[diagbox, minimum width=2.8cm, fill=primary!18] (pfi) at (5.5,1.3) {WAN em0\\192.168.100.6};
+		\node[diagbox, minimum width=2.8cm, fill=primary!18] (pfd) at (5.5,0) {DMZ em1\\192.168.10.1};
+		\node[diagbox, minimum width=2.8cm, fill=primary!18] (pfl) at (5.5,-1.3) {LAN em2\\192.168.20.1};
 
-		\node[diagbox, minimum width=2.2cm] (tel) at (8.5,1.1) {Telnet/SSH\\192.168.10.100};
-		\node[diagbox, minimum width=2.2cm] (dv) at (10.5,1.1) {DVWA\\:8080};
-		\node[diagbox, minimum width=2.2cm] (co) at (9.5,-1.1) {Cowrie\\:22→2222};
-		\node[diagbox, minimum width=2.4cm] (xp) at (14.8,0.9) {Windows XP\\192.168.20.50};
-		\node[diagbox, minimum width=2.4cm] (ids) at (14.8,-0.1) {Snort sensors\\WAN/DMZ/LAN};
-		\node[diagbox, minimum width=2.4cm, fill=green!22] (siem) at (14.8,-1.1) {Wazuh SIEM\\collector};
+		\node[diagbox, minimum width=2.8cm] (tel) at (9.6,1.3) {Telnet/SSH\\192.168.10.100};
+		\node[diagbox, minimum width=2.8cm] (dv) at (12.4,1.3) {DVWA\\:8080};
+		\node[diagbox, minimum width=2.8cm] (co) at (11.0,-1.3) {Cowrie\\:22→2222};
+		\node[diagbox, minimum width=2.8cm] (xp) at (16.5,1.3) {Windows XP\\192.168.20.50};
+		\node[diagbox, minimum width=2.8cm] (ids) at (16.5,0.0) {Snort\\IDS};
+		\node[diagbox, minimum width=2.8cm, fill=green!22] (siem) at (16.5,-1.3) {Wazuh SIEM\\collector};
 
 		\draw[diagflow, warningorange!90!black] (atk.east) -- (pfi.west);
 		\draw[diagflow, warningorange!90!black] (pfi.east) -- (tel.west);
@@ -4909,6 +4930,12 @@ Cette annexe regroupe uniquement les commandes et configurations effectivement a
 		\draw[diagflow, green!60!black] (ids.east) -- (siem.west);
 		\draw[diagflow, green!60!black] (co.east) -- (siem.west);
 		\draw[diagflow, green!60!black] (pfd.east) -- (siem.west);
+		\draw[trustborder] ([xshift=-0.3cm,yshift=0.3cm]wan.north west) rectangle ([xshift=0.3cm,yshift=-0.3cm]wan.south east);
+		\draw[trustborder] ([xshift=-0.3cm,yshift=0.3cm]dmz.north west) rectangle ([xshift=0.3cm,yshift=-0.3cm]dmz.south east);
+		\draw[trustborder] ([xshift=-0.3cm,yshift=0.3cm]lan.north west) rectangle ([xshift=0.3cm,yshift=-0.3cm]lan.south east);
+		\node[diaglabel, above=0.4cm of pfi.north] {Router/Firewall};
+		\node[diaglabel, above=0.4cm of tel.north] {Serveur DMZ};
+		\node[diaglabel, above=0.4cm of xp.north] {Cible interne};
 	\end{tikzpicture}
 	}
 	\caption{Topologie consolidée du laboratoire : zones, interfaces, rôles et adressage}
