@@ -2485,18 +2485,18 @@ Nous avons obtenu :
 		\centering
 		\resizebox{0.95\textwidth}{!}{
 		\begin{tikzpicture}[font=\small]
-			\node[diagbox] (att) at (0,0) {Attacker\\192.168.100.150};
-			\node[diagbox, fill=primary!15] (wan) at (3.8,0) {pfSense WAN\\192.168.100.6};
-			\node[diagbox, fill=warningorange!20] (pivot) at (8.0,0) {Pivot DMZ\\192.168.10.100};
-			\node[diagbox, fill=green!20] (lan) at (12.2,0) {Cibles LAN\\192.168.20.0/24};
+			\node[diagbox, minimum width=3.2cm, minimum height=14mm, inner sep=6pt, text width=3.0cm] (att) at (0,0) {Attacker\\192.168.100.150};
+			\node[diagbox, minimum width=3.2cm, minimum height=14mm, inner sep=6pt, text width=3.0cm, fill=primary!15] (wan) at (4.8,0) {pfSense WAN\\192.168.100.6};
+			\node[diagbox, minimum width=3.2cm, minimum height=14mm, inner sep=6pt, text width=3.0cm, fill=warningorange!20] (pivot) at (9.6,0) {Pivot DMZ\\192.168.10.100};
+			\node[diagbox, minimum width=3.2cm, minimum height=14mm, inner sep=6pt, text width=3.0cm, fill=green!20] (lan) at (14.4,0) {Cibles LAN\\192.168.20.0/24};
 
-			\draw[diagflow, blue!70!black] (att) -- node[above] {\scriptsize chemin initial} (wan);
+			\draw[diagflow, blue!70!black] (att) -- node[above=7pt, fill=white, inner sep=2pt, text=black] {\scriptsize chemin initial} (wan);
 			\draw[diagflow, blue!70!black] (wan) -- (pivot);
-			\draw[diagflow, red!70!black, very thick] (pivot) -- node[above] {\scriptsize tunnel pivot} (lan);
-			\draw[diagflow, red!70!black, dashed] (lan.south) to[bend right=22] node[below] {\scriptsize trafic latéral} (pivot.south);
+			\draw[diagflow, red!70!black, very thick] (pivot) -- node[above=7pt, fill=white, inner sep=2pt, text=black] {\scriptsize tunnel pivot} (lan);
+			\draw[diagflow, red!70!black, dashed] (lan.south) to[bend right=26] node[below=7pt, fill=white, inner sep=2pt, text=black] {\scriptsize trafic latéral} (pivot.south);
 
-			\node[diagbox, minimum width=4.6cm, fill=secondary!8] (ctrl) at (4.2,-2.2) {Control plane\\\texttt{route add 192.168.20.0/24}};
-			\node[diagbox, minimum width=4.6cm, fill=secondary!8] (data) at (10.0,-2.2) {Data plane\\SMB / RDP / scan LAN};
+			\node[diagbox, minimum width=5.0cm, minimum height=14mm, inner sep=7pt, text width=4.2cm, fill=secondary!8] (ctrl) at (5.2,-3.0) {Control Plane\\\texttt{route add 192.168.20.0/24}};
+			\node[diagbox, minimum width=5.0cm, minimum height=14mm, inner sep=7pt, text width=4.2cm, fill=secondary!8] (data) at (11.8,-3.0) {Data Plane\\SMB / RDP / Scan LAN};
 			\draw[diagarrow, dashed] (ctrl.east) -- (data.west);
 		\end{tikzpicture}
 		}
@@ -3530,19 +3530,19 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 	\begin{figure}[H]
 		\centering
 		\begin{tikzpicture}[font=\small]
-			\draw[diagarrow] (0,0) -- (14,0);
-			\node[below] at (2,0) {\textbf{Immédiat (jours)}};
-			\node[below] at (7,0) {\textbf{Court terme (semaines)}};
-			\node[below] at (12,0) {\textbf{Long terme (mois)}};
-			\draw[gray!45] (4.5,0.5) -- (4.5,-2.4);
-			\draw[gray!45] (9.5,0.5) -- (9.5,-2.4);
+			\draw[diagarrow] (0,1.2) -- (15,1.2);
+			\node[above] at (2.5,1.9) {\textbf{Immédiat (jours)}};
+			\node[above] at (7.5,1.9) {\textbf{Court terme (semaines)}};
+			\node[above] at (12.5,1.9) {\textbf{Long terme (mois)}};
+			\draw[gray!45] (5,2.3) -- (5,-7.5);
+			\draw[gray!45] (10,2.3) -- (10,-7.5);
 
-			\node[diagbox, fill=criticalred!28, minimum width=3.6cm] (r1) at (2,-0.8) {Désactiver Telnet\\+ rotation secrets};
-			\node[diagbox, fill=warningorange!25, minimum width=3.6cm] (r2) at (6.7,-1.5) {Durcissement pfSense\\+ SSH + Fail2Ban};
-			\node[diagbox, fill=green!25, minimum width=3.6cm] (r3) at (11.8,-0.8) {SIEM centralisé\\+ Zero Trust};
-			\node[diagbox, fill=green!20, minimum width=3.6cm] (r4) at (11.8,-2.1) {Renouvellement OS\\+ audits réguliers};
-			\draw[-Latex, thick, draw=primary] (r1.east) -- (r2.west);
-			\draw[-Latex, thick, draw=primary] (r2.east) -- (r3.west);
+			\node[diagbox, font=\small, fill=criticalred!28, minimum width=4.4cm, minimum height=14mm, inner sep=8pt, text width=3.4cm] (r1) at (2.5,0.0) {Désactiver Telnet\\+ rotation secrets};
+			\node[diagbox, font=\small, fill=warningorange!25, minimum width=4.4cm, minimum height=14mm, inner sep=8pt, text width=3.4cm] (r2) at (7.5,-2.6) {Durcissement pfSense\\+ SSH + Fail2Ban};
+			\node[diagbox, font=\small, fill=green!25, minimum width=4.4cm, minimum height=14mm, inner sep=8pt, text width=3.4cm] (r3) at (12.5,-5.2) {SIEM centralisé\\+ Zero Trust};
+			\node[diagbox, font=\small, fill=green!20, minimum width=4.4cm, minimum height=14mm, inner sep=8pt, text width=3.4cm] (r4) at (12.5,-7.4) {Renouvellement OS\\+ audits réguliers};
+			\draw[-Latex, thick, draw=primary] (r1.east) to[bend left=10] (r2.west);
+			\draw[-Latex, thick, draw=primary] (r2.east) to[bend left=10] (r3.west);
 			\draw[-Latex, thick, draw=primary] (r3.south) -- (r4.north);
 		\end{tikzpicture}
 		\caption{Feuille de route de remédiation : priorités, dépendances et horizon temporel}
@@ -4123,18 +4123,20 @@ Le chemin validé en production est : \texttt{Parrot (192.168.100.150) $\rightar
 	\centering
 	\resizebox{0.95\textwidth}{!}{
 	\begin{tikzpicture}[font=\small]
-		\node[diagbox] (ext) at (0,0) {Attacker externe\\192.168.100.150};
-		\node[diagbox, fill=primary!16] (fw) at (4.0,0) {pfSense WAN\\192.168.100.6:22};
-		\node[diagdiamond, minimum width=2.8cm] (nat) at (8.2,0) {NAT 22/TCP\\port forward};
-		\node[diagbox, fill=warningorange!18] (host) at (12.4,0.7) {DMZ Host\\192.168.10.100:22};
-		\node[diagbox, fill=secondary!20] (cow) at (12.4,-1.0) {Cowrie container\\2222/tcp};
+		\node[diagbox, minimum width=3.4cm, minimum height=14mm, inner sep=6pt, text width=3.0cm] (ext) at (0,0) {Attacker externe\\192.168.100.150};
+		\node[diagbox, minimum width=3.4cm, minimum height=14mm, inner sep=6pt, text width=3.0cm, fill=primary!16] (fw) at (5.0,0) {pfSense WAN\\192.168.100.6:22};
+		\node[diagdiamond, minimum width=5.3cm, minimum height=15mm, inner sep=4pt, text width=3.6cm] (nat) at (11.0,0) {NAT 22/TCP\\Port Forward\\WAN vers DMZ};
+		\node[diagbox, minimum width=3.6cm, minimum height=14mm, inner sep=6pt, text width=3.2cm, fill=warningorange!18] (host) at (17.0,1.8) {DMZ Host\\192.168.10.100:22};
+		\node[diagbox, minimum width=3.6cm, minimum height=14mm, inner sep=6pt, text width=3.2cm, fill=secondary!20] (cow) at (17.0,-1.8) {Cowrie container\\2222/tcp};
+		\node[font=\small\bfseries, align=center] at (11.0,2.3) {barrière SSH-Leurre};
+		\node[font=\small, align=center] at (11.0,-2.3) {logs session};
 
 		\draw[diagflow, warningorange!90!black] (ext) -- (fw);
 		\draw[diagflow, warningorange!90!black] (fw) -- (nat);
-		\draw[diagflow, warningorange!90!black] (nat) -- (host);
-		\draw[diagflow, secondary] (host) -- node[right] {\scriptsize redirection locale} (cow);
-		\draw[diagflow, blue!70!black, dashed] (cow.south west) to[bend right=30] node[below] {\scriptsize bannière SSH leurre + logs session} (ext.south east);
-		\node[diagbox, minimum width=4.6cm, fill=green!20] at (8.0,2.0) {Leurre: émulation shell + capture commandes};
+		\draw[diagflow, warningorange!90!black] (nat.east) -- (host.west);
+		\draw[diagflow, secondary] (host) -- node[right, xshift=2pt] {\scriptsize redirection locale} (cow);
+		\draw[diagflow, blue!70!black, dashed] (cow.south west) to[bend right=24] (ext.south east);
+		\node[diagbox, minimum width=5.4cm, minimum height=14mm, inner sep=7pt, text width=4.8cm, fill=green!20] at (11.0,4.0) {Leurre: émulation shell\\+ capture commandes};
 	\end{tikzpicture}
 	}
 	\caption{Architecture Cowrie et exposition NAT contrôlée sur l'interface WAN}
@@ -4285,20 +4287,20 @@ Ready to accept SSH connections on 0.0.0.0:2222
 \begin{figure}[H]
 	\centering
 	\begin{tikzpicture}[font=\scriptsize]
-		\draw[diagarrow] (0,0) -- (13.5,0);
+		\draw[diagarrow] (0,0) -- (16.2,0);
 		\node[above] at (0.8,0) {t0};
-		\node[above] at (4.2,0) {t1};
-		\node[above] at (7.8,0) {t2};
-		\node[above] at (11.8,0) {t3};
+		\node[above] at (5.0,0) {t1};
+		\node[above] at (9.8,0) {t2};
+		\node[above] at (14.6,0) {t3};
 
-		\node[diagbox, fill=criticalred!25, minimum width=3.4cm] at (2.1,1.1) {Auth failed\\ubuntuserver/***};
-		\node[diagbox, fill=green!25, minimum width=3.4cm] at (5.8,1.1) {Auth success\\root/admin};
-		\node[diagbox, fill=green!25, minimum width=3.4cm] at (9.8,1.1) {Auth success\\root/oussama};
-		\node[diagbox, fill=secondary!20, minimum width=3.8cm] at (5.8,-1.1) {CMD: ls, whoami, exit\\duration 13.3s};
-		\node[diagbox, fill=secondary!20, minimum width=4.2cm] at (10.0,-1.1) {CMD: ls, uname, whoami, tail /etc/passwd\\duration 211.2s};
-		\draw[dashed, gray] (4.2,1.6) -- (4.2,-1.7);
-		\draw[dashed, gray] (7.8,1.6) -- (7.8,-1.7);
-		\draw[dashed, gray] (11.8,1.6) -- (11.8,-1.7);
+		\node[diagbox, fill=criticalred!25, minimum width=3.8cm, minimum height=14mm, inner sep=6pt, text width=3.2cm] at (2.3,2.0) {Auth failed\\ubuntuserver/***};
+		\node[diagbox, fill=green!25, minimum width=3.8cm, minimum height=14mm, inner sep=6pt, text width=3.2cm] at (6.8,2.0) {Auth success\\root/admin};
+		\node[diagbox, fill=green!25, minimum width=3.8cm, minimum height=14mm, inner sep=6pt, text width=3.2cm] at (12.0,2.0) {Auth success\\root/oussama};
+		\node[diagbox, fill=secondary!20, minimum width=4.5cm, minimum height=15mm, inner sep=7pt, text width=4.0cm] at (6.8,-2.1) {CMD: ls, whoami, exit\\\footnotesize Durée : 13.3s};
+		\node[diagbox, fill=secondary!20, minimum width=5.0cm, minimum height=15mm, inner sep=7pt, text width=4.4cm] at (12.2,-2.1) {CMD: ls, uname, whoami,\\\texttt{tail /etc/passwd}\\\footnotesize Durée : 211.2s};
+		\draw[dashed, gray] (5.0,2.8) -- (5.0,-2.9);
+		\draw[dashed, gray] (9.8,2.8) -- (9.8,-2.9);
+		\draw[dashed, gray] (14.6,2.8) -- (14.6,-2.9);
 	\end{tikzpicture}
 	\caption{Timeline comportementale des sessions capturées par Cowrie}
 	\label{fig:cowrie-session-timeline}
