@@ -282,7 +282,7 @@
 
 	\begin{minipage}{0.74\textwidth}
 		\centering
-		{\fontsize{37}{43}\selectfont\bfseries\color{primary}
+		{\fontsize{22}{29}\selectfont\bfseries\color{primary}
 			CONCEPTION ET MISE EN ŒUVRE\\[0.1cm]
 			D'UNE INFRASTRUCTURE SÉCURISÉE
 			\par}
@@ -381,52 +381,48 @@ Nos remerciements vont aussi à nos familles pour leur soutien indéfectible et 
 
 Le contexte cybersécurité actuel est marqué par une augmentation continue des surfaces d'attaque : infrastructures hybrides, services exposés, applications web vulnérables et multiplication des outils offensifs accessibles. Dans les environnements professionnels, les équipes de sécurité doivent défendre des systèmes complexes face à des adversaires capables d'automatiser la reconnaissance, l'exploitation et la persistance.
 
-Sur la période récente, l'efficacité opérationnelle ne repose plus sur une vision uniquement défensive. Les mécanismes de protection (pare-feu, IDS, SIEM, durcissement) doivent être conçus en tenant compte de la logique d'attaque réelle : chemins de compromission, erreurs de configuration exploitables et techniques de contournement.
+L'efficacité opérationnelle ne repose plus sur une vision uniquement défensive : les mécanismes de protection (pare-feu, IDS, SIEM, durcissement) doivent être conçus en tenant compte de la logique d'attaque réelle, des chemins de compromission aux techniques de contournement.
 
-Cette double lecture, offensive et défensive, devient donc une compétence centrale pour les profils cybersécurité. Un analyste SOC, un ingénieur sécurité ou un administrateur réseau doit comprendre \textit{comment} une attaque est menée pour mieux anticiper \textit{où} et \textit{quand} détecter, contenir puis corriger.
-
-Dans la pratique, les défenseurs doivent penser comme des attaquants pour prioriser les risques et valider la robustesse des contrôles. Ce rapport adopte cette logique dans un laboratoire segmenté, afin d'observer le cycle complet attaque--détection--réponse sur des scénarios contrôlés.
+Dans la pratique, les défenseurs doivent penser comme des attaquants pour prioriser les risques et valider la robustesse des contrôles. Ce rapport applique cette logique dans un laboratoire segmenté afin d'observer le cycle complet attaque--détection--réponse sur des scénarios contrôlés.
 
 \section{Problématique}
 
-La question centrale de ce PFE est la suivante : \textit{« Comment la sécurité offensive et la sécurité défensive peuvent-elles fonctionner ensemble dans un cadre intégré et pratique ? »}
+La question centrale de ce PFE est la suivante : \textit{« Comment intégrer sécurité offensive et sécurité défensive dans un cadre opérationnel cohérent ? »}
 
-Cette problématique répond à un besoin réel : en formation comme en entreprise, les approches sont souvent traitées séparément (pentest d'un côté, supervision de l'autre), ce qui crée un écart entre la compromission observée et la capacité de détection/corrélation en exploitation.
+En formation comme en entreprise, ces approches restent souvent cloisonnées (pentest d'un côté, supervision de l'autre), ce qui crée un écart entre la compromission observée et la capacité réelle de détection, de corrélation et de réponse.
 
 \section{Solutions Existantes et Justification de Notre Approche}
 
 \subsection{Solutions Existantes du Marché}
 
-Le marché propose des piles de sécurité d'entreprise robustes, notamment des pare-feu de nouvelle génération comme Cisco ASA ou Palo Alto, des plateformes SIEM telles que Splunk et ArcSight, ainsi que des WAF commerciaux fortement intégrés. Ces solutions offrent des capacités avancées de corrélation, d'automatisation et de gouvernance, mais elles reposent souvent sur des licences coûteuses et des architectures orientées production à grande échelle. Dans un cadre pédagogique, ce positionnement réduit la flexibilité d'expérimentation et limite la visibilité détaillée sur certains mécanismes internes.
+Le marché propose des piles robustes (pare-feu nouvelle génération, SIEM propriétaires, WAF intégrés) avec de fortes capacités de corrélation et d'automatisation. Ces solutions restent cependant coûteuses et fortement orientées production, ce qui limite la flexibilité pédagogique et la visibilité sur les mécanismes internes.
 
-Les solutions cloud natives (AWS Security Hub, Microsoft Sentinel) constituent également une alternative crédible pour la centralisation d'alertes et l'orchestration de réponses. Toutefois, leur usage impose une dépendance à un environnement connecté, des contraintes de coûts récurrents et une logique d'intégration orientée services managés. Ce modèle est moins adapté à un laboratoire local isolé où l'objectif principal est la maîtrise de bout en bout des chaînes d'attaque et de détection.
+Les offres cloud natives (AWS Security Hub, Microsoft Sentinel) centralisent efficacement les alertes, mais introduisent une dépendance à la connectivité, des coûts récurrents et une logique de services managés moins adaptée à un laboratoire local isolé.
 
-Du côté des solutions à code source ouvert, plusieurs combinaisons ont été étudiées : ELK seul versus Wazuh pour la corrélation sécurité, Suricata versus Snort pour l'IDS, et différentes approches de honeypot. Ces alternatives sont pertinentes, mais notre sélection a privilégié la cohérence pédagogique avec les objectifs du PFE, la disponibilité de documentation exploitable et la reproductibilité des scénarios dans notre environnement VMware.
+Côté open source, plusieurs combinaisons ont été évaluées (ELK/Wazuh, Suricata/Snort, variantes de honeypot). Le choix final a privilégié la cohérence pédagogique, la reproductibilité sous VMware et la disponibilité de documentation exploitable.
 
 \subsection{Notre Solution Choisie}
 
-L'architecture retenue s'appuie sur \textbf{pfSense 2.8.0} pour le filtrage réseau et le NAT, \textbf{Snort IDS/IPS} pour la détection par signatures, \textbf{Cowrie SSH Honeypot} pour la capture d'interactions adverses, et \textbf{Wazuh SIEM} pour l'agrégation et la corrélation des événements. Cette pile couvre l'ensemble du cycle opérationnel attendu : exposition contrôlée, attaque, détection multi-source et analyse centralisée.
+L'architecture retenue s'appuie sur \textbf{pfSense 2.8.0} pour le filtrage réseau et le NAT, \textbf{Snort IDS/IPS} pour la détection par signatures, \textbf{Cowrie SSH Honeypot} pour la capture d'interactions adverses et \textbf{Wazuh SIEM} pour l'agrégation/corrélation des événements. Cette pile couvre le cycle visé : exposition contrôlée, attaque, détection multi-source et analyse centralisée.
 
-Ce choix permet de relier directement chaque composant à une compétence mesurable : segmentation réseau, supervision IDS, collecte de traces d'attaque et investigation SIEM. L'approche est donc à la fois technique et didactique, avec une progression claire entre les chapitres et des preuves reproductibles à chaque phase.
+Chaque composant est relié à une compétence mesurable (segmentation, supervision IDS, collecte de traces, investigation SIEM), avec une progression lisible et des preuves reproductibles à chaque phase.
 
 \subsection{Justification de Notre Choix}
 
-Sur le plan technique, l'option à code source ouvert garantit la transparence des mécanismes de sécurité et un contrôle fin de la configuration. La modularité de la pile (pare-feu, IDS, honeypot, SIEM) permet d'isoler chaque couche puis de démontrer leur complémentarité. En outre, les outils retenus sont largement utilisés dans l'industrie, ce qui renforce la transférabilité des compétences vers le marché de l'emploi.
+Sur le plan technique, l'open source garantit transparence et contrôle fin de la configuration. La modularité de la pile (pare-feu, IDS, honeypot, SIEM) permet d'isoler chaque couche puis de démontrer leur complémentarité, avec des outils alignés sur les usages du marché.
 
-Sur le plan pédagogique, cette architecture facilite une logique cause--effet : une action offensive produit des traces observables, puis ces traces sont détectées et corrélées. L'étudiant comprend ainsi non seulement \textit{comment attaquer}, mais surtout \textit{comment défendre} avec des preuves concrètes. Cette approche répond directement aux objectifs d'apprentissage du PFE en cybersécurité offensive et défensive.
+Sur le plan pédagogique, l'architecture rend explicite la chaîne cause--effet : une action offensive génère des traces visibles, ensuite détectées et corrélées. L'étudiant apprend ainsi à défendre à partir de preuves concrètes plutôt qu'à partir d'une théorie isolée.
 
-Sur le plan pratique, l'absence de coûts de licence permet de concentrer l'effort sur l'expérimentation plutôt que sur des contraintes budgétaires. L'ensemble fonctionne dans un laboratoire virtualisé VMware, isolé de la production et donc sans risque opérationnel externe. Cette reproductibilité en environnement contrôlé est essentielle pour une démonstration académique robuste.
-
-Enfin, la disponibilité de communautés actives et de documentation de qualité accélère la résolution de problèmes et la montée en compétence. Le projet reste maintenable dans le temps, sans dépendance à un éditeur unique ni verrou technologique. Ce facteur est décisif pour un travail de fin d'études orienté apprentissage durable.
+Sur le plan pratique, l'absence de licence, l'exécution dans VMware et l'isolation du laboratoire assurent une expérimentation maîtrisée, reproductible et maintenable. Les communautés actives et la documentation disponible facilitent en outre la montée en compétence sur la durée.
 
 
 \subsection{Solutions Non Retenues et Raisons}
 
-Les solutions \textit{enterprise} (Cisco, Palo Alto, SIEM propriétaires) n'ont pas été retenues en raison de leurs coûts, de leur complexité de déploiement et de leur logique \textit{black-box} moins favorable à l'apprentissage détaillé. Pour un laboratoire pédagogique, elles représentent un surdimensionnement par rapport aux objectifs de démonstration et de compréhension des mécanismes fondamentaux.
+Les solutions \textit{enterprise} (Cisco, Palo Alto, SIEM propriétaires) ont été écartées pour leurs coûts, leur complexité de déploiement et leur caractère \textit{black-box}, peu adaptés à un apprentissage détaillé.
 
-Les plateformes cloud (AWS, Azure) ont aussi été écartées : elles nécessitent une connectivité internet permanente, des comptes et politiques cloud spécifiques, ainsi qu'une gestion de coûts plus difficile à stabiliser dans un cadre académique. De plus, elles éloignent partiellement l'étudiant des fondamentaux réseau/système observables localement.
+Les plateformes cloud (AWS, Azure) n'ont pas été retenues en raison de leur dépendance à la connectivité, de coûts plus difficiles à stabiliser et d'une orientation services managés moins compatible avec un laboratoire local.
 
-Enfin, des options comme les SIEM monolithiques propriétaires, les honeypots commerciaux ou l'orchestration Kubernetes n'ont pas été priorisées car elles ajoutent une complexité non essentielle au périmètre pédagogique visé. L'objectif du PFE est de maîtriser la chaîne offensive/défensive de manière lisible, progressive et reproductible, sans surcharge d'abstraction.
+Des options comme les SIEM monolithiques, les honeypots commerciaux ou Kubernetes n'ont pas été priorisées afin d'éviter une complexité hors périmètre pédagogique ; l'objectif reste une chaîne offensive/défensive lisible, progressive et reproductible.
 
 \section{Objectifs Pédagogiques}
 
