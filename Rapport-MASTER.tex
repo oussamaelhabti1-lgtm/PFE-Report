@@ -299,15 +299,15 @@
 		top=16pt,
 		bottom=16pt
 		]
-		\renewcommand{\arraystretch}{1.6}
+		\renewcommand{\arraystretch}{1.3}
 		\setlength{\tabcolsep}{0pt}
-		\begin{tabular}{@{}p{4.1cm}@{\hspace{0.55cm}}p{8.9cm}@{}}
-			\color{primary}\textbf{AUTEURS} & Yasser BELLA • Oussama EL HABTI\\
-			\color{primary}\textbf{ÉTABLISSEMENT} & ESTK — École Supérieure de Technologie de Kénitra\\
-			\color{primary}\textbf{FILIÈRE} & Infrastructure Digitale, Réseau et Sécurité (IDRS)\\
-			\color{primary}\textbf{TECHNOLOGIES} & pfSense 2.8.0 • Snort IDS/IPS • Metasploit • DVWA • Cowrie • Wazuh\\
-			\color{primary}\textbf{MODÈLE PÉDAGOGIQUE} & 7 Phases : Infrastructure → Reconnaissance → Exploitation → Web → Honeypot → Détection → SIEM\\
-		\end{tabular}
+		\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash\color{primary}\textbf}m{4.4cm}@{\hspace{0.45cm}}>{\raggedright\arraybackslash}X@{}}
+			AUTEURS & Yasser BELLA • Oussama EL HABTI\\
+			ÉTABLISSEMENT & ESTK — École Supérieure de Technologie de Kénitra\\
+			FILIÈRE & Infrastructure Digitale, Réseau et Sécurité (IDRS)\\
+			TECHNOLOGIES & pfSense 2.8.0 • Snort IDS/IPS • Metasploit • DVWA • Cowrie • Wazuh\\
+			MODÈLE PÉDAGOGIQUE & 7 Phases : Infrastructure → Reconnaissance → Exploitation → Web → Honeypot → Détection → SIEM\\
+		\end{tabularx}
 	\end{tcolorbox}
 
 	\vfill
@@ -320,26 +320,32 @@
 % REMERCIEMENTS
 % ------------------------------------------------------------------------------
 \hidepagenumbers
-\chapter*{Remerciements}
+\chapter*{\centering Remerciements}
 \addcontentsline{toc}{chapter}{Remerciements}
 
-\vspace{1cm}
+\vspace*{1.2cm}
+\begingroup
+\setstretch{1.35}
+\large
 
 Nous tenons à exprimer notre profonde gratitude à toutes les personnes qui ont contribué à la réalisation de ce projet de fin d'études.
 
+\vspace{0.9cm}
+
 Nos sincères remerciements vont en premier lieu à notre encadrante, \textbf{Mme Salma El Bakkal}, dont le soutien, la disponibilité et les précieux conseils tout au long de ce travail ont été déterminants pour la réussite de ce projet. Sa rigueur scientifique et ses orientations pertinentes nous ont guidés dans nos choix techniques et méthodologiques.
+
+\vspace{0.9cm}
 
 Nous remercions également l'ensemble du corps enseignant de la filière IDRS à l'ESTK pour la qualité de la formation dispensée et pour nous avoir transmis la passion de la cybersécurité et des réseaux.
 
+\vspace{0.9cm}
+
 Nos remerciements vont aussi à nos familles pour leur soutien indéfectible et leurs encouragements tout au long de notre parcours académique.
 
-Enfin, nous remercions toutes les personnes qui, de près ou de loin, ont contribué à l'aboutissement de ce travail.
+\vspace{0.9cm}
 
-\vfill
-\begin{flushright}
-\textit{Yasser Bella et Oussama El Habti}\\
-\textit{ESTK — IDRS — 2024/2025}
-\end{flushright}
+\textit{Enfin, nous remercions toutes les personnes qui, de près ou de loin, ont contribué à l'aboutissement de ce travail.}
+\endgroup
 
 \newpage
 
