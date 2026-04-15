@@ -2496,7 +2496,7 @@ Nous avons obtenu :
 			\draw[diagflow, red!70!black, dashed] (lan.south) to[bend right=26] node[below=7pt, fill=white, inner sep=2pt, text=black] {\scriptsize trafic latéral} (pivot.south);
 
 			\node[diagbox, minimum width=5.0cm, minimum height=14mm, inner sep=7pt, text width=4.2cm, fill=secondary!8] (ctrl) at (5.2,-3.0) {Control plane\\\texttt{route add 192.168.20.0/24}};
-			\node[diagbox, minimum width=5.0cm, minimum height=14mm, inner sep=7pt, text width=4.2cm, fill=secondary!8] (data) at (11.8,-3.0) {Data plane\\SMB / RDP / Scan LAN};
+			\node[diagbox, minimum width=5.0cm, minimum height=14mm, inner sep=7pt, text width=4.2cm, fill=secondary!8] (data) at (11.8,-3.0) {Data plane\\SMB / RDP / scan LAN};
 			\draw[diagarrow, dashed] (ctrl.east) -- (data.west);
 		\end{tikzpicture}
 		}
@@ -4296,8 +4296,8 @@ Ready to accept SSH connections on 0.0.0.0:2222
 		\node[diagbox, fill=criticalred!25, minimum width=3.8cm, minimum height=14mm, inner sep=6pt, text width=3.2cm] at (2.3,2.0) {Auth failed\\ubuntuserver/***};
 		\node[diagbox, fill=green!25, minimum width=3.8cm, minimum height=14mm, inner sep=6pt, text width=3.2cm] at (6.8,2.0) {Auth success\\root/admin};
 		\node[diagbox, fill=green!25, minimum width=3.8cm, minimum height=14mm, inner sep=6pt, text width=3.2cm] at (12.0,2.0) {Auth success\\root/oussama};
-		\node[diagbox, fill=secondary!20, minimum width=4.5cm, minimum height=15mm, inner sep=7pt, text width=4.0cm] at (6.8,-2.1) {CMD: ls, whoami, exit\\\footnotesize durée : 13.3s};
-		\node[diagbox, fill=secondary!20, minimum width=5.0cm, minimum height=15mm, inner sep=7pt, text width=4.4cm] at (12.2,-2.1) {CMD: ls, uname, whoami,\\\texttt{tail /etc/passwd}\\\footnotesize durée : 211.2s};
+		\node[diagbox, fill=secondary!20, minimum width=4.5cm, minimum height=15mm, inner sep=7pt, text width=4.0cm] at (6.8,-2.1) {CMD: ls, whoami, exit\\\textit{\footnotesize durée : 13.3s}};
+		\node[diagbox, fill=secondary!20, minimum width=5.0cm, minimum height=15mm, inner sep=7pt, text width=4.4cm] at (12.2,-2.1) {CMD: ls, uname, whoami,\\\texttt{tail /etc/passwd}\\\textit{\footnotesize durée : 211.2s}};
 		\draw[dashed, gray] (5.0,2.8) -- (5.0,-2.9);
 		\draw[dashed, gray] (9.8,2.8) -- (9.8,-2.9);
 		\draw[dashed, gray] (14.6,2.8) -- (14.6,-2.9);
