@@ -464,6 +464,7 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 		LAN interface        : em1 (Renommée DMZ)
 		Optional 1 interface : em2 (Renommée INTERNAL_LAN)
 	\end{lstlisting}
+	\textbf{Résultat :} L’assignation des interfaces confirme une séparation nette entre WAN, DMZ et LAN interne dès l’initialisation. Cette étape structure toute la logique de routage et de filtrage. Nous validons ainsi la base de segmentation utilisée dans le reste du rapport.
 	
 	\subsection{Configuration des Interfaces}
 	Les adresses IP statiques ont été configurées via l'interface web (\texttt{https://192.168.10.1}).
@@ -475,6 +476,7 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 		DHCP Server  : Enabled
 		Range        : 192.168.10.10 to 192.168.10.50
 	\end{lstlisting}
+	\textbf{Résultat :} La DMZ dispose d’un adressage fixe et d’une plage DHCP dédiée aux services exposés. Cela facilite le contrôle des flux et la traçabilité des hôtes observés. Cette configuration soutient directement les objectifs de test offensif contrôlé.
 	
 	\subsubsection{Interface INTERNAL\_LAN (em2)}
 	\begin{lstlisting}[caption=Configuration IP LAN]
@@ -483,6 +485,7 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 		DHCP Server  : Enabled
 		Range        : 192.168.20.10 to 192.168.20.50
 	\end{lstlisting}
+	\textbf{Résultat :} Le LAN interne est correctement isolé avec son propre plan IP. Cette séparation permet de reproduire des scénarios réalistes de mouvement latéral inter-zones. La segmentation est donc opérationnelle au niveau logique et adressage.
 	
 	\subsection{Règles de Port Forwarding (NAT)}
 	Pour exposer les services de la DMZ au WAN sans révéler la topologie interne, des règles de traduction d'adresses (NAT) ont été configurées. Cette étape est critique car elle permet le mappage des ports publics vers les IP privées.
@@ -535,6 +538,7 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 		Pass | TCP | Any | WAN address | 139 | Allow WAN to DMZ Samba
 		Pass | TCP | Any | WAN address | 445 | Allow WAN to DMZ SMB
 	\end{lstlisting}
+	\textbf{Résultat :} Les règles WAN confirment que seuls les services explicitement autorisés sont exposés. Cette observation démontre l’application du principe du moindre privilège au périmètre externe. La cohérence avec le NAT valide une exposition maîtrisée.
 	
 	\begin{figure}[H]
 		\centering
@@ -555,6 +559,7 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 		[ ] Block private networks and loopback addresses
 		[ ] Block bogon networks
 	\end{lstlisting}
+	\textbf{Résultat :} La désactivation autorise le trafic RFC1918 du poste attaquant dans le cadre strictement pédagogique du laboratoire. Cette décision rend les tests de bout en bout possibles sans modifier l’architecture cible. Elle reste toutefois non transposable telle quelle en production.
 	\textbf{Contexte technique :} cette option est désactivée pour autoriser le trafic RFC1918 du poste attaquant lab (\texttt{192.168.100.150}).
 	\begin{tcolorbox}[colback=warningorange!10!white, colframe=warningorange, title=\textbf{⚠️ Lab Configuration}]
 		This setup is designed for controlled testing only. Production deployments require additional hardening.
@@ -581,6 +586,7 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 		pfB_PRI1_v4 : 1,458 IPs bloquées
 		DNSBL       : 0 Requêtes bloquées (Test initial)
 	\end{lstlisting}
+	\textbf{Résultat :} Le dashboard confirme l’activation effective des listes de réputation IPv4. Même si le DNSBL est peu sollicité à ce stade, la couche de blocage est fonctionnelle. Nous validons une première réduction de surface face aux sources malveillantes connues.
 	
 	\subsubsection{Liste d'Exception (Suppression List)}
 	Pour permettre à la machine attaquante de tester l'infrastructure sans être bloquée par les listes noires, son IP a été ajoutée à la liste de suppression.
@@ -588,6 +594,7 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 		IPv4 Suppression :
 		192.168.100.150/32  # Lab Attacker (Parrot) - Allow
 	\end{lstlisting}
+	\textbf{Résultat :} L’exception garantit la continuité des scénarios de test depuis la machine attaquante autorisée. Elle évite les faux blocages pendant les démonstrations offensives. Ce réglage maintient l’équilibre entre contrôle sécurité et reproductibilité pédagogique.
 	
 	% ------------------------------------------------------------------------------
 	% CHAPITRE 5 : SÉCURITÉ DES HÔTES
@@ -2571,13 +2578,13 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 	[+]     Ubuntu 25.04
 	[+]     Linux DMZ-WebServer 6.14.0-37-generic x86_64 GNU/Linux
 	[+]     Module running as "telnetuser" user
-	[*] Linux version stored in ~/.msf4/loot/20260304153831_linux.enum.syste_428775.txt
-	[*] User accounts stored in ~/.msf4/loot/20260304153831_linux.enum.syste_721088.txt
-	[*] Installed Packages stored in ~/.msf4/loot/20260304153831_linux.enum.syste_737415.txt
-	[*] Running Services stored in ~/.msf4/loot/20260304153831_linux.enum.syste_265844.txt
-	[*] Cron jobs stored in ~/.msf4/loot/20260304153831_linux.enum.syste_335103.txt
-	[*] Disk info stored in ~/.msf4/loot/20260304153831_linux.enum.syste_758647.txt
-	[*] CPU Vulnerabilities stored in ~/.msf4/loot/20260304153831_linux.enum.syste_082735.txt
+	[*] Linux version stored in ~/.msf4/loot/<session-id>_linux.enum.syste_428775.txt
+	[*] User accounts stored in ~/.msf4/loot/<session-id>_linux.enum.syste_721088.txt
+	[*] Installed Packages stored in ~/.msf4/loot/<session-id>_linux.enum.syste_737415.txt
+	[*] Running Services stored in ~/.msf4/loot/<session-id>_linux.enum.syste_265844.txt
+	[*] Cron jobs stored in ~/.msf4/loot/<session-id>_linux.enum.syste_335103.txt
+	[*] Disk info stored in ~/.msf4/loot/<session-id>_linux.enum.syste_758647.txt
+	[*] CPU Vulnerabilities stored in ~/.msf4/loot/<session-id>_linux.enum.syste_082735.txt
 	[*] Post module execution completed
 \end{lstlisting}
 
@@ -2643,10 +2650,10 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 	[+] Info:
 	[+]     Ubuntu 25.04
 	[*] Collecting data...
-	[+] DNS config stored in ~/.msf4/loot/20260304153844_linux.enum.netwo_867480.txt
-	[+] SSHD config stored in ~/.msf4/loot/20260304153844_linux.enum.netwo_801493.txt
-	[+] Host file stored in ~/.msf4/loot/20260304153844_linux.enum.netwo_984732.txt
-	[+] Active connections stored in ~/.msf4/loot/20260304153844_linux.enum.netwo_196858.txt
+	[+] DNS config stored in ~/.msf4/loot/<session-id>_linux.enum.netwo_867480.txt
+	[+] SSHD config stored in ~/.msf4/loot/<session-id>_linux.enum.netwo_801493.txt
+	[+] Host file stored in ~/.msf4/loot/<session-id>_linux.enum.netwo_984732.txt
+	[+] Active connections stored in ~/.msf4/loot/<session-id>_linux.enum.netwo_196858.txt
 	[*] Post module execution completed
 \end{lstlisting}
 
@@ -2914,7 +2921,7 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 		\item \textbf{Durcir la configuration SSH}
 		\begin{lstlisting}
 			# /etc/ssh/sshd_config
-			Port 2222                           # Non-standard
+			Port 22                             # Aligné avec la publication NAT WAN
 			PermitRootLogin no                   # Bloquer root
 			PasswordAuthentication no            # Forcer clés SSH
 			X11Forwarding no                     # Désactiver X11
@@ -3490,7 +3497,7 @@ Le chemin validé en production est : \texttt{Parrot (192.168.100.150) $\rightar
 
 \section{Preuves pfSense : NAT et Filtrage WAN}
 
-\subsection{NAT Port Forward (preuve \texttt{nat-rules-4.png})}
+\subsection{NAT Port Forward}
 
 \begin{figure}[H]
 	\centering
@@ -3529,7 +3536,7 @@ Le chemin validé en production est : \texttt{Parrot (192.168.100.150) $\rightar
 	\label{tab:cowrie-nat-params}
 \end{table}
 
-\subsection{Règle Pare-feu WAN (preuve \texttt{firewall-rules-4.png})}
+\subsection{Règle Pare-feu WAN}
 
 \begin{figure}[H]
 	\centering
@@ -3578,7 +3585,7 @@ $ docker logs --tail 20 cowrie
 Ready to accept SSH connections on 0.0.0.0:2222
 \end{lstlisting}
 
-La configuration est cohérente : port public \texttt{22/tcp} publié sur l'hôte et redirigé vers le port interne \texttt{2222/tcp} du conteneur Cowrie, avec état \textit{healthy} et service prêt.
+\textbf{Résultat :} La sortie Docker confirme un conteneur \textit{healthy} et une publication externe en \texttt{22/tcp} côté hôte. Le journal applicatif montre que Cowrie écoute bien en interne sur \texttt{2222/tcp}. Cela valide la chaîne complète WAN:22 $\rightarrow$ hôte:22 $\rightarrow$ conteneur:2222.
 
 \section{Capture d'Attaques et Analyse de Sessions}
 
@@ -3602,6 +3609,8 @@ La configuration est cohérente : port public \texttt{22/tcp} publié sur l'hôt
 [timestamp] [cowrie.command.input] CMD: tail /etc/passwd
 [timestamp] [cowrie.session.closed] duration=211.2
 \end{lstlisting}
+
+\textbf{Résultat :} Les sessions capturées montrent à la fois des tentatives d’authentification échouées et des connexions réussies avec commandes interactives. Cette trace prouve la capacité du honeypot à distinguer reconnaissance et activité post-compromission. Nous obtenons ainsi des preuves exploitables pour la corrélation SOC/forensic.
 
 \begin{table}[H]
 	\centering
@@ -3988,6 +3997,8 @@ systemctl enable wazuh-agent
 systemctl start wazuh-agent
 \end{lstlisting}
 
+\textbf{Résultat :} L’agent est installé et activé de façon persistante sur l’hôte DMZ. Cette étape assure la remontée continue des événements système vers le manager SIEM. Elle constitue la base de la corrélation multi-sources présentée dans ce chapitre.
+
 \subsection{Intégration pfSense --- Logs Syslog}
 
 pfSense est configuré pour envoyer ses logs syslog vers le Wazuh Manager. Sur pfSense, dans \textbf{Status → System Logs → Settings}, configurer le serveur syslog distant avec l'IP du Wazuh Manager et le port 514 (UDP).
@@ -4034,6 +4045,8 @@ curl -s -X POST "$PFSENSE_API" \
 logger "Wazuh Active Response: Blocked $ATTACKER_IP on pfSense"
 \end{lstlisting}
 
+\textbf{Résultat :} Le script formalise une réponse active automatique en transformant une alerte critique en action de blocage réseau. L’intérêt opérationnel est de réduire le délai entre détection et containment. Cela valide l’objectif défensif de réaction rapide dans une chaîne SOC.
+
 \section{Conclusion}
 
 Wazuh agrège les logs des sept phases (pfSense, Snort, Cowrie, agents Ubuntu) pour offrir une visibilité complète sur la chaîne d'attaque. Les perspectives d'évolution : intégration SOAR et architecture Zero Trust.
@@ -4072,6 +4085,7 @@ pfctl -F states
 # Logs pfSense en temps réel
 clog /var/log/filter.log | tail -20
 \end{lstlisting}
+\textbf{Résultat :} Ces commandes permettent de vérifier rapidement l’état des interfaces, du filtrage et du NAT sur pfSense. Elles fournissent un socle de diagnostic reproductible avant toute phase d’attaque ou de remédiation. Nous disposons ainsi d’un contrôle opérationnel minimal de l’infrastructure.
 
 \begin{lstlisting}[language=bash, caption={Commandes Nmap utilisées en reconnaissance}]
 # Scan SYN furtif d'un port spécifique
@@ -4089,6 +4103,7 @@ nmap -A -p 23,80,445 <cible>
 # Détection du système d'exploitation
 nmap -O <cible>
 \end{lstlisting}
+\textbf{Résultat :} Le jeu de commandes Nmap couvre la reconnaissance progressive, du ciblage simple à la caractérisation avancée de l’hôte. Cette gradation aide à adapter la collecte d’informations au niveau de discrétion souhaité. Elle structure la préparation des tests d’exploitation.
 
 \begin{lstlisting}[language=bash, caption={Commandes Metasploit pour exploitation et post-exploitation}]
 # Lancer msfconsole
@@ -4116,6 +4131,7 @@ route add 192.168.10.0 255.255.255.0 <session_id>
 sysinfo
 getuid
 \end{lstlisting}
+\textbf{Résultat :} La séquence Metasploit présente un enchaînement complet : initialisation, exploitation, puis vérification de session. Cette logique améliore la reproductibilité des manipulations offensives dans le laboratoire. Elle facilite aussi la corrélation avec les événements défensifs collectés.
 
 \begin{lstlisting}[language=bash, caption={Commandes Snort sur pfSense}]
 # Tester la syntaxe de la configuration Snort
@@ -4128,6 +4144,8 @@ tail -f /var/log/snort/alert
 # Dans pfSense : Services > Snort > Interface > Suppress List
 # Ajouter : suppress gen_id 1, sig_id <SID>
 \end{lstlisting}
+
+\textbf{Résultat :} Ces commandes servent à valider la santé de Snort, observer les alertes en direct et réduire les faux positifs. Elles améliorent la pertinence des détections exploitées par l’analyse SOC. Le réglage des suppressions soutient une supervision plus fiable.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Configurations Complètes}
@@ -4156,6 +4174,8 @@ sudo ufw enable
 sudo ufw status verbose
 \end{lstlisting}
 
+\textbf{Résultat :} La configuration applique une politique restrictive en entrée avec autorisations explicites pour les services nécessaires au scénario. Le statut final permet de vérifier immédiatement la cohérence des règles. Cette discipline réduit la surface d’exposition de l’hôte DMZ.
+
 \subsection{Fail2Ban — Configuration de Base}
 \begin{lstlisting}[language=bash, caption={/etc/fail2ban/jail.local — Configuration SSH}]
 [DEFAULT]
@@ -4171,6 +4191,8 @@ filter  = sshd
 logpath = /var/log/auth.log
 maxretry = 3
 \end{lstlisting}
+
+\textbf{Résultat :} Le profil Fail2Ban impose un seuil d’échec et une fenêtre temporelle pour limiter les attaques par force brute SSH. Ce mécanisme complète le filtrage réseau par une réponse au niveau hôte. Il contribue à contenir les tentatives répétées d’authentification.
 
 \subsection{Docker — Déploiement DVWA}
 \begin{lstlisting}[language=bash, caption={Déploiement DVWA dans la DMZ via Docker}]
@@ -4192,6 +4214,8 @@ docker logs dvwa
 # Accéder via navigateur : http://192.168.100.x/setup.php
 # Cliquer sur "Create / Reset Database"
 \end{lstlisting}
+
+\textbf{Résultat :} Le déploiement conteneurisé rend l’application vulnérable disponible rapidement et de façon standardisée. Les vérifications \texttt{docker ps} et \texttt{docker logs} confirment le bon fonctionnement du service. Cette reproductibilité est essentielle pour des tests pédagogiques cohérents.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Plan d'Adressage IP — Récapitulatif}
