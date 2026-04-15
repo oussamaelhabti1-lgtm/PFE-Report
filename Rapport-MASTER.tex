@@ -244,72 +244,80 @@
 % PAGE DE TITRE
 % ------------------------------------------------------------------------------
 \begin{titlepage}
+	\centering
 	\thispagestyle{empty}
 
-	\noindent
-	\colorbox{primary}{%
-		\parbox{\dimexpr\textwidth-2\fboxsep}{%
-			\vspace{0.6cm}
-			\centering
-			{\large\bfseries\textcolor{white}{Cyberdéfense et Sécurité Offensive --- ESTK \textbullet\ IDRS}}\\[0.6cm]
-		}%
-	}
+	\begin{tikzpicture}[remember picture,overlay]
+		\fill[primary] (current page.north west) rectangle ([xshift=1.5cm]current page.south west);
+		\fill[secondary] ([xshift=1.5cm]current page.north west) rectangle ([xshift=1.8cm]current page.south west);
+	\end{tikzpicture}
+
+	\vspace*{1cm}
+
+	\begin{tikzpicture}
+		\node[rectangle, rounded corners=5pt, draw=primary, line width=2pt,
+		fill=primary!5, minimum width=8cm, minimum height=1.2cm]
+		{\large\bfseries\color{primary} RAPPORT DE PROJET};
+	\end{tikzpicture}
 
 	\vspace{1.5cm}
-	\centering
 
-	{\normalsize\bfseries\color{black!40}\MakeUppercase{Rapport de Fin d'Études --- Projet de Fin de Formation}}
+	\begin{minipage}{0.74\textwidth}
+		\centering
+		{\fontsize{34}{40}\selectfont\bfseries\color{primary}
+			SÉCURITÉ OFFENSIVE\\[0.1cm]
+			ET DÉFENSIVE
+			\par}
+		\vspace{0.45cm}
+		{\LARGE\color{primary}\textit{
+				dans une Infrastructure Segmentée\\
+				Étude Pratique et Intégration Défensive
+			}\par}
+	\end{minipage}
 
-	\vspace{0.8cm}
+	\vspace{1.3cm}
 
-	{\Huge\bfseries\color{primary}
-		Sécurité Offensive et Défensive\\[0.3cm]
-		dans une Infrastructure Segmentée\par
-	}
-
-	\vspace{0.5cm}
-
-	{\color{accent}\rule{9cm}{2pt}\par}
-
-	\vspace{0.5cm}
-
-	{\large\color{black!60}
-		Rapport PFE Complet --- Toutes Phases\\[0.2cm]
-		De l'Infrastructure Défensive à l'Exploitation Web Avancée\par
-	}
-
-	\vspace{2cm}
-
-	{\large
-		\renewcommand{\arraystretch}{1.5}
-		\begin{tabular}{c}
-			\textbf{\color{primary}Réalisé par :}\\[0.3cm]
-			Yasser \textsc{Bella} \\
-			Oussama \textsc{El Habti} \\[0.6cm]
-
-			\textbf{\color{primary}Établissement :} ESTK \\[0.3cm]
-			\textbf{\color{primary}Filière :} IDRS --- Infrastructure Digitale Réseau et Sécurité \\[0.3cm]
-			\textbf{\color{primary}Année Universitaire :} 2024 -- 2025 \\
+	\begin{tcolorbox}[
+		enhanced,
+		colback=white,
+		colframe=primary,
+		boxrule=0pt,
+		leftrule=4pt,
+		sharp corners,
+		width=0.85\textwidth,
+		left=15pt,
+		right=15pt,
+		top=12pt,
+		bottom=12pt
+		]
+		\renewcommand{\arraystretch}{1.25}
+		\begin{tabular}{@{}p{4.4cm}@{\hspace{0.6cm}}p{9.2cm}@{}}
+			\color{primary}\textbf{AUTEURS} & Yasser BELLA\\
+			& Oussama EL HABTI\\[0.35cm]
+			\color{primary}\textbf{ÉTABLISSEMENT} & ESTK (École Supérieure de Technologie de Kénitra)\\[0.25cm]
+			\color{primary}\textbf{FILIÈRE} & Infrastructure Digitale Réseau et Sécurité (IDRS)\\[0.25cm]
+			\color{primary}\textbf{TECHNOLOGIES} & pfSense 2.8.0 • Snort IDS/IPS • Metasploit Framework\\[0.25cm]
+			\color{primary}\textbf{OUTILS DÉPLOIEMENT} & Nmap • DVWA • Cowrie SSH Honeypot • Wazuh SIEM\\[0.25cm]
+			\color{primary}\textbf{MODÈLE PÉDAGOGIQUE} & 7 Phases : Infrastructure → Reconnaissance → Exploitation → Web → Honeypot → Détection → SIEM\\
 		\end{tabular}
-	}
+	\end{tcolorbox}
 
 	\vfill
 
-	\noindent
-	\colorbox{primary}{%
-		\parbox{\dimexpr\textwidth-2\fboxsep}{%
-			\vspace{0.35cm}
-			\centering
-			{\small\textcolor{white}{%
-					pfSense 2.8.0
-					\quad\textbullet\quad Snort IDS/IPS
-					\quad\textbullet\quad Metasploit Framework}}\\[0.2cm]
-			{\small\textcolor{white}{%
-					Nmap 7.94SVN
-					\quad\textbullet\quad DVWA / OWASP Top 10
-					\quad\textbullet\quad VMware Workstation 17}}\\[0.35cm]
-		}%
-	}%
+	\begin{minipage}{0.85\textwidth}
+		\centering
+		{\large\bfseries\color{primary}
+			ESTK (École Supérieure de Technologie de Kénitra)
+			\par}
+		\vspace{0.3cm}
+		{\normalsize\color{secondary}
+			Infrastructure Digitale Réseau et Sécurité (IDRS)
+			\par}
+		\vspace{0.2cm}
+		{\small\color{black!60}
+			Année Universitaire 2024--2025
+			\par}
+	\end{minipage}
 \end{titlepage}
 
 % ------------------------------------------------------------------------------
