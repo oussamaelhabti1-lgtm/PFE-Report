@@ -4176,113 +4176,131 @@ Objectif : valider la détection Snort des attaques observées dans les Chapitre
 % ==============================================================================
 % CHAPITRE 7 : WAZUH SIEM
 % ==============================================================================
-\chapter{Wazuh SIEM --- Analyse Intégrée et Réponse aux Incidents}
+\chapter{Wazuh SIEM --- Concepts et Intégration Théorique}
 \label{chap:wazuh}
 
 \begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectifs du Chapitre}]
-Ce chapitre documente la Phase 7 : intégration d'une plateforme SIEM (Wazuh) pour agréger les logs de pfSense, Snort, Cowrie, et agents Ubuntu. Nous y démontrons la corrélation d'événements, la détection d'attaques multi-étapes, et la réponse automatisée par blocage IP.
+Ce chapitre présente Wazuh comme socle conceptuel de supervision de sécurité. L'objectif est d'introduire les principes d'un SIEM, l'architecture générale de Wazuh et son intégration théorique avec l'infrastructure étudiée dans les chapitres précédents, sans détailler de déploiement opérationnel.
 \end{tcolorbox}
 
-\section{Introduction et Objectifs}
+\section{Introduction aux SIEM}
 
-\subsection{Contexte : Du Monitoring à la Corrélation}
+Un SIEM (\textit{Security Information and Event Management}) est une plateforme qui centralise, analyse et corrèle des journaux issus de sources hétérogènes afin de transformer des événements isolés en informations de sécurité exploitables. Dans une architecture moderne, il constitue le point de convergence entre la collecte de traces, la détection d'incidents et la priorisation des alertes.
 
-Wazuh agrège les événements des six phases précédentes (pfSense syslog, alertes Snort, sessions Cowrie JSON, journaux Ubuntu) pour une détection centralisée et une réponse automatisée. Là où chaque outil voit une partie de l'attaque, le SIEM corrèle la chaîne complète.
+L'intérêt d'un SIEM réside dans sa capacité à agréger de grands volumes de données, à normaliser les formats, puis à identifier des relations temporelles et causales entre événements. Cette approche est essentielle dans des environnements où les attaques sont multi-étapes et distribuées sur plusieurs couches (réseau, système, applicatif).
 
-\textbf{Objectifs principaux :}
-\begin{itemize}
-    \item Déployer Wazuh Manager et ses agents sur l'infrastructure existante
-    \item Ingérer les logs de pfSense (syslog), Snort (fast.log), Cowrie (JSON) et Ubuntu (journald)
-    \item Configurer des règles de corrélation pour détecter les chaînes d'attaque multi-étapes
-    \item Mettre en place une réponse active : blocage IP automatique via pfSense
-    \item Démontrer la valeur ajoutée d'une approche SIEM dans un contexte de sécurité offensive/défensive
-\end{itemize}
+Contrairement à un IDS, qui se concentre sur la détection de signatures ou d'anomalies réseau, ou à un pare-feu, qui applique des règles de filtrage, le SIEM fournit une vision transverse orientée corrélation. Le honeypot, quant à lui, sert à observer le comportement adverse sur une surface de leurre. Le SIEM relie ces signaux entre eux pour produire une lecture globale de l'incident.
 
-\section{Architecture Wazuh}
+\section{Architecture Générale de Wazuh}
 
 \subsection{Composants Principaux}
 
-L'architecture Wazuh repose sur plusieurs composants interdépendants :
+L'architecture Wazuh s'appuie sur quatre composants structurants :
 
 \begin{itemize}
-    \item \textbf{Wazuh Manager} : Serveur central qui reçoit, analyse et corrèle les événements de sécurité
-    \item \textbf{Wazuh Agents} : Installés sur les machines surveillées (Ubuntu DMZ, Windows XP), remontent les logs locaux
-    \item \textbf{Filebeat} : Collecteur de logs léger pour les sources sans agent natif (pfSense, Cowrie)
-    \item \textbf{OpenSearch/Elasticsearch} : Moteur d'indexation et de stockage des alertes
-    \item \textbf{OpenSearch Dashboards} : Interface graphique pour la visualisation et l'investigation
+    \item \textbf{Wazuh Agent} : collecteur léger installé sur les hôtes supervisés, chargé de remonter les événements locaux.
+    \item \textbf{Wazuh Manager} : n\oe ud central qui reçoit, parse, enrichit et corrèle les logs.
+    \item \textbf{Wazuh Indexer} : composant de stockage et d'indexation pour la recherche rapide et l'historisation.
+    \item \textbf{Wazuh Dashboard} : interface de visualisation des alertes, tendances et indicateurs d'investigation.
 \end{itemize}
 
-\section{Configuration des Agents et Ingestion de Logs}
+Le fonctionnement global repose sur une communication continue Agent $\rightarrow$ Manager $\rightarrow$ Indexer, puis Dashboard pour l'exploitation analytique.
 
-\subsection{Agent Ubuntu --- Logs Système}
+\subsection{Flux de Données}
 
-\begin{lstlisting}[language=bash, caption={Installation de l'agent Wazuh sur Ubuntu DMZ}]
-# Télécharger et installer l'agent Wazuh
-curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | apt-key add -
-echo "deb https://packages.wazuh.com/4.x/apt/ stable main" | tee /etc/apt/sources.list.d/wazuh.list
-apt update && apt install -y wazuh-agent
+Dans une chaîne SIEM classique, les agents collectent des logs depuis différentes sources (système, réseau, applications, sécurité). Le manager reçoit ces flux, applique des règles de parsing/normalisation, puis déclenche des mécanismes de corrélation.
 
-# Configurer l'adresse du Manager
-sed -i 's/MANAGER_IP/192.168.20.200/' /var/ossec/etc/ossec.conf
+Les données normalisées sont ensuite indexées pour permettre des recherches, analyses temporelles et tableaux de bord. Cette architecture prend en charge des traitements en quasi temps réel (détection immédiate) et des analyses différées (\textit{batch}) utiles pour les investigations post-incident.
 
-# Démarrer l'agent
-systemctl enable wazuh-agent
-systemctl start wazuh-agent
-\end{lstlisting}
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.93\textwidth}{
+    \textbf{Flux conceptuel des événements :}\\
+    Sources de logs (pfSense, Snort, Cowrie, systèmes) $\rightarrow$ Collecte (Agents/collecteurs) $\rightarrow$\\
+    Wazuh Manager (normalisation + corrélation) $\rightarrow$ Wazuh Indexer (stockage/indexation) $\rightarrow$\\
+    Wazuh Dashboard (visualisation, investigation, pilotage de la réponse)
+    }}
+    \caption{Schéma conceptuel du flux de données Wazuh}
+    \label{fig:wazuh-dataflow-conceptuel}
+\end{figure}
 
-\textbf{Résultat :} L’agent est installé et activé de façon persistante sur l’hôte DMZ. Cette étape assure la remontée continue des événements système vers le manager SIEM. Elle constitue la base de la corrélation multi-sources présentée dans ce chapitre.
+\subsection{Modèle de Détection}
 
-\subsection{Intégration pfSense --- Logs Syslog}
+Le modèle de détection de Wazuh combine plusieurs logiques complémentaires :
+\begin{itemize}
+    \item \textbf{Détection basée sur des règles} : lorsqu'un motif X est observé, une alerte Y est générée.
+    \item \textbf{Parsing et normalisation} : harmonisation des champs pour comparer des sources hétérogènes.
+    \item \textbf{Seuils de déclenchement} : élévation d'alerte lorsque la fréquence d'événements dépasse un niveau défini.
+    \item \textbf{Anomalies comportementales} : repérage d'écarts par rapport à une activité attendue.
+\end{itemize}
 
-pfSense est configuré pour envoyer ses logs syslog vers le Wazuh Manager. Sur pfSense, dans \textbf{Status → System Logs → Settings}, configurer le serveur syslog distant avec l'IP du Wazuh Manager et le port 514 (UDP).
+\section{Intégration Théorique avec Notre Infrastructure}
 
-\subsection{Intégration Snort --- Fast Logs}
+\subsection{Collecte des Logs pfSense}
 
-Les alertes Snort générées dans \texttt{/var/log/snort/alert} sont collectées via Filebeat et envoyées au Wazuh Manager pour corrélation avec les autres sources.
+Dans notre contexte (Chapitre~1), les journaux du pare-feu constituent une source structurante pour observer les flux entrants/sortants, les blocages et les tentatives d'accès entre zones WAN/DMZ/LAN. Théoriquement, Wazuh exploite ces traces pour détecter des scans de ports, des connexions refusées répétées ou des accès inhabituels à des services exposés.
 
-\subsection{Intégration Cowrie --- JSON Sessions}
+Un scénario de corrélation typique consiste à relier un scan WAN suivi de tentatives d'accès vers la DMZ afin de qualifier une phase de reconnaissance active.
 
-Les sessions Cowrie au format JSON sont ingérées via Filebeat avec un module de parsing dédié qui extrait les champs IP source, credentials testés, commandes exécutées et mappings MITRE.
+\subsection{Agrégation des Alertes Snort}
 
-\section{Règles de Corrélation et Détection}
+En continuité du Chapitre~6, les alertes IDS offrent une granularité utile sur les signatures d'attaque. Dans une approche SIEM, Wazuh ingère ces alertes, normalise les formats, puis les met en relation avec les événements réseau du pare-feu pour distinguer un faux positif d'un comportement réellement malveillant.
 
-Les règles de corrélation Wazuh permettent de détecter des séquences d'événements caractéristiques d'une attaque multi-étapes. Par exemple :
+Cette fusion des données permet également de reconstruire une chronologie cohérente des événements et d'améliorer la priorisation des incidents.
 
-\begin{enumerate}
-    \item Détection d'un scan Nmap (Snort alerte sur les sondes TCP SYN)
-    \item Tentatives de brute-force SSH (Cowrie enregistre les credentials)
-    \item Connexion réussie et exécution de commandes (agent Ubuntu journald)
-    \item Pivot vers le LAN (pfSense logs de routage inter-zones)
-\end{enumerate}
+\subsection{Analyse des Sessions Cowrie}
 
-Une règle de corrélation XML Wazuh peut enchaîner ces événements sur une fenêtre temporelle pour générer une alerte de niveau critique.
+Les journaux JSON du honeypot Cowrie (Chapitre~5) renseignent finement les tentatives SSH/Telnet, les identifiants testés et les commandes exécutées par l'attaquant. Wazuh peut traiter ces événements pour détecter des motifs de bruteforce, des séquences d'accès répétitives et une progression de comportement.
 
-\section{Réponse Active}
+L'enrichissement via des référentiels tels que MITRE ATT\&CK permet de rapprocher les actions observées de techniques connues et de structurer l'analyse défensive.
 
-Wazuh supporte la réponse active via des scripts déclenchés automatiquement en réponse à des alertes de haute sévérité. Dans notre contexte, un script de blocage IP interagit avec l'API pfSense pour ajouter l'adresse IP attaquante à une liste de blocage dynamique, interrompant immédiatement toute communication depuis cette source.
+\subsection{Corrélation Multi-Sources}
 
-\begin{lstlisting}[language=bash, caption={Script de réponse active — Blocage IP via pfSense API}]
-#!/bin/bash
-# Script de réponse active Wazuh - Blocage IP pfSense
-# Déclenché automatiquement pour les alertes niveau >= 10
+La valeur d'un SIEM apparaît pleinement lors de la corrélation inter-outils. Exemple théorique : un scan détecté par Snort, un blocage associé côté pare-feu, puis une tentative de connexion captée par Cowrie. Pris séparément, ces signaux sont partiels ; corrélés, ils décrivent une chaîne d'attaque exploitable pour la réponse à incident.
 
-ATTACKER_IP="$1"
-PFSENSE_API="https://192.168.20.1/api/v1/firewall/rule"
-TOKEN="$(cat /etc/wazuh/pfsense-token)"
+Wazuh relie ces éléments par horodatage, source, destination et contexte, afin de reconstituer un timeline d'attaque transversal à toute l'infrastructure.
 
-curl -s -X POST "$PFSENSE_API" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d "{\"type\":\"block\",\"src\":\"$ATTACKER_IP\",\"descr\":\"Wazuh Auto-Block\"}"
+\section{Cas d'Usage \& Règles de Détection}
 
-logger "Wazuh Active Response: Blocked $ATTACKER_IP on pfSense"
-\end{lstlisting}
+\subsection{Détection des Attaques de Reconnaissance}
 
-\textbf{Résultat :} Le script formalise une réponse active automatique en transformant une alerte critique en action de blocage réseau. L’intérêt opérationnel est de réduire le délai entre détection et containment. Cela valide l’objectif défensif de réaction rapide dans une chaîne SOC.
+Sur le plan théorique, une campagne de reconnaissance se traduit par une multiplication rapide de connexions vers des ports distincts. Une règle de seuil peut, par exemple, considérer qu'au-delà d'un nombre de tentatives refusées dans une fenêtre courte (ex. plus de 10 événements par minute), le comportement devient suspect et justifie une alerte.
 
-\section{Conclusion}
+\subsection{Détection des Tentatives d'Exploitation}
 
-Wazuh agrège les logs des sept phases (pfSense, Snort, Cowrie, agents Ubuntu) pour offrir une visibilité complète sur la chaîne d'attaque. Les perspectives d'évolution : intégration SOAR et architecture Zero Trust.
+Les tentatives d'exploitation applicative peuvent être identifiées via des motifs caractéristiques dans les logs HTTP : injections SQL, commandes système injectées, accès anormaux à des fichiers sensibles. Le SIEM contribue ici à centraliser ces indices pour déterminer si l'activité relève d'un test bénin ou d'une attaque structurée.
+
+\subsection{Détection des Mouvements Latéraux}
+
+Après compromission initiale, les mouvements latéraux se manifestent souvent par des authentifications inhabituelles, des élévations de privilèges ou des accès inter-segments non attendus. Une corrélation temporelle des événements d'authentification et des flux réseau permet de mettre en évidence une propagation interne potentielle.
+
+\section{Stratégies d'Alertage et de Réponse}
+
+\subsection{Niveaux d'Alerte}
+
+Wazuh classe généralement les alertes selon des niveaux de sévérité (1 à 15) permettant de distinguer bruit opérationnel, événements suspects et incidents critiques. Cette gradation facilite l'escalade vers les équipes concernées et l'orientation vers des canaux adaptés (notification, ticketing, gestion d'incident).
+
+À chaque niveau de gravité peut être associé un playbook théorique de réponse : qualification, confinement, investigation, puis remédiation.
+
+\subsection{Réponse Automatisée Potentielle}
+
+La réponse automatisée (blocage d'IP, invalidation de session, isolement logique) peut réduire le temps de réaction, mais introduit un risque de faux positifs et d'impact métier. En pratique, l'automatisation est pertinente pour des cas bien maîtrisés, alors qu'une revue humaine reste nécessaire pour les situations ambiguës ou à fort enjeu.
+
+\section{Avantages de Wazuh dans Notre Contexte Pédagogique}
+
+Dans le cadre du PFE, Wazuh matérialise la dimension défensive complémentaire aux volets offensifs. Il permet de visualiser comment des actions d'attaque étudiées aux Chapitres~2, 3 et 4 apparaissent concrètement dans les journaux de sécurité.
+
+Cette approche établit un pont entre outils spécialisés (pfSense, Snort, Cowrie) et supervision intégrée, tout en introduisant des concepts SIEM conformes aux pratiques professionnelles. Le caractère open-source de Wazuh renforce aussi sa pertinence pédagogique et économique.
+
+\section{Perspectives et Évolutions Futures}
+
+À plus grande échelle, une architecture SIEM peut évoluer vers des environnements de production distribués, avec des volumes de logs élevés et des exigences de disponibilité fortes. L'enrichissement par renseignement sur la menace (\textit{threat intelligence}) et l'usage de modèles d'anomalie avancés constituent des axes de maturation naturels.
+
+Les perspectives incluent également l'agrégation de logs cloud, l'amélioration de la traçabilité pour les audits et la conformité, ainsi que l'intégration progressive avec des processus de réponse à incident plus industrialisés.
+
+\section{Conclusion du Chapitre}
+
+Wazuh représente la couche de supervision globale qui relie l'infrastructure défensive (Chapitre~1), la reconnaissance (Chapitre~2), l'exploitation (Chapitre~3), les attaques web (Chapitre~4), la deception (Chapitre~5) et la détection IDS (Chapitre~6). Il apporte la vision corrélée nécessaire pour transformer des signaux dispersés en intelligence actionnable, base d'une réponse à incident structurée et d'une démarche forensique cohérente.
 
 % ==============================================================================
 % ANNEXE A : DOCUMENTATION TECHNIQUE
