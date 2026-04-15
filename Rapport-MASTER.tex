@@ -3432,134 +3432,233 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 \label{chap:cowrie}
 
 \begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectifs du Chapitre}]
-Ce chapitre documente la Phase 5 : déploiement d'un honeypot SSH de type Cowrie pour collecter et analyser les tentatives d'intrusion, mapper les techniques d'attaque selon MITRE ATT\&CK, et valider les attaques observées en Phase 3.
+Cette phase présente les preuves de déploiement du 2026-04-15 : exposition SSH via pfSense, interception des sessions par Cowrie en conteneur Docker, puis corrélation avec la détection Snort.
 \end{tcolorbox}
 
-\section{Introduction et Objectifs}
+\section{Architecture de Déploiement et Flux Réseau}
 
-\subsection{Contexte et Motivation}
-
-Un honeypot est un système intentionnellement vulnérable déployé pour observer les techniques, outils et comportements des attaquants dans un environnement contrôlé. Cowrie (Phase 5) capture les sessions SSH automatiquement, enrichissant les données collectées lors des simulations d'attaque de la Phase 3.
-
-\textbf{Objectifs principaux :}
-\begin{itemize}
-    \item Déployer un honeypot SSH Cowrie (interaction faible/élevée) dans la DMZ
-    \item Collecter les sessions d'attaque complètes au format JSON
-    \item Analyser les comportements des attaquants (identifiants testés, commandes exécutées)
-    \item Mapper les techniques observées selon le framework MITRE ATT\&CK
-    \item Valider et enrichir les observations réalisées lors de la Phase 3
-\end{itemize}
-
-\section{Architecture et Déploiement Cowrie}
-
-\subsection{Présentation de Cowrie}
-
-Cowrie est un honeypot SSH/Telnet de medium interaction développé en Python. Il simule un serveur SSH vulnérable, accepte les connexions des attaquants, enregistre toutes leurs activités et génère des logs détaillés au format JSON. Cowrie peut opérer en deux modes :
-
-\begin{itemize}
-    \item \textbf{Mode shell (low interaction)} : Simule un système de fichiers et un shell basique, sans risque d'exposition réelle
-    \item \textbf{Mode proxy (high interaction)} : Redirige les connexions vers un vrai système (backend) via SSH, capturant l'activité réelle tout en isolant le système de production
-\end{itemize}
-
-\subsection{Configuration du NAT et Port Forwarding}
-
-Le déploiement nécessite une règle NAT sur pfSense pour rediriger le trafic SSH (port 22) de la zone WAN vers le honeypot Cowrie dans la DMZ. Le service SSH légitime du serveur Ubuntu est déplacé sur un port alternatif.
-
-\begin{lstlisting}[language=bash, caption={Configuration SSH — Déplacement du port légitime}]
-# Déplacer le service SSH légitime sur le port 2222 pour libérer le port 22 à Cowrie
-sudo sed -i 's/^#\?Port .*/Port 2222/' /etc/ssh/sshd_config
-
-sudo systemctl restart sshd
-
-# Vérification — SSH légitime écoute désormais sur le port 2222
-sudo ss -tlnp | grep sshd
-\end{lstlisting}
-
-\subsection{Installation et Démarrage de Cowrie}
-
-\begin{lstlisting}[language=bash, caption={Installation de Cowrie dans la DMZ}]
-# Installer les dépendances
-sudo apt update && sudo apt install -y python3-venv python3-dev libssl-dev libffi-dev
-
-# Créer un utilisateur dédié (sécurité)
-sudo adduser --disabled-password cowrie
-
-# Cloner Cowrie
-sudo -u cowrie git clone https://github.com/cowrie/cowrie /home/cowrie/cowrie
-
-# Créer l'environnement virtuel et installer les dépendances
-cd /home/cowrie/cowrie
-python3 -m venv cowrie-env
-source cowrie-env/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
-
-# Configurer Cowrie (paramètres essentiels dans etc/cowrie.cfg)
-cp etc/cowrie.cfg.dist etc/cowrie.cfg
-
-# Paramètres clés à modifier :
-# [honeypot]
-#   hostname = svr04          <- Nom du système simulé affiché à l'attaquant
-#   listen_port = 22          <- Port d'écoute Cowrie (22 si NAT ou 2222 si local)
-#   interaction_type = low    <- 'low' (shell simulé) ou 'high' (proxy vers backend)
-# [output_jsonlog]
-#   enabled = true
-#   logfile = ${honeypot:log_path}/cowrie.json  <- Logs JSON pour Wazuh/Filebeat
-
-# Démarrer Cowrie
-bin/cowrie start
-bin/cowrie status
-\end{lstlisting}
-
-\section{Analyse des Sessions d'Attaque}
-
-\subsection{Structure des Logs JSON}
-
-Cowrie génère des logs au format JSON dans \texttt{var/log/cowrie/cowrie.json}. Chaque événement est enregistré avec un horodatage, l'adresse IP source, le type d'événement et les détails de l'action.
-
-\begin{lstlisting}[language=bash, caption={Exemple de log JSON Cowrie — Tentative de connexion SSH}]
-{
-  "eventid": "cowrie.login.failed",
-  "timestamp": "2025-04-12T19:11:29.412Z",
-  "src_ip": "192.168.100.150",
-  "username": "root",
-  "password": "admin",
-  "sensor": "cowrie-dmz",
-  "session": "abc123def456"
-}
-\end{lstlisting}
-
-\subsection{Mapping MITRE ATT\&CK}
-
-Les techniques observées via Cowrie peuvent être mappées directement sur le framework MITRE ATT\&CK :
+Le chemin validé en production est : \texttt{Parrot (192.168.100.150) $\rightarrow$ pfSense WAN (192.168.100.6) $\rightarrow$ NAT WAN:22 $\rightarrow$ DMZ 192.168.10.100:2222 (Cowrie)}. Le service Cowrie tourne dans un conteneur Docker et capte les sessions SSH de reconnaissance réelles.
 
 \begin{table}[H]
-    \centering
-    \renewcommand{\arraystretch}{1.4}
-    \begin{tabular}{p{3cm} p{4cm} p{5cm}}
-        \hline
-        \rowcolor{tableheadbg}
-        \textcolor{tableheadfg}{\textbf{Technique MITRE}} &
-        \textcolor{tableheadfg}{\textbf{ID}} &
-        \textcolor{tableheadfg}{\textbf{Observation Cowrie}} \\
-        \hline
-        \rowcolor{tablerowalt}
-        Brute Force & T1110 & Tentatives de mots de passe multiples \\
-        Valid Accounts & T1078 & Credentials admin/root testés \\
-        \rowcolor{tablerowalt}
-        Command and Scripting & T1059 & Commandes shell enregistrées \\
-        Discovery & T1082 & Collecte d'informations système \\
-        \rowcolor{tablerowalt}
-        Exfiltration & T1041 & Téléchargements via wget/curl \\
-        \hline
-    \end{tabular}
-    \caption{Mapping MITRE ATT\&CK des Attaques Observées via Cowrie}
-    \label{tab:cowrie-mitre}
+	\centering
+	\renewcommand{\arraystretch}{1.4}
+	\setlength{\arrayrulewidth}{0.5pt}
+	\begin{tabular}{p{2.8cm} p{4.1cm} p{4.8cm}}
+		\arrayrulecolor{tableborder}
+		\hline
+		\tableheadcolor
+		\textcolor{tableheadfg}{\textbf{Segment}} &
+		\textcolor{tableheadfg}{\textbf{Adresse/Port}} &
+		\textcolor{tableheadfg}{\textbf{Rôle}} \\
+		\hline
+		\rowcolor{tablerowalt}
+		Source offensive & 192.168.100.150 & Poste Parrot lançant les connexions SSH \\
+		Point d'entrée & 192.168.100.6:22 & Interface WAN pfSense exposée au scan \\
+		\rowcolor{tablerowalt}
+		Traduction NAT & WAN:22 $\rightarrow$ 192.168.10.100:2222 & Redirection vers le service honeypot \\
+		Capteur Cowrie & 192.168.10.100:2222 & Conteneur Docker capturant auth + commandes + TTY \\
+		\hline
+	\end{tabular}
+	\caption{Architecture réseau opérationnelle du honeypot Cowrie}
+	\label{tab:cowrie-architecture}
 \end{table}
+
+\section{Preuves pfSense : NAT et Filtrage WAN}
+
+\subsection{NAT Port Forward (preuve \texttt{nat-rules-4.png})}
+
+\begin{figure}[H]
+	\centering
+	\IfFileExists{screenshots/nat-rules-4.png}{
+		\includegraphics[width=0.95\textwidth]{screenshots/nat-rules-4.png}
+	}{
+		\includegraphics[width=0.95\textwidth]{example-image}
+		\caption*{\textbf{Attention :} Fichier screenshots/nat-rules-4.png introuvable.}
+	}
+	\caption{Règle pfSense NAT activée : WAN:22 vers DMZ 192.168.10.100:2222}
+	\label{fig:cowrie-nat-rules}
+\end{figure}
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.35}
+	\setlength{\arrayrulewidth}{0.5pt}
+	\begin{tabular}{p{3.1cm} p{7.2cm}}
+		\arrayrulecolor{tableborder}
+		\hline
+		\tableheadcolor
+		\textcolor{tableheadfg}{\textbf{Paramètre NAT}} &
+		\textcolor{tableheadfg}{\textbf{Valeur observée}} \\
+		\hline
+		\rowcolor{tablerowalt}
+		Interface / protocole & WAN / IPv4 TCP \\
+		Port destination WAN & 22 \\
+		\rowcolor{tablerowalt}
+		NAT IP (Redirect target IP) & 192.168.10.100 \\
+		NAT Ports (Redirect target port) & 2222 \\
+		\rowcolor{tablerowalt}
+		État de la règle & Activée dans la table de routage NAT (forwarding effectif) \\
+		\hline
+	\end{tabular}
+	\caption{Validation de la redirection NAT vers Cowrie}
+	\label{tab:cowrie-nat-params}
+\end{table}
+
+\subsection{Règle Pare-feu WAN (preuve \texttt{firewall-rules-4.png})}
+
+\begin{figure}[H]
+	\centering
+	\IfFileExists{screenshots/firewall-rules-4.png}{
+		\includegraphics[width=0.95\textwidth]{screenshots/firewall-rules-4.png}
+	}{
+		\includegraphics[width=0.95\textwidth]{example-image}
+		\caption*{\textbf{Attention :} Fichier screenshots/firewall-rules-4.png introuvable.}
+	}
+	\caption{Règle WAN autorisant l'accès SSH au honeypot}
+	\label{fig:cowrie-firewall-rules}
+\end{figure}
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.35}
+	\setlength{\arrayrulewidth}{0.5pt}
+	\begin{tabular}{p{3.1cm} p{7.2cm}}
+		\arrayrulecolor{tableborder}
+		\hline
+		\tableheadcolor
+		\textcolor{tableheadfg}{\textbf{Attribut}} &
+		\textcolor{tableheadfg}{\textbf{Valeur observée}} \\
+		\hline
+		\rowcolor{tablerowalt}
+		Description règle & \texttt{Allow WAN to DMZ SSH Port 22 (Cowrie Honeypot Testing)} \\
+		Priorité & Positionnée en tête des règles WAN pour garantir le passage \\
+		\rowcolor{tablerowalt}
+		Type de filtrage & Stateful filtering actif (états de connexion suivis) \\
+		Protocole & IPv4 TCP \\
+		\hline
+	\end{tabular}
+	\caption{Validation de la règle de filtrage WAN associée au NAT Cowrie}
+	\label{tab:cowrie-firewall-rule}
+\end{table}
+
+\section{Déploiement Cowrie en Conteneur Docker}
+
+\begin{lstlisting}[language=bash, caption={Vérification du service Cowrie dans Docker}]
+$ docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
+NAMES    IMAGE                         STATUS         PORTS
+cowrie   cowrie/cowrie:latest          Up (healthy)  0.0.0.0:22->2222/tcp
+
+$ docker logs --tail 20 cowrie
+[...]
+Ready to accept SSH connections on 0.0.0.0:2222
+\end{lstlisting}
+
+La configuration est cohérente : port public \texttt{22/tcp} publié sur l'hôte et redirigé vers le port interne \texttt{2222/tcp} du conteneur Cowrie, avec état \textit{healthy} et service prêt.
+
+\section{Capture d'Attaques et Analyse de Sessions}
+
+\subsection{Preuves issues des journaux Docker (2026-04-15)}
+
+\begin{lstlisting}[language=bash, caption={Extrait des sessions réelles capturées par Cowrie}]
+2026-04-15T01:04:38+0000 [cowrie.ssh.factory.CowrieSSHFactory] New connection: 192.168.100.150:xxxxx
+2026-04-15T01:04:5x+0000 [HoneyPotSSHUserAuthServer] login attempt [ubuntuserver/******] failed
+
+2026-04-15T01:05:xx+0000 [HoneyPotSSHUserAuthServer] login attempt [root/admin] succeeded
+2026-04-15T01:05:xx+0000 [cowrie.command.input] CMD: ls
+2026-04-15T01:05:xx+0000 [cowrie.command.input] CMD: whoami
+2026-04-15T01:05:xx+0000 [cowrie.command.input] CMD: exit
+2026-04-15T01:05:xx+0000 [cowrie.session.closed] duration=13.3
+
+2026-04-15T01:08:xx+0000 [HoneyPotSSHUserAuthServer] login attempt [root/oussama] succeeded
+2026-04-15T01:08:xx+0000 [cowrie.command.input] CMD: ls
+2026-04-15T01:08:xx+0000 [cowrie.command.input] CMD: whomai
+2026-04-15T01:08:xx+0000 [cowrie.command.input] CMD: uname
+2026-04-15T01:08:xx+0000 [cowrie.command.input] CMD: whoami
+2026-04-15T01:08:xx+0000 [cowrie.command.input] CMD: tail /etc/passwd
+2026-04-15T01:08:24+0000 [cowrie.session.closed] duration=211.2
+\end{lstlisting}
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.35}
+	\setlength{\arrayrulewidth}{0.5pt}
+	\begin{tabular}{>{\centering\arraybackslash}p{1.1cm} p{2.2cm} p{2.0cm} >{\centering\arraybackslash}p{1.4cm} p{4.4cm}}
+		\arrayrulecolor{tableborder}
+		\hline
+		\tableheadcolor
+		\textcolor{tableheadfg}{\textbf{Session}} &
+		\textcolor{tableheadfg}{\textbf{Identifiants}} &
+		\textcolor{tableheadfg}{\textbf{Résultat}} &
+		\textcolor{tableheadfg}{\textbf{Durée (s)}} &
+		\textcolor{tableheadfg}{\textbf{Actions observées}} \\
+		\hline
+		\rowcolor{tablerowalt}
+		S1 & ubuntuserver / *** & Échec auth & -- & Tentatives répétées, sans shell \\
+		S2 & root / admin & Succès & 13.3 & \texttt{ls}, \texttt{whoami}, \texttt{exit} \\
+		\rowcolor{tablerowalt}
+		S3 & root / oussama & Succès & 211.2 & \texttt{ls}, \texttt{whomai}, \texttt{uname}, \texttt{whoami}, \texttt{tail /etc/passwd} \\
+		\hline
+	\end{tabular}
+	\caption{Synthèse des sessions Cowrie capturées (01:04:38--01:08:24 UTC)}
+	\label{tab:cowrie-session-summary}
+\end{table}
+
+Cowrie a aussi généré des enregistrements TTY encodés en base64 (fichiers de session) pour conservation forensique et relecture post-incident.
+
+\section{Résultats IDS Snort sur l'Exposition Honeypot}
+
+\begin{figure}[H]
+	\centering
+	\IfFileExists{screenshots/snort-alerts-honeypot.png}{
+		\includegraphics[width=0.95\textwidth]{screenshots/snort-alerts-honeypot.png}
+	}{
+		\includegraphics[width=0.95\textwidth]{example-image}
+		\caption*{\textbf{Attention :} Fichier screenshots/snort-alerts-honeypot.png introuvable.}
+	}
+	\caption{Alertes Snort liées au scan SSH vers le honeypot}
+	\label{fig:cowrie-snort-alerts}
+\end{figure}
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.35}
+	\setlength{\arrayrulewidth}{0.5pt}
+	\begin{tabular}{p{2.0cm} p{2.6cm} p{2.8cm} p{3.9cm}}
+		\arrayrulecolor{tableborder}
+		\hline
+		\tableheadcolor
+		\textcolor{tableheadfg}{\textbf{Horodatage}} &
+		\textcolor{tableheadfg}{\textbf{Source}} &
+		\textcolor{tableheadfg}{\textbf{Destination}} &
+		\textcolor{tableheadfg}{\textbf{Signature}} \\
+		\hline
+		\rowcolor{tablerowalt}
+		02:02:22 & 192.168.100.150 & 192.168.100.6 & ET SCAN Potential SSH Scan (1:2001219) \\
+		01:53:29 & 192.168.100.150 & 192.168.10.100 & ET SCAN Potential SSH Scan (1:2001219) \\
+		\rowcolor{tablerowalt}
+		01:44:20 & 192.168.100.150 & 192.168.100.6 & ET SCAN Potential SSH Scan (1:2001219) \\
+		01:30:28 & 192.168.100.150 & 192.168.10.100 & ET SCAN Potential SSH Scan (1:2001219) \\
+		\hline
+	\end{tabular}
+	\caption{Alertes Snort corrélées au honeypot (classification : Attempted Information Leak, priorité 2)}
+	\label{tab:cowrie-snort-alerts}
+\end{table}
+
+Les trois captures visuelles sont référencées dans l'ordre de lecture opérationnel inverse des captures initiales : Fig.~\ref{fig:cowrie-snort-alerts}, Fig.~\ref{fig:cowrie-firewall-rules}, puis Fig.~\ref{fig:cowrie-nat-rules}.
+
+\section{Résultats et Analyse}
+
+\begin{itemize}
+	\item Les signatures d'attaque SSH ont été capturées côté Cowrie et côté IDS.
+	\item Les schémas d'identifiants (\texttt{ubuntuserver}, \texttt{root/admin}, \texttt{root/oussama}) sont identifiés et corrélables.
+	\item Les commandes interactives et enregistrements TTY base64 sont conservés pour la forensic.
+	\item Snort confirme 4 tentatives de scan/reconnaissance (\texttt{SID 1:2001219}).
+	\item L'efficacité du honeypot est validée sur flux réel, sans exposition directe d'un service SSH de production.
+\end{itemize}
 
 \section{Conclusion}
 
-Cowrie complète Snort : là où Snort détecte les attaques sur les systèmes réels, le honeypot les attire dans un environnement contrôlé. Les sessions JSON collectées alimentent directement Wazuh (Phase 7) pour la corrélation cross-phase.
+Le honeypot Cowrie a intercepté avec succès les attaques SSH et permis une reconstruction temporelle des actions adverses. L'intégration avec Snort et l'export des journaux vers la pile SIEM rendent possible une corrélation multi-sources, tout en préservant les preuves nécessaires à la réponse à incident.
 
 % ==============================================================================
 % FIN DU CHAPITRE 5 — COWRIE
