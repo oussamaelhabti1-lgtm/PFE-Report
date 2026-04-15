@@ -2495,8 +2495,8 @@ Nous avons obtenu :
 			\draw[diagflow, red!70!black, very thick] (pivot) -- node[above=7pt, fill=white, inner sep=2pt, text=black] {\scriptsize tunnel pivot} (lan);
 			\draw[diagflow, red!70!black, dashed] (lan.south) to[bend right=26] node[below=7pt, fill=white, inner sep=2pt, text=black] {\scriptsize trafic latéral} (pivot.south);
 
-			\node[diagbox, minimum width=5.0cm, minimum height=14mm, inner sep=7pt, text width=4.2cm, fill=secondary!8] (ctrl) at (5.2,-3.0) {Control Plane\\\texttt{route add 192.168.20.0/24}};
-			\node[diagbox, minimum width=5.0cm, minimum height=14mm, inner sep=7pt, text width=4.2cm, fill=secondary!8] (data) at (11.8,-3.0) {Data Plane\\SMB / RDP / Scan LAN};
+			\node[diagbox, minimum width=5.0cm, minimum height=14mm, inner sep=7pt, text width=4.2cm, fill=secondary!8] (ctrl) at (5.2,-3.0) {Control plane\\\texttt{route add 192.168.20.0/24}};
+			\node[diagbox, minimum width=5.0cm, minimum height=14mm, inner sep=7pt, text width=4.2cm, fill=secondary!8] (data) at (11.8,-3.0) {Data plane\\SMB / RDP / Scan LAN};
 			\draw[diagarrow, dashed] (ctrl.east) -- (data.west);
 		\end{tikzpicture}
 		}
@@ -4125,7 +4125,7 @@ Le chemin validé en production est : \texttt{Parrot (192.168.100.150) $\rightar
 	\begin{tikzpicture}[font=\small]
 		\node[diagbox, minimum width=3.4cm, minimum height=14mm, inner sep=6pt, text width=3.0cm] (ext) at (0,0) {Attacker externe\\192.168.100.150};
 		\node[diagbox, minimum width=3.4cm, minimum height=14mm, inner sep=6pt, text width=3.0cm, fill=primary!16] (fw) at (5.0,0) {pfSense WAN\\192.168.100.6:22};
-		\node[diagdiamond, minimum width=5.3cm, minimum height=15mm, inner sep=4pt, text width=3.6cm] (nat) at (11.0,0) {NAT 22/TCP\\Port Forward\\WAN vers DMZ};
+		\node[diagdiamond, minimum width=5.3cm, minimum height=15mm, inner sep=4pt, text width=3.6cm] (nat) at (11.0,0) {NAT 22/TCP\\port forward\\WAN vers DMZ};
 		\node[diagbox, minimum width=3.6cm, minimum height=14mm, inner sep=6pt, text width=3.2cm, fill=warningorange!18] (host) at (17.0,1.8) {DMZ Host\\192.168.10.100:22};
 		\node[diagbox, minimum width=3.6cm, minimum height=14mm, inner sep=6pt, text width=3.2cm, fill=secondary!20] (cow) at (17.0,-1.8) {Cowrie container\\2222/tcp};
 		\node[font=\small\bfseries, align=center] at (11.0,2.3) {barrière SSH-Leurre};
