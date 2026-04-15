@@ -431,31 +431,33 @@ La Figure~\ref{fig:intro-end-to-end-architecture} synthétise la chaîne de bout
 				zone/.style={
 					rectangle, rounded corners=6pt,
 					draw=primary, thick, dashed,
-					minimum width=5cm, minimum height=4.5cm,
+					minimum width=5.5cm, minimum height=5cm,
 					inner sep=10pt, align=center
 				}
 			}
 
 			\node[zone] (wan_zone) at (0,0) {\small\bfseries WAN / Internet};
-			\node[diagbox] (attacker) at (0,0.8) {Attacker\\Parrot};
-			\node[diagbox] (internet) at (0,-0.8) {Internet};
+			\node[diagbox] (attacker) at ([yshift=1.1cm]wan_zone.center) {Attacker\\Parrot};
+			\node[diagbox] (internet) at ([yshift=-1.1cm]wan_zone.center) {Internet};
 
-			\node[zone, right=5.8cm of wan_zone] (dmz_zone) {\small\bfseries DMZ};
-			\node[diagbox, fill=primary!16] (fw) at (5.8,1.6) {pfSense\\Firewall\\Router};
-			\node[diagbox] (dvwa) at (5.8,0.3) {DVWA\\Cowrie};
-			\node[diagbox] (dmzhost) at (5.8,-1.1) {Hôte DMZ};
-			\node[diagbox, fill=secondary!14] (snort) at (5.8,-2.5) {Snort IDS};
+			\node[zone, minimum height=5.8cm, right=6.5cm of wan_zone] (dmz_zone) {\small\bfseries DMZ};
+			\node[diagbox, fill=primary!16] (fw) at ([yshift=1.7cm]dmz_zone.center) {pfSense\\Firewall\\Router};
+			\node[diagbox] (dvwa) at ([yshift=0.4cm]dmz_zone.center) {DVWA\\Cowrie};
+			\node[diagbox] (dmzhost) at ([yshift=-0.9cm]dmz_zone.center) {Hôte DMZ};
+			\node[diagbox, fill=secondary!14] (snort) at ([yshift=-2.2cm]dmz_zone.center) {Snort IDS};
 
-			\node[zone, right=5.8cm of dmz_zone] (lan_zone) {\small\bfseries LAN Interne};
-			\node[diagbox, fill=green!18] (wazuh) at (11.6,0.8) {Wazuh SIEM};
-			\node[diagbox, fill=green!14] (assets) at (11.6,-0.8) {Assets LAN};
+			\node[zone, right=6.5cm of dmz_zone] (lan_zone) {\small\bfseries LAN Interne};
+			\node[diagbox, fill=green!18] (wazuh) at ([yshift=1.1cm]lan_zone.center) {Wazuh SIEM};
+			\node[diagbox, fill=green!14] (assets) at ([yshift=-1.1cm]lan_zone.center) {Assets LAN};
 
-			\path[diagflow, bend left=15]
-				(wan_zone.east) edge node[above, font=\small, yshift=0.4cm] {Flux officiel} (dmz_zone.west)
-				(dmz_zone.east) edge node[above, font=\small, yshift=0.4cm] {Accès} (lan_zone.west);
+			\path[diagflow, bend left=22]
+				(wan_zone.east) edge node[above, font=\small, yshift=0.5cm] {Flux officiel} (dmz_zone.west);
 
-			\path[diagflow, bend right=20, dashed]
-				(lan_zone.west) edge node[below, font=\tiny, yshift=-0.4cm] {Flux officieux} (dmz_zone.east);
+			\path[diagflow, bend left=20]
+				(dmz_zone.east) edge node[above, font=\small, yshift=0.8cm] {Accès} (lan_zone.west);
+
+			\path[diagflow, bend right=25, dashed]
+				(lan_zone.west) edge node[below, font=\small, yshift=-0.5cm] {Flux officieux} (dmz_zone.east);
 
 			\draw[diagflow, warningorange!90!black] (attacker.east) -- (fw.west);
 			\draw[diagflow, warningorange!90!black] (internet.east) -- (fw.west);
@@ -532,21 +534,28 @@ La progression pédagogique est également représentée visuellement dans la Fi
 	\centering
 	\resizebox{\textwidth}{!}{
 	\begin{tikzpicture}[font=\small]
-		\node[diagbox, minimum width=2.5cm, minimum height=18mm] (p1) at (0,0) {1. Infrastructure};
-		\node[diagbox, minimum width=2.5cm, minimum height=18mm, right=1.5cm of p1] (p2) {2. Reconnaissance};
-		\node[diagbox, minimum width=2.5cm, minimum height=18mm, right=1.5cm of p2] (p3) {3. Exploitation};
-		\node[diagbox, minimum width=2.5cm, minimum height=18mm, right=1.5cm of p3] (p4) {4. Web\\(DVWA)};
-		\node[diagbox, minimum width=2.5cm, minimum height=18mm, right=1.5cm of p4] (p5) {5. Honeypot};
-		\node[diagbox, minimum width=2.5cm, minimum height=18mm, right=1.5cm of p5] (p6) {6. Détection\\IDS};
-		\node[diagbox, minimum width=2.5cm, minimum height=18mm, right=1.5cm of p6] (p7) {7. SIEM};
-		\draw[diagarrow] (p1) -- (p2);
-		\draw[diagarrow] (p2) -- (p3);
-		\draw[diagarrow] (p3) -- (p4);
-		\draw[diagarrow] (p4) -- (p5);
-		\draw[diagarrow] (p5) -- (p6);
-		\draw[diagarrow] (p6) -- (p7);
-		\draw[-Latex, thick, draw=secondary] (p7.south) to[bend right=38] node[pos=0.55, below=0.3cm, diaglabel] {feedback SOC} (p3.south);
-		\draw[-Latex, thick, draw=secondary] (p6.north) to[bend left=30] node[pos=0.55, above=0.3cm, diaglabel] {tuning} (p2.north);
+		\tikzset{
+			phasebox/.style={
+				diagbox, minimum width=2.4cm, minimum height=1.8cm, fill=primary!8
+			}
+		}
+		\node[phasebox] (p1) at (0,0) {1.\\Infrastructure};
+		\node[phasebox, right=1.8cm of p1] (p2) {2.\\Reconnaissance};
+		\node[phasebox, right=1.8cm of p2] (p3) {3.\\Exploitation};
+		\node[phasebox, right=1.8cm of p3] (p4) {4. Web\\(DVWA)};
+		\node[phasebox, right=1.8cm of p4] (p5) {5.\\Honeypot};
+		\node[phasebox, right=1.8cm of p5] (p6) {6. Détection\\IDS};
+		\node[phasebox, right=1.8cm of p6] (p7) {7.\\SIEM};
+		\draw[diagflow, primary] (p1) -- (p2);
+		\draw[diagflow, primary] (p2) -- (p3);
+		\draw[diagflow, primary] (p3) -- (p4);
+		\draw[diagflow, primary] (p4) -- (p5);
+		\draw[diagflow, primary] (p5) -- (p6);
+		\draw[diagflow, primary] (p6) -- (p7);
+		\draw[diagflow, secondary, dashed]
+			(p3.north) -- ([yshift=2.5cm]p3.north) -- node[midway, above=0.6cm, diaglabel] {feedback SOC} ([yshift=2.5cm]p6.north) -- (p6.north);
+		\draw[diagflow, secondary, dashed]
+			(p6.south) -- ([yshift=-2.5cm]p6.south) -- node[midway, below=0.6cm, diaglabel] {tuning} ([yshift=-2.5cm]p4.south) -- (p4.south);
 	\end{tikzpicture}
 	}
 	\caption{Approche pédagogique en 7 phases avec progression et boucles de rétroaction}
@@ -652,19 +661,19 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 		\resizebox{0.98\textwidth}{!}{
 		\begin{tikzpicture}[font=\small]
 			\node[diagbox, minimum width=3cm] (ext) at (0,0) {Attaquant externe\\\texttt{192.168.100.150}};
-			\node[diagbox, minimum width=3cm, fill=primary!16] (wan) at (3.6,0) {Interface WAN\\pfSense};
-			\node[diagdiamond, minimum width=6cm, minimum height=4cm] (nat) at (7.2,0) {\small\bfseries Règle NAT\\\small Port Forward ?};
-			\node[diagbox, minimum width=3.4cm, right=1.8cm of nat] (dmz) {Hôte DMZ\\\texttt{192.168.10.100}};
+			\node[diagbox, minimum width=3cm, fill=primary!16, right=2cm of ext] (wan) {Interface WAN\\pfSense};
+			\node[diagdiamond, minimum width=6cm, minimum height=4.2cm, right=2cm of wan] (nat) {\small\bfseries Règle NAT\\\small Port Forward ?};
+			\node[diagbox, minimum width=3.4cm, right=2cm of nat] (dmz) {Hôte DMZ\\\texttt{192.168.10.100}};
 
-			\node[diaglabel, above=0.6cm of nat] {\small\textbf{pré-NAT:} dst=\texttt{192.168.100.6:80/139/445}};
-			\node[diaglabel, above=2cm of nat] {\small\textbf{post-NAT:} dst=\texttt{192.168.10.100:80/139/445}};
-			\node[diagbox, minimum width=3cm, fill=secondary!10, below=1.5cm of nat] (deny) {\small Sinon: DROP\\\textit{(règles WAN)}};
+			\node[diaglabel, font=\small\bfseries, anchor=south] at ([yshift=2.5cm]nat.center) {post-NAT : dst=\texttt{192.168.10.100:80/139/445}};
+			\node[diaglabel, font=\small\bfseries, anchor=south] at ([yshift=1.3cm]nat.center) {pré-NAT : dst=\texttt{192.168.100.6:80/139/445}};
+			\node[diagbox, minimum width=3cm, fill=secondary!10, below=1.8cm of nat] (deny) {\small Sinon: DROP\\\textit{(règles WAN)}};
 
 			\draw[diagflow, warningorange!90!black] (ext) -- node[above] {\scriptsize paquet entrant} (wan);
 			\draw[diagflow, warningorange!90!black] (wan) -- (nat);
-			\draw[diagflow, green!60!black] (nat) -- (dmz);
-			\node[diaglabel, left=0.4cm of dmz, font=\tiny] {match};
-			\draw[diagflow, accent] (nat) -- node[right=0.4cm, diaglabel] {pas de match} (deny);
+			\draw[diagflow, green!60!black] (nat) -- node[above, font=\tiny] {match} (dmz);
+			\draw[diagflow, accent] (nat) -- (deny);
+			\node[diaglabel, font=\tiny] at ([xshift=-1.1cm,yshift=-1.0cm]nat.center) {pas de match};
 			\draw[diagflow, blue!70!black, dashed] (dmz.south) to[bend right=30] node[below] {\scriptsize trafic retour stateful} (wan.south);
 			\draw[diagflow, blue!70!black, dashed] (wan.south west) to[bend right=20] (ext.south);
 		\end{tikzpicture}
@@ -1734,25 +1743,21 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 
 	\begin{figure}[H]
 		\centering
-		\begin{tabularx}{\textwidth}{|>{\centering\arraybackslash}p{2.5cm}|>{\centering\arraybackslash}p{1.4cm}|>{\centering\arraybackslash}p{1.4cm}|>{\centering\arraybackslash}p{1.4cm}|>{\centering\arraybackslash}p{1.4cm}|}
+		\setlength{\tabcolsep}{8pt}
+		\renewcommand{\arraystretch}{1.3}
+		\begin{tabularx}{14cm}{|>{\bfseries\centering\arraybackslash}m{2.8cm}|>{\centering\arraybackslash}m{1.6cm}|>{\centering\arraybackslash}m{1.6cm}|>{\centering\arraybackslash}m{1.6cm}|>{\centering\arraybackslash}m{1.6cm}|}
 			\hline
-			\textbf{Service} & \textbf{Critical} & \textbf{High} & \textbf{Medium} & \textbf{Low} \\
+			\textbf{Service}\rule{0pt}{1.5cm} & \textbf{Critical} & \textbf{High} & \textbf{Medium} & \textbf{Low} \\
 			\hline
-			\textbf{Telnet} & \cellcolor{red!60}9.8 & \cellcolor{orange!60}0 & \cellcolor{yellow!40}0 & \cellcolor{green!40}0 \\
+			Telnet\rule{0pt}{1.2cm} & \cellcolor{red!60}\centering 9.8 & \cellcolor{orange!60}\centering 0 & \cellcolor{yellow!40}\centering 0 & \cellcolor{green!40}\centering 0 \\
 			\hline
-			\textbf{HTTP/DVWA} & \cellcolor{red!60}9.1 & \cellcolor{orange!60}0 & \cellcolor{yellow!40}0 & \cellcolor{green!40}0 \\
+			HTTP/DVWA\rule{0pt}{1.2cm} & \cellcolor{red!60}\centering 9.1 & \cellcolor{orange!60}\centering 0 & \cellcolor{yellow!40}\centering 0 & \cellcolor{green!40}\centering 0 \\
 			\hline
-			\textbf{SMB445} & \cellcolor{red!60}0 & \cellcolor{orange!60}8.4 & \cellcolor{yellow!40}0 & \cellcolor{green!40}0 \\
+			SMB445\rule{0pt}{1.2cm} & \cellcolor{red!60}\centering 0 & \cellcolor{orange!60}\centering 8.4 & \cellcolor{yellow!40}\centering 0 & \cellcolor{green!40}\centering 0 \\
 			\hline
-			\textbf{Samba139} & \cellcolor{red!60}0 & \cellcolor{orange!60}7.5 & \cellcolor{yellow!40}0 & \cellcolor{green!40}0 \\
+			Samba139\rule{0pt}{1.2cm} & \cellcolor{red!60}\centering 0 & \cellcolor{orange!60}\centering 7.5 & \cellcolor{yellow!40}\centering 0 & \cellcolor{green!40}\centering 0 \\
 			\hline
 		\end{tabularx}
-		\begin{tikzpicture}[remember picture, overlay]
-			\node[right=10cm of current page.center, anchor=west, yshift=-1.5cm] {\textcolor{red}{\small\bfseries Score 9.8 P1 immédiate}};
-			\node[right=10cm of current page.center, anchor=west, yshift=-2.5cm] {\textcolor{red}{\small\bfseries Score 9.1 P1 immédiate}};
-			\node[right=10cm of current page.center, anchor=west, yshift=-3.5cm] {\textcolor{orange}{\small\bfseries Score 8.4 P2 court terme}};
-			\node[right=10cm of current page.center, anchor=west, yshift=-4.5cm] {\textcolor{orange}{\small\bfseries Score 7.5 P2 court terme}};
-		\end{tikzpicture}
 		\caption{Heatmap de risque CVSS des services exposés en DMZ}
 		\label{fig:cvss-risk-heatmap}
 	\end{figure}
