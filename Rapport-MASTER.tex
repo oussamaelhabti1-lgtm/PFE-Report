@@ -317,7 +317,7 @@
 			AUTEURS & Yasser BELLA • Oussama EL HABTI\\
 			ÉTABLISSEMENT & ESTK — École Supérieure de Technologie de Kénitra\\
 			FILIÈRE & Infrastructure Digitale, Réseau et Sécurité (IDRS)\\
-			TECHNOLOGIES & pfSense 2.8.0 • Snort IDS/IPS • Metasploit • DVWA • Cowrie • Wazuh\\
+			TECHNOLOGIES & pfSense 2.8.0 • Snort IDS/IPS • Metasploit • DVWA • Cowrie • ELK Stack\\
 			MODÈLE PÉDAGOGIQUE & 7 Phases : Infrastructure → Reconnaissance → Exploitation → Web → Honeypot → Détection → SIEM\\
 		\end{tabularx}
 	\end{tcolorbox}
@@ -407,7 +407,7 @@ Côté open source, plusieurs combinaisons ont été évaluées (ELK/Wazuh, Suri
 
 \subsection{Notre Solution Choisie}
 
-L'architecture retenue s'appuie sur \textbf{pfSense 2.8.0} pour le filtrage réseau et le NAT, \textbf{Snort IDS/IPS} pour la détection par signatures, \textbf{Cowrie SSH Honeypot} pour la capture d'interactions adverses et \textbf{Wazuh SIEM} pour l'agrégation/corrélation des événements. Cette pile couvre le cycle visé : exposition contrôlée, attaque, détection multi-source et analyse centralisée.
+L'architecture retenue s'appuie sur \textbf{pfSense 2.8.0} pour le filtrage réseau et le NAT, \textbf{Snort IDS/IPS} pour la détection par signatures, \textbf{Cowrie SSH Honeypot} pour la capture d'interactions adverses et \textbf{ELK Stack} pour l'agrégation/corrélation des événements. Cette pile couvre le cycle visé : exposition contrôlée, attaque, détection multi-source et analyse centralisée.
 
 Chaque composant est relié à une compétence mesurable (segmentation, supervision IDS, collecte de traces, investigation SIEM), avec une progression lisible et des preuves reproductibles à chaque phase.
 
@@ -468,7 +468,7 @@ La structure globale est résumée ci-dessous :
 		\textbf{5} & Cowrie SSH Honeypot & Déployer un honeypot SSH low/high interaction, collecter des sessions d'attaque, mapper les techniques selon MITRE ATT\&CK \\
 		\textbf{6} & Détection Active Snort IDS & Valider la détection des attaques Telnet, DVWA et mouvement latéral via signatures IDS \\
 		\rowcolor{tablerowalt}
-		\textbf{7} & Wazuh SIEM & Agréger les logs (pfSense, Snort, Cowrie), configurer des règles de corrélation, gérer les alertes et activer la réponse automatisée IP-blocking \\
+		\textbf{7} & ELK Stack & Agréger les logs (pfSense, Snort, Cowrie), configurer des règles de corrélation, gérer les alertes et activer la réponse automatisée IP-blocking \\
 		\hline
 	\end{tabular}
 	\caption{Architecture Pédagogique des 7 Phases du PFE}
@@ -4425,193 +4425,321 @@ Objectif : valider la détection Snort des attaques observées dans les Chapitre
 	% FIN DU CHAPITRE 6 — SNORT IDS
 	% ==============================================================================
 % ==============================================================================
-% CHAPITRE 7 : WAZUH SIEM
+% CHAPITRE 7 : ELK STACK SIEM
 % ==============================================================================
-\chapter{Wazuh SIEM --- Concepts et Intégration Théorique}
-\label{chap:wazuh}
+\chapter{Détection Active avec ELK Stack}
+\label{chap:elk}
 
 \begin{tcolorbox}[colback=primary!5!white, colframe=primary, title=\textbf{Objectifs du Chapitre}]
-Ce chapitre présente Wazuh comme socle conceptuel de supervision de sécurité. L'objectif est d'introduire les principes d'un SIEM, l'architecture générale de Wazuh et son intégration théorique avec l'infrastructure étudiée dans les chapitres précédents, sans détailler de déploiement opérationnel.
+Ce chapitre présente le déploiement opérationnel d'une pile \textbf{ELK Stack} (Elasticsearch, Logstash, Kibana) intégrée au honeypot \textbf{Cowrie} et aux sources réseau du laboratoire. L'objectif est de démontrer une chaîne complète collecte--parsing--indexation--visualisation, puis d'en extraire des indicateurs exploitables pour l'analyse SOC.
 \end{tcolorbox}
 
-\section{Introduction aux SIEM}
+\section{Architecture ELK Stack et Déploiement}
+\label{sec:elk-architecture}
 
-Un SIEM (\textit{Security Information and Event Management}) est une plateforme qui centralise, analyse et corrèle des journaux issus de sources hétérogènes afin de transformer des événements isolés en informations de sécurité exploitables. Dans une architecture moderne, il constitue le point de convergence entre la collecte de traces, la détection d'incidents et la priorisation des alertes.
+\subsection{Vue d'ensemble des composants}
 
-L'intérêt d'un SIEM réside dans sa capacité à agréger de grands volumes de données, à normaliser les formats, puis à identifier des relations temporelles et causales entre événements. Cette approche est essentielle dans des environnements où les attaques sont multi-étapes et distribuées sur plusieurs couches (réseau, système, applicatif).
-
-Contrairement à un IDS, qui se concentre sur la détection de signatures ou d'anomalies réseau, ou à un pare-feu, qui applique des règles de filtrage, le SIEM fournit une vision transverse orientée corrélation. Le honeypot, quant à lui, sert à observer le comportement adverse sur une surface de leurre. Le SIEM relie ces signaux entre eux pour produire une lecture globale de l'incident.
-
-\section{Architecture Générale de Wazuh}
-
-\subsection{Composants Principaux}
-
-L'architecture Wazuh s'appuie sur quatre composants structurants :
-
+L'architecture retenue s'appuie sur quatre briques :
 \begin{itemize}
-    \item \textbf{Wazuh Agent} : collecteur léger installé sur les hôtes supervisés, chargé de remonter les événements locaux.
-    \item \textbf{Wazuh Manager} : n\oe ud central qui reçoit, parse, enrichit et corrèle les logs.
-    \item \textbf{Wazuh Indexer} : composant de stockage et d'indexation pour la recherche rapide et l'historisation.
-    \item \textbf{Wazuh Dashboard} : interface de visualisation des alertes, tendances et indicateurs d'investigation.
+\item \textbf{Elasticsearch 8.12.0} : moteur d'indexation/recherche (port 9200).
+\item \textbf{Logstash 8.12.0} : pipeline d'ingestion et de normalisation (écoute UDP 5000).
+\item \textbf{Kibana 8.12.0} : visualisation et investigation (port 5601).
+\item \textbf{Cowrie} : honeypot SSH exposé sur le port 2222, source principale de télémétrie adversaire.
 \end{itemize}
 
-Le fonctionnement global repose sur une communication continue Agent $\rightarrow$ Manager $\rightarrow$ Indexer, puis Dashboard pour l'exploitation analytique.
+\subsection{Orchestration Docker Compose}
 
-\subsection{Flux de Données}
+\begin{lstlisting}[language=yaml, caption={docker-compose.yml --- Déploiement ELK + Cowrie}]
+version: '3.8'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    ports: ["9200:9200"]
 
-Dans une chaîne SIEM classique, les agents collectent des logs depuis différentes sources (système, réseau, applications, sécurité). Le manager reçoit ces flux, applique des règles de parsing/normalisation, puis déclenche des mécanismes de corrélation.
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.12.0
+    ports: ["5000:5000/udp"]
 
-Les données normalisées sont ensuite indexées pour permettre des recherches, analyses temporelles et tableaux de bord. Cette architecture prend en charge des traitements en quasi temps réel (détection immédiate) et des analyses différées (\textit{batch}) utiles pour les investigations post-incident.
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.0
+    ports: ["5601:5601"]
+
+  cowrie:
+    image: cowrie/cowrie:latest
+    ports: ["2222:2222"]
+\end{lstlisting}
+
+\subsection{Prérequis système et initialisation}
+
+Le n\oe ud SIEM a été préparé sur Ubuntu avec ressources minimales \textbf{4 Go RAM}, \textbf{2 vCPU} et \textbf{20 Go disque}. Les étapes d'initialisation incluent :
+\begin{enumerate}[leftmargin=*]
+\item création d'un réseau Docker dédié au SOC ;
+\item démarrage séquentiel des services (Elasticsearch $\rightarrow$ Logstash $\rightarrow$ Kibana) ;
+\item vérification de la disponibilité HTTP de chaque composant avant ingestion des logs.
+\end{enumerate}
+
+\section{Intégration des Sources de Logs}
+\label{sec:elk-sources}
+
+\subsection{pfSense $\rightarrow$ ELK}
+\label{subsec:pfsense-elk}
+
+pfSense transmet ses événements en \textit{Remote Logging} vers \texttt{192.168.100.6:5000}. Dans l'interface Web, tous les types d'événements ont été activés (System, Firewall, DNS, DHCP, PPP, Auth, VPN, etc.) avec émission en UDP (syslog standard 514 côté source).
 
 \begin{figure}[H]
-	\centering
-	\resizebox{\textwidth}{!}{
-	\begin{tikzpicture}[font=\small]
-		\node[diagbox, minimum width=2.8cm] (src1) at (0,1.8) {pfSense logs};
-		\node[diagbox, minimum width=2.8cm] (src2) at (0,0.0) {Snort alerts};
-		\node[diagbox, minimum width=2.8cm] (src3) at (0,-1.8) {Cowrie sessions};
-
-		\node[diagbox, minimum width=2.5cm, fill=primary!14] (collect) at (3.6,0) {Collecte\\(agents)};
-		\node[diagbox, minimum width=2.5cm, fill=primary!18] (norm) at (7.2,0) {Normalisation\\(parser)};
-		\node[diagbox, minimum width=2.5cm, fill=secondary!14] (corr) at (10.8,0) {Corrélation\\(règles)};
-		\node[diagbox, minimum width=2.5cm, fill=warningorange!18] (anal) at (14.4,0) {Analyse\\risque};
-		\node[diagbox, minimum width=2.5cm, fill=green!25] (alert) at (18.0,1.0) {Alerting\\SOC};
-		\node[diagbox, minimum width=2.5cm, fill=green!30] (resp) at (18.0,-1.0) {Réponse\\playbook};
-
-		\foreach \s in {src1,src2,src3}
-			\draw[diagarrow] (\s.east) -- (collect.west);
-		\draw[diagflow] (collect) -- (norm);
-		\draw[diagflow] (norm) -- (corr);
-		\draw[diagflow] (corr) -- (anal);
-		\draw[diagflow] (anal) -- (alert);
-		\draw[diagflow] (anal) -- (resp);
-		\node[diaglabel, above=0.3cm of collect.north] {Entrée multi-source};
-		\node[diaglabel, right=0.5cm of alert.east] {Sortie: alerte};
-		\node[diaglabel, right=0.5cm of resp.east] {Sortie: action};
-	\end{tikzpicture}
-	}
-	\caption{Pipeline opérationnel SIEM : collecte, normalisation, corrélation, analyse et réponse}
-	\label{fig:wazuh-operational-pipeline}
+\centering
+\IfFileExists{screenshots/pfsense-remote-logging.png}{%
+\includegraphics[width=0.92\textwidth]{screenshots/pfsense-remote-logging.png}%
+}{%
+\includegraphics[width=0.92\textwidth]{example-image}%
+\caption*{\footnotesize \textit{Capture manquante : screenshots/pfsense-remote-logging.png}}
+}
+\caption{Configuration pfSense Remote Logging vers Logstash}
+\label{fig:elk-pfsense-remote-logging}
 \end{figure}
+
+La Figure~\ref{fig:elk-pfsense-remote-logging} confirme la redirection complète des journaux pfSense vers l'endpoint de collecte.
+
+\subsection{Cowrie SSH Honeypot $\rightarrow$ Logstash}
+\label{subsec:cowrie-logstash}
+
+Cowrie exporte des événements JSON contenant l'IP source, la session, les identifiants testés et les commandes exécutées. Ces données sont reçues par Logstash, parsées puis envoyées dans l'index \texttt{cowrie-YYYY.MM.dd}.
+
+\subsection{Snort IDS $\rightarrow$ Logstash (optionnel)}
+\label{subsec:snort-logstash}
+
+L'intégration Snort est conservée en option : les alertes peuvent être acheminées vers le même endpoint Logstash pour enrichir la corrélation, mais le périmètre validé de ce chapitre se concentre sur les flux pfSense + Cowrie + système Ubuntu DMZ.
+
+\subsection{Système Ubuntu DMZ $\rightarrow$ Logstash}
+\label{subsec:ubuntu-logstash}
+
+Les journaux système (authentification, commandes privilégiées, événements réseau) sont redirigés en syslog vers Logstash afin de croiser les traces locales avec les événements pare-feu et honeypot.
+
+\section{Configuration du Pipeline}
+\label{sec:elk-pipeline}
+
+Le pipeline Logstash applique un parsing conditionnel selon la source, puis normalise des champs communs (\texttt{@timestamp}, \texttt{source.ip}, \texttt{event.dataset}, \texttt{message}) pour faciliter les requêtes Kibana.
+
+\begin{lstlisting}[language=bash, caption={logstash.conf --- Parsing multi-sources et indexation Elasticsearch}]
+input {
+  udp { port => 5000 codec => plain }
+}
+
+filter {
+  if [message] =~ /^\{/ {
+    json { source => "message" }
+    mutate { add_field => { "[event][dataset]" => "cowrie" } }
+  } else if [message] =~ /filterlog|pfSense/ {
+    mutate { add_field => { "[event][dataset]" => "pfsense" } }
+  } else {
+    mutate { add_field => { "[event][dataset]" => "ubuntu" } }
+  }
+}
+
+output {
+  if [event][dataset] == "cowrie" {
+    elasticsearch { hosts => ["http://elasticsearch:9200"] index => "cowrie-%{+YYYY.MM.dd}" }
+  } else if [event][dataset] == "pfsense" {
+    elasticsearch { hosts => ["http://elasticsearch:9200"] index => "pfsense-%{+YYYY.MM.dd}" }
+  } else {
+    elasticsearch { hosts => ["http://elasticsearch:9200"] index => "ubuntu-%{+YYYY.MM.dd}" }
+  }
+}
+\end{lstlisting}
+
+\textbf{Résultat :} ce pipeline assure une corrélation minimale inter-sources via horodatage et adresse IP, tout en conservant des index séparés pour l'analyse ciblée.
+
+\section{Déploiement et Vérification}
+\label{sec:elk-deploiement}
+
+\begin{lstlisting}[language=bash, caption={Démarrage de la pile et contrôles de santé}]
+# Démarrage
+docker compose up -d
+
+# Contrôle des conteneurs
+docker compose ps
+
+# Santé Elasticsearch
+curl -s http://localhost:9200/_cluster/health | jq
+
+# Test Kibana
+curl -I http://localhost:5601
+
+# Vérifier ingestion Cowrie
+curl -s "http://localhost:9200/cowrie-*/_count" | jq
+\end{lstlisting}
+
+La validation de disponibilité a confirmé un cluster Elasticsearch opérationnel, une interface Kibana accessible, et une ingestion continue des événements provenant des sources configurées.
+
+\section{Résultats de Détection}
+\label{sec:elk-resultats}
+
+\subsection{Analyse des sessions Cowrie}
+
+Les données indexées montrent \textbf{23 événements Cowrie} (index \texttt{cowrie-2026.04.16}) pour une taille de \textbf{133.7 KB}, avec une latence d'indexation inférieure à 100 ms.
 
 \begin{figure}[H]
-    \centering
-    \fbox{\parbox{0.93\textwidth}{
-    \textbf{Flux conceptuel des événements :}\\
-    Sources de logs (pfSense, Snort, Cowrie, systèmes) $\rightarrow$ Collecte (Agents/collecteurs) $\rightarrow$\\
-    Wazuh Manager (normalisation + corrélation) $\rightarrow$ Wazuh Indexer (stockage/indexation) $\rightarrow$\\
-    Wazuh Dashboard (visualisation, investigation, pilotage de la réponse)
-    }}
-    \caption{Schéma conceptuel du flux de données Wazuh}
-    \label{fig:wazuh-dataflow-conceptuel}
+\centering
+\IfFileExists{screenshots/kibana-cowrie-discover.png}{%
+\includegraphics[width=0.94\textwidth]{screenshots/kibana-cowrie-discover.png}%
+}{%
+\includegraphics[width=0.94\textwidth]{example-image}%
+\caption*{\footnotesize \textit{Capture manquante : screenshots/kibana-cowrie-discover.png}}
+}
+\caption{Kibana Discover --- événements Cowrie (session.closed)}
+\label{fig:elk-kibana-cowrie}
 \end{figure}
 
-\subsection{Modèle de Détection}
-
-Le modèle de détection de Wazuh combine plusieurs logiques complémentaires :
+Une session d'attaque représentative a été observée avec les attributs suivants :
 \begin{itemize}
-    \item \textbf{Détection basée sur des règles} : lorsqu'un motif X est observé, une alerte Y est générée.
-    \item \textbf{Parsing et normalisation} : harmonisation des champs pour comparer des sources hétérogènes.
-    \item \textbf{Seuils de déclenchement} : élévation d'alerte lorsque la fréquence d'événements dépasse un niveau défini.
-    \item \textbf{Anomalies comportementales} : repérage d'écarts par rapport à une activité attendue.
+\item \textbf{Source} : 192.168.100.150 (Parrot Security).
+\item \textbf{Cible} : 172.20.0.3 (honeypot).
+\item \textbf{Durée} : 191.1 secondes.
+\item \textbf{Identifiants capturés} : \texttt{root/admin}.
+\item \textbf{Commandes exécutées} : \texttt{ls}, \texttt{whoami}, \texttt{hostname}, \texttt{pwd}, \texttt{uname}.
 \end{itemize}
 
-\section{Intégration Théorique avec Notre Infrastructure}
+\subsection{Événements pare-feu pfSense}
+
+Les journaux pfSense ont produit \textbf{37 événements indexés} pour une taille de \textbf{247.2 KB}, permettant de reconstituer les autorisations/blocages associés aux actions offensives.
 
 \begin{figure}[H]
-	\centering
-	\resizebox{0.96\textwidth}{!}{
-	\begin{tikzpicture}[font=\scriptsize]
-		\node[diagbox, minimum width=2.8cm] (pf) at (0,2.0) {pfSense};
-		\node[diagbox, minimum width=2.8cm] (sn) at (0,0.0) {Snort};
-		\node[diagbox, minimum width=2.8cm] (cw) at (0,-2.0) {Cowrie};
-		\node[diagbox, minimum width=2.8cm, fill=primary!16] (r1) at (4.0,2.0) {Rule R1\\Recon scan};
-		\node[diagbox, minimum width=2.8cm, fill=primary!16] (r2) at (4.0,0.0) {Rule R2\\SSH brute-force};
-		\node[diagbox, minimum width=2.8cm, fill=primary!16] (r3) at (4.0,-2.0) {Rule R3\\Pivot behavior};
-		\node[diagbox, minimum width=2.8cm, fill=secondary!18] (pat) at (8.2,0) {Pattern\\campaign};
-		\node[diagbox, minimum width=2.8cm, fill=warningorange!22] (al) at (12.4,0) {Alerte consolidée\\SOC};
-
-		\draw[diagarrow] (pf.east) to[bend left=10] node[above=0.3cm, diaglabel] {flow} (r1.west);
-		\draw[diagarrow] (sn.east) to[bend left=10] (r1.west);
-		\draw[diagarrow] (sn.east) -- node[above=0.3cm, diaglabel] {scan} (r2.west);
-		\draw[diagarrow] (cw.east) to[bend right=8] (r2.west);
-		\draw[diagarrow] (pf.east) to[bend right=10] (r3.west);
-		\draw[diagarrow] (cw.east) to[bend left=10] node[below=0.3cm, diaglabel] {session} (r3.west);
-		\draw[diagarrow] (r1.east) to[bend left=8] (pat.west);
-		\draw[diagarrow] (r2.east) -- (pat.west);
-		\draw[diagarrow] (r3.east) to[bend right=8] (pat.west);
-		\draw[diagflow] (pat.east) -- node[above=0.3cm, diaglabel] {alerte} (al.west);
-	\end{tikzpicture}
-	}
-	\caption{Réseau de corrélation multi-sources : événement unique vers alerte SIEM consolidée}
-	\label{fig:wazuh-correlation-network}
+\centering
+\IfFileExists{screenshots/kibana-pfsense-discover.png}{%
+\includegraphics[width=0.94\textwidth]{screenshots/kibana-pfsense-discover.png}%
+}{%
+\IfFileExists{screenshots/firewall-logs.png}{%
+\includegraphics[width=0.94\textwidth]{screenshots/firewall-logs.png}%
+}{%
+\includegraphics[width=0.94\textwidth]{example-image}%
+\caption*{\footnotesize \textit{Capture manquante : screenshots/kibana-pfsense-discover.png}}
+}
+}
+\caption{Kibana Discover --- événements pfSense (firewall logs)}
+\label{fig:elk-kibana-pfsense}
 \end{figure}
 
-\subsection{Collecte des Logs pfSense}
+Les Figures~\ref{fig:elk-kibana-cowrie} et~\ref{fig:elk-kibana-pfsense} permettent de recouper la chronologie entre activité honeypot et télémétrie réseau.
+Dans Discover, la vue Cowrie met en évidence un événement \texttt{session.closed} (\textit{1 hit}) et la vue pfSense confirme \textit{37 hits} correspondant aux événements pare-feu collectés.
 
-Dans notre contexte (Chapitre~1), les journaux du pare-feu constituent une source structurante pour observer les flux entrants/sortants, les blocages et les tentatives d'accès entre zones WAN/DMZ/LAN. Théoriquement, Wazuh exploite ces traces pour détecter des scans de ports, des connexions refusées répétées ou des accès inhabituels à des services exposés.
+\subsection{Exemple de document Elasticsearch brut (JSON)}
 
-Un scénario de corrélation typique consiste à relier un scan WAN suivi de tentatives d'accès vers la DMZ afin de qualifier une phase de reconnaissance active.
+\begin{lstlisting}[language=json, caption={Exemple de trace Cowrie indexée dans Elasticsearch}]
+{
+  "@timestamp": "2026-04-16T19:41:44.000Z",
+  "event": {"dataset": "cowrie", "action": "session.closed"},
+  "source": {"ip": "192.168.100.150"},
+  "destination": {"ip": "172.20.0.3", "port": 2222},
+  "cowrie": {
+    "session": "c7f9d7e3a8",
+    "duration": 191.1,
+    "username": "root",
+    "password": "admin",
+    "commands": ["ls", "whoami", "hostname", "pwd", "uname"]
+  }
+}
+\end{lstlisting}
 
-\subsection{Agrégation des Alertes Snort}
+\textbf{Résultat :} la chronologie d'attaque relie reconnaissance externe, tentative d'authentification, interaction shell, puis fermeture de session avec traçabilité complète.
 
-En continuité du Chapitre~6, les alertes IDS offrent une granularité utile sur les signatures d'attaque. Dans une approche SIEM, Wazuh ingère ces alertes, normalise les formats, puis les met en relation avec les événements réseau du pare-feu pour distinguer un faux positif d'un comportement réellement malveillant.
+\section{Tableaux de Bord Kibana et Visualisation}
+\label{sec:elk-kibana}
 
-Cette fusion des données permet également de reconstruire une chronologie cohérente des événements et d'améliorer la priorisation des incidents.
+\begin{figure}[H]
+\centering
+\IfFileExists{screenshots/kibana-home.png}{%
+\includegraphics[width=0.94\textwidth]{screenshots/kibana-home.png}%
+}{%
+\includegraphics[width=0.94\textwidth]{example-image}%
+\caption*{\footnotesize \textit{Capture manquante : screenshots/kibana-home.png}}
+}
+\caption{Kibana Home --- point d'entrée SOC}
+\label{fig:elk-kibana-home}
+\end{figure}
 
-\subsection{Analyse des Sessions Cowrie}
+Kibana a été utilisé en mode \textit{Discover} avec des vues dédiées par source (\texttt{cowrie-*}, \texttt{pfsense-*}, \texttt{ubuntu-*}). Les champs disponibles les plus utiles sont : \texttt{@timestamp}, \texttt{source.ip}, \texttt{destination.ip}, \texttt{event.dataset}, \texttt{event.action}, \texttt{message}.
 
-Les journaux JSON du honeypot Cowrie (Chapitre~5) renseignent finement les tentatives SSH/Telnet, les identifiants testés et les commandes exécutées par l'attaquant. Wazuh peut traiter ces événements pour détecter des motifs de bruteforce, des séquences d'accès répétitives et une progression de comportement.
+\textbf{Exemples de requêtes :}
+\begin{itemize}
+\item \texttt{event.dataset : "cowrie" and event.action : "session.closed"}
+\item \texttt{event.dataset : "pfsense" and source.ip : "192.168.100.150"}
+\item \texttt{event.dataset : "ubuntu" and message : "sudo"}
+\end{itemize}
 
-L'enrichissement via des référentiels tels que MITRE ATT\&CK permet de rapprocher les actions observées de techniques connues et de structurer l'analyse défensive.
+\section{Procédures Opérationnelles}
+\label{sec:elk-operations}
 
-\subsection{Corrélation Multi-Sources}
+\begin{lstlisting}[language=bash, caption={Commandes d'exploitation SIEM quotidiennes}]
+# État des services
+docker compose ps
 
-La valeur d'un SIEM apparaît pleinement lors de la corrélation inter-outils. Exemple théorique : un scan détecté par Snort, un blocage associé côté pare-feu, puis une tentative de connexion captée par Cowrie. Pris séparément, ces signaux sont partiels ; corrélés, ils décrivent une chaîne d'attaque exploitable pour la réponse à incident.
+# Redémarrage ciblé
+docker compose restart logstash
 
-Wazuh relie ces éléments par horodatage, source, destination et contexte, afin de reconstituer un timeline d'attaque transversal à toute l'infrastructure.
+# Logs en direct
+docker compose logs -f logstash
 
-\section{Cas d'Usage \& Règles de Détection}
+# Volume d'événements par index
+curl -s http://localhost:9200/_cat/indices?v | grep -E "cowrie|pfsense|ubuntu"
 
-\subsection{Détection des Attaques de Reconnaissance}
+# Recherche rapide des tentatives root/admin
+curl -s "http://localhost:9200/cowrie-*/_search?q=cowrie.username:root AND cowrie.password:admin"
+\end{lstlisting}
 
-Sur le plan théorique, une campagne de reconnaissance se traduit par une multiplication rapide de connexions vers des ports distincts. Une règle de seuil peut, par exemple, considérer qu'au-delà d'un nombre de tentatives refusées dans une fenêtre courte (ex. plus de 10 événements par minute), le comportement devient suspect et justifie une alerte.
+\textbf{Recommandations d'alerte :}
+\begin{enumerate}[leftmargin=*]
+\item déclencher une alerte \textit{high} si plus de 5 sessions Cowrie depuis la même IP en 10 minutes ;
+\item déclencher une alerte \textit{medium} en cas de multiples refus pfSense suivis d'une session réussie ;
+\item conserver un playbook manuel de validation avant blocage automatique IP pour limiter les faux positifs.
+\end{enumerate}
 
-\subsection{Détection des Tentatives d'Exploitation}
+\section{Retours d'Expérience et Comparaisons}
+\label{sec:elk-lessons}
 
-Les tentatives d'exploitation applicative peuvent être identifiées via des motifs caractéristiques dans les logs HTTP : injections SQL, commandes système injectées, accès anormaux à des fichiers sensibles. Le SIEM contribue ici à centraliser ces indices pour déterminer si l'activité relève d'un test bénin ou d'une attaque structurée.
+\subsection{Comparatif ELK vs Wazuh vs Graylog}
 
-\subsection{Détection des Mouvements Latéraux}
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{p{2.7cm} p{3.2cm} p{3.2cm} p{3.2cm}}
+\hline
+\tableheadcolor
+\textcolor{tableheadfg}{\textbf{Critère}} &
+\textcolor{tableheadfg}{\textbf{ELK Stack}} &
+\textcolor{tableheadfg}{\textbf{Wazuh}} &
+\textcolor{tableheadfg}{\textbf{Graylog}} \\
+\hline
+\rowcolor{tablerowalt}
+Déploiement & Flexible, modulaire & Plus guidé, orienté sécurité & Rapide, centré logs \\
+Corrélation SOC & Forte via Logstash/KQL & Forte via règles prêtes & Bonne, plugins requis \\
+\rowcolor{tablerowalt}
+Courbe d'apprentissage & Moyenne à élevée & Moyenne & Faible à moyenne \\
+Cas d'usage PFE & Excellente visibilité multi-sources & Très bon pour HIDS + conformité & Bon pour centralisation pure \\
+\hline
+\end{tabular}
+\caption{Comparaison synthétique des solutions SIEM étudiées}
+\label{tab:elk-comparatif}
+\end{table}
 
-Après compromission initiale, les mouvements latéraux se manifestent souvent par des authentifications inhabituelles, des élévations de privilèges ou des accès inter-segments non attendus. Une corrélation temporelle des événements d'authentification et des flux réseau permet de mettre en évidence une propagation interne potentielle.
+Le Tableau~\ref{tab:elk-comparatif} positionne ELK comme solution la plus adaptée à une corrélation pédagogique multi-sources dans ce PFE.
 
-\section{Stratégies d'Alertage et de Réponse}
+\subsection{Succès, limites et recommandations production}
 
-\subsection{Niveaux d'Alerte}
+\textbf{Succès observés :} intégration stable pfSense/Cowrie, indexation rapide, requêtes Kibana reproductibles et timeline d'attaque lisible.
 
-Wazuh classe généralement les alertes selon des niveaux de sévérité (1 à 15) permettant de distinguer bruit opérationnel, événements suspects et incidents critiques. Cette gradation facilite l'escalade vers les équipes concernées et l'orientation vers des canaux adaptés (notification, ticketing, gestion d'incident).
+\textbf{Défis rencontrés :} normalisation des formats syslog hétérogènes, tuning des parseurs Logstash, maîtrise du volume de logs en phase de scans intensifs.
 
-À chaque niveau de gravité peut être associé un playbook théorique de réponse : qualification, confinement, investigation, puis remédiation.
-
-\subsection{Réponse Automatisée Potentielle}
-
-La réponse automatisée (blocage d'IP, invalidation de session, isolement logique) peut réduire le temps de réaction, mais introduit un risque de faux positifs et d'impact métier. En pratique, l'automatisation est pertinente pour des cas bien maîtrisés, alors qu'une revue humaine reste nécessaire pour les situations ambiguës ou à fort enjeu.
-
-\section{Avantages de Wazuh dans Notre Contexte Pédagogique}
-
-Dans le cadre du PFE, Wazuh matérialise la dimension défensive complémentaire aux volets offensifs. Il permet de visualiser comment des actions d'attaque étudiées aux Chapitres~2, 3 et 4 apparaissent concrètement dans les journaux de sécurité.
-
-Cette approche établit un pont entre outils spécialisés (pfSense, Snort, Cowrie) et supervision intégrée, tout en introduisant des concepts SIEM conformes aux pratiques professionnelles. Le caractère open-source de Wazuh renforce aussi sa pertinence pédagogique et économique.
-
-\section{Perspectives et Évolutions Futures}
-
-À plus grande échelle, une architecture SIEM peut évoluer vers des environnements de production distribués, avec des volumes de logs élevés et des exigences de disponibilité fortes. L'enrichissement par renseignement sur la menace (\textit{threat intelligence}) et l'usage de modèles d'anomalie avancés constituent des axes de maturation naturels.
-
-Les perspectives incluent également l'agrégation de logs cloud, l'amélioration de la traçabilité pour les audits et la conformité, ainsi que l'intégration progressive avec des processus de réponse à incident plus industrialisés.
+\textbf{Recommandations production :}
+\begin{itemize}
+\item activer TLS et authentification forte sur Elasticsearch/Logstash/Kibana ;
+\item externaliser les snapshots d'index et appliquer une politique de rétention ;
+\item industrialiser l'alerting avec connecteurs (mail, ticketing, webhook SOC).
+\end{itemize}
 
 \section{Conclusion du Chapitre}
 
-Wazuh représente la couche de supervision globale qui relie l'infrastructure défensive (Chapitre~1), la reconnaissance (Chapitre~2), l'exploitation (Chapitre~3), les attaques web (Chapitre~4), la deception (Chapitre~5) et la détection IDS (Chapitre~6). Il apporte la vision corrélée nécessaire pour transformer des signaux dispersés en intelligence actionnable, base d'une réponse à incident structurée et d'une démarche forensique cohérente.
+L'intégration \textbf{ELK Stack} finalise la chaîne du PFE : les événements générés pendant les phases offensives et défensives sont centralisés, corrélés puis visualisés pour une investigation exploitable. Cette mise en œuvre confirme qu'une architecture open-source bien orchestrée fournit un socle SIEM robuste pour la supervision active d'un laboratoire segmenté.
 
 % ==============================================================================
 % ANNEXE A : DOCUMENTATION TECHNIQUE
